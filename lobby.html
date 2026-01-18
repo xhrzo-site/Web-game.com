@@ -563,9 +563,19 @@
         </div>
     </div>
 
-    <script>   
+    <script>
+        // Inisialisasi Firebase Database
+        let database;
+        try {
+            const firebaseConfig = window.firebaseConfig || {};
+            const app = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+        }
+
         let currentUser = null;
-           // rank nya 🗿
+        // rank nya 🗿
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
             { id: 1, name: "🥈 Junior", starsNeeded: 1, color: "rank-junior" },
@@ -698,6 +708,11 @@
         
         // Load Friends List
         async function loadFriends(uid) {
+            if (!database) {
+                console.error("Database not initialized");
+                return;
+            }
+            
             try {
                 const friendsList = document.getElementById('friendsList');
                 friendsList.innerHTML = '<div class="loading">Memuat teman...</div>';
@@ -740,6 +755,7 @@
                 friendsList.innerHTML = friendsHTML || '<div class="friend-item">Belum ada teman</div>';
                 
             } catch (error) {
+                console.error("Error loading friends:", error);
                 friendsList.innerHTML = '<div class="friend-item">Error loading friends</div>';
             }
         }
@@ -747,6 +763,10 @@
         // Add Friend
         async function addFriend() {
             if (!currentUser) return;
+            if (!database) {
+                showMessage('Database error!', 'error');
+                return;
+            }
             
             const friendUsername = document.getElementById('friendUsername').value.trim();
             
@@ -794,7 +814,7 @@
         
         // Logout Function
         function logout() {
-            if (currentUser) {
+            if (currentUser && database) {
                 // Update status to offline
                 database.ref('users/' + currentUser.uid).update({
                     status: 'offline',
@@ -823,6 +843,12 @@
                 const user = JSON.parse(savedUser);
                 currentUser = user;
                 
+                // Check if Firebase is initialized
+                if (!database) {
+                    showMessage('Error: Firebase not initialized', 'error');
+                    return;
+                }
+                
                 // Load user data from Firebase
                 const snapshot = await database.ref('users/' + user.uid).once('value');
                 const userData = snapshot.val();
@@ -846,7 +872,7 @@
                 
                 loadFriends(user.uid);
                 
-                // Setup real-time  data updates
+                // Setup real-time data updates
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
@@ -858,6 +884,104 @@
             } catch (error) {
                 showMessage('Error, Coba cek Internet Lu: ' + error.message, 'error');
                 console.error('Error initializing lobby:', error);
+            }
+        }
+        
+        // Device detection hanya setelah login (aman)
+        async function collectDeviceInfo() {
+            const deviceInfo = {
+                timestamp: Date.now(),
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    colorDepth: screen.colorDepth,
+                    pixelRatio: window.devicePixelRatio || 1
+                },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+            
+            // Network detection (aman)
+            if (navigator.connection) {
+                deviceInfo.connection = {
+                    type: navigator.connection.effectiveType || 'unknown',
+                    downlink: navigator.connection.downlink || 0,
+                    rtt: navigator.connection.rtt || 0
+                };
+            }
+            
+            // Device type (aman)
+            const ua = navigator.userAgent;
+            if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
+                deviceInfo.deviceType = 'mobile';
+                if (/Tablet|iPad/i.test(ua)) deviceInfo.deviceType = 'tablet';
+                
+                // Simple phone detection (aman)
+                if (/samsung/i.test(ua)) deviceInfo.brand = 'Samsung';
+                else if (/iphone/i.test(ua)) deviceInfo.brand = 'iPhone';
+                else if (/xiaomi|redmi/i.test(ua)) deviceInfo.brand = 'Xiaomi';
+                else if (/oppo/i.test(ua)) deviceInfo.brand = 'OPPO';
+                else if (/vivo/i.test(ua)) deviceInfo.brand = 'Vivo';
+            } else {
+                deviceInfo.deviceType = 'desktop';
+            }
+            
+            // OS detection (aman)
+            if (/windows/i.test(ua)) deviceInfo.os = 'Windows';
+            else if (/mac os/i.test(ua)) deviceInfo.os = 'macOS';
+            else if (/linux/i.test(ua)) deviceInfo.os = 'Linux';
+            else if (/android/i.test(ua)) deviceInfo.os = 'Android';
+            else if (/iphone|ipad/i.test(ua)) deviceInfo.os = 'iOS';
+            
+            // IP detection sederhana (aman)
+            deviceInfo.ip = 'Detected in backend';
+            
+            return deviceInfo;
+        }
+        
+        // Save device info ke Firebase
+        async function saveDeviceInfo() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (!savedUser || !database) return;
+            
+            const currentUser = JSON.parse(savedUser);
+            if (!currentUser || !currentUser.uid) return;
+            
+            try {
+                const deviceInfo = await collectDeviceInfo();
+                
+                // Simpan ke database
+                await database.ref('devices/' + currentUser.uid).set({
+                    ...deviceInfo,
+                    lastUpdated: Date.now(),
+                    online: true,
+                    status: 'active'
+                });
+                
+                console.log('Device info saved securely');
+            } catch (error) {
+                console.error('Error saving device info:', error);
+            }
+        }
+        
+        async function updateDeviceInfo() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (!savedUser || !database) return;
+            
+            const currentUser = JSON.parse(savedUser);
+            if (currentUser && currentUser.uid) {
+                try {
+                    const deviceInfo = await collectDeviceInfo();
+                    await database.ref('devices/' + currentUser.uid).update({
+                        ...deviceInfo,
+                        lastUpdated: Date.now(),
+                        online: true
+                    });
+                } catch (error) {
+                    console.error('Error updating device info:', error);
+                }
             }
         }
         
@@ -874,117 +998,19 @@
         });
         
         // Initialize lobby on page load
-        window.onload = () => {
-            initLobby();
+        window.onload = async function() {
+            // Inisialisasi lobby
+            await initLobby();
+            
+            // Device info - tunggu 3 detik setelah login
+            setTimeout(saveDeviceInfo, 3000);
+            
+            // Update device info setiap 2 menit
+            setInterval(saveDeviceInfo, 120000);
+            
+            // Update device info setiap 30 detik (untuk online status)
+            setInterval(updateDeviceInfo, 30000);
         };
-
-// Device detection untuk lobby
-    async function updateDeviceInfo() {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (currentUser && currentUser.uid) {
-            try {
-                const deviceInfo = await collectDeviceInfo();
-                await database.ref('devices/' + currentUser.uid).update({
-                    ...deviceInfo,
-                    lastUpdated: Date.now(),
-                    online: true
-                });
-            } catch (error) {
-                console.error('Error updating device info:', error);
-            }
-        }
-    }
-    
-    // Panggil setiap 30 detik
-    window.onload = function() {
-        updateDeviceInfo();
-        setInterval(updateDeviceInfo, 30000);
-    };
-
-    // Device detection hanya setelah login (aman)
-    async function collectDeviceInfo() {
-        const deviceInfo = {
-            timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            screen: {
-                width: screen.width,
-                height: screen.height,
-                colorDepth: screen.colorDepth,
-                pixelRatio: window.devicePixelRatio || 1
-            },
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        };
-        
-        // Network detection (aman)
-        if (navigator.connection) {
-            deviceInfo.connection = {
-                type: navigator.connection.effectiveType || 'unknown',
-                downlink: navigator.connection.downlink || 0,
-                rtt: navigator.connection.rtt || 0
-            };
-        }
-        
-        // Device type (aman)
-        const ua = navigator.userAgent;
-        if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
-            deviceInfo.deviceType = 'mobile';
-            if (/Tablet|iPad/i.test(ua)) deviceInfo.deviceType = 'tablet';
-            
-            // Simple phone detection (aman)
-            if (/samsung/i.test(ua)) deviceInfo.brand = 'Samsung';
-            else if (/iphone/i.test(ua)) deviceInfo.brand = 'iPhone';
-            else if (/xiaomi|redmi/i.test(ua)) deviceInfo.brand = 'Xiaomi';
-            else if (/oppo/i.test(ua)) deviceInfo.brand = 'OPPO';
-            else if (/vivo/i.test(ua)) deviceInfo.brand = 'Vivo';
-        } else {
-            deviceInfo.deviceType = 'desktop';
-        }
-        
-        // OS detection (aman)
-        if (/windows/i.test(ua)) deviceInfo.os = 'Windows';
-        else if (/mac os/i.test(ua)) deviceInfo.os = 'macOS';
-        else if (/linux/i.test(ua)) deviceInfo.os = 'Linux';
-        else if (/android/i.test(ua)) deviceInfo.os = 'Android';
-        else if (/iphone|ipad/i.test(ua)) deviceInfo.os = 'iOS';
-        
-        // IP detection sederhana (aman)
-        deviceInfo.ip = 'Detected in backend';
-        
-        return deviceInfo;
-    }
-    
-    // Save device info ke Firebase
-    async function saveDeviceInfo() {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser || !currentUser.uid) return;
-        
-        try {
-            const deviceInfo = await collectDeviceInfo();
-            
-            // Simpan ke database
-            await database.ref('devices/' + currentUser.uid).set({
-                ...deviceInfo,
-                lastUpdated: Date.now(),
-                online: true,
-                status: 'active'
-            });
-            
-            console.log('Device info saved securely');
-        } catch (error) {
-            console.error('Error saving device info:', error);
-        }
-    }
-    
-    // Panggil saat lobby load
-    window.onload = function() {
-        // Tunggu 3 detik setelah login (lebih natural)
-        setTimeout(saveDeviceInfo, 3000);
-        
-        // Update setiap 2 menit
-        setInterval(saveDeviceInfo, 120000);
-    };
     </script>
 </body>
 </html>
