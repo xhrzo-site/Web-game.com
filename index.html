@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - The All Game</title>
+    <title>Web Game | © by Zoo x taher</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
         body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
@@ -36,6 +36,35 @@
             background: rgba(255,51,51,0.2);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255,0,0,0.4);
+        }
+        
+        /* Tombol Admin */
+        .admin-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #ffd700;
+            border-radius: 50%;
+            padding: 12px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            font-weight: bold;
+            color: #ffd700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+        }
+        .admin-btn:hover {
+            background: rgba(255,215,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,215,0,0.4);
         }
         
         /* Notice Box Modal */
@@ -291,6 +320,63 @@
             background: linear-gradient(135deg,#ff3333,#cc0000);
         }
         
+        /* Ban Message Modal */
+        .ban-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .ban-modal.active {
+            display: flex;
+            animation: shake 0.5s ease;
+        }
+        .ban-content {
+            background: #1a1a2e;
+            border: 4px solid #ff3333;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255,51,51,0.5);
+        }
+        .ban-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: #ff3333;
+            animation: pulse 1.5s infinite;
+        }
+        .ban-title {
+            font-size: 2em;
+            color: #ff3333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .ban-details {
+            background: rgba(255,51,51,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .ban-info {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .ban-contact {
+            color: #00ff88;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -299,17 +385,33 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
         
         @media (max-width: 768px) {
             .auth-wrapper {
                 padding: 30px 20px;
                 margin-top: 60px;
             }
-            .faq-btn {
+            .faq-btn, .admin-btn {
                 top: 10px;
-                left: 10px;
                 padding: 8px 12px;
                 font-size: 14px;
+            }
+            .admin-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            .ban-content {
+                padding: 25px;
             }
         }
     </style>
@@ -319,6 +421,11 @@
     <div class="faq-btn" onclick="openFAQ()">
         <span>📌</span>
         <span>FAQ</span>
+    </div>
+    
+    <!-- Tombol Admin -->
+    <div class="admin-btn" onclick="goToAdmin()" title="Admin Panel">
+        <span>👑</span>
     </div>
     
     <!-- Modal FAQ -->
@@ -338,6 +445,40 @@
                 <p>Jika ada fitur yang tidak nyaman, mohon dimaafkan.</p>
                 <p>Selamat bermain! 🎮</p>
             </div>
+        </div>
+    </div>
+    
+    <!-- Ban Message Modal -->
+    <div id="banModal" class="ban-modal">
+        <div class="ban-content">
+            <div class="ban-icon">🚫</div>
+            <div class="ban-title">AKUN DI BAN!</div>
+            
+            <div class="ban-details" id="banDetails">
+                <!-- Ban details will be filled by JavaScript -->
+            </div>
+            
+            <p style="color:#aaa;font-size:14px;margin-top:20px;">
+                Akun ini telah dinonaktifkan karena alasan tertentu.<br>
+                Anda tidak dapat mengakses game ini lagi.
+            </p>
+            
+            <div class="ban-contact">
+                Hubungi Admin jika menurut Anda ini kesalahan.
+            </div>
+            
+            <button onclick="closeBanModal()" style="
+                margin-top: 25px;
+                padding: 12px 30px;
+                background: #ff3333;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            ">
+                TUTUP
+            </button>
         </div>
     </div>
     
@@ -384,7 +525,10 @@
     </div>
     
     <script>
+        // ==================== FIREBASE ====================
+        // Firebase sudah diinisialisasi di firebase-config.js
         
+        // ==================== UI FUNCTIONS ====================
         function openFAQ() {
             document.getElementById('faqModal').classList.add('active');
         }
@@ -393,13 +537,10 @@
             document.getElementById('faqModal').classList.remove('active');
         }
         
-        document.getElementById('faqModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFAQ();
-            }
-        });
+        function goToAdmin() {
+            window.location.href = 'admin.html';
+        }
         
-  
         function switchToLogin() {
             document.getElementById('registerForm').classList.remove('active');
             setTimeout(() => {
@@ -414,7 +555,6 @@
             }, 50);
         }
         
-        // Show message
         function showMessage(text, type = 'success') {
             const message = document.createElement('div');
             message.className = `message ${type}`;
@@ -426,137 +566,57 @@
             }, 3000);
         }
         
-        // Register Function
-        document.getElementById('registerBtn').addEventListener('click', async () => {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
+        function showBanModal(userData) {
+            const banDetails = document.getElementById('banDetails');
             
-            if (username.length < 3) {
-                showMessage('Username minimal 3 karakter!', 'error');
-                return;
-            }
-            
-            if (password.length < 4) {
-                showMessage('Password minimal 4 karakter!', 'error');
-                return;
-            }
-            
-            try {
-                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                
-                if (snapshot.exists()) {
-                    showMessage('Username udah Ada yang pakai bro!', 'error');
-                    return;
-                }
-                
-                // Buat user ID
-                const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Simpan ke database dengan rank awal
-                await database.ref('users/' + userId).set({
-                    uid: userId,
-                    username: username,
-                    password: password,
-                    money: 1000,
-                    diamond: 10,
-                    rank: 0, // Newbie
-                    stars: 0,
-                    credit: 0,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    lastPlayed: Date.now(),
-                    status: 'online',
-                    gamesPlayed: 0
+            // Format ban date
+            let banDate = 'Unknown';
+            if (userData.banDate) {
+                banDate = new Date(userData.banDate).toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
-                
-                // Buat list teman kosong
-                await database.ref('friends/' + userId).set({});
-                
-                // Save user data and redirect to lobby
-                const userData = {
-                    uid: userId,
-                    username: username,
-                    money: 1000,
-                    diamond: 10,
-                    rank: 0,
-                    stars: 0
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                
-                showMessage('Akun berhasil dibuat! ✅', 'success');
-                setTimeout(() => {
-                    window.location.href = 'lobby.html';
-                }, 1000);
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+            }
+            
+            // Get ban reason
+            let banReason = 'Tidak disebutkan';
+            if (userData.banHistory) {
+                const historyKeys = Object.keys(userData.banHistory);
+                if (historyKeys.length > 0) {
+                    const lastBan = userData.banHistory[historyKeys[historyKeys.length - 1]];
+                    if (lastBan.reason) {
+                        banReason = lastBan.reason;
+                    }
+                }
+            }
+            
+            banDetails.innerHTML = `
+                <div class="ban-info"><strong>Username:</strong> ${userData.username || 'Unknown'}</div>
+                <div class="ban-info"><strong>Status:</strong> <span style="color:#ff3333">BANNED PERMANEN</span></div>
+                <div class="ban-info"><strong>Tanggal Ban:</strong> ${banDate}</div>
+                <div class="ban-info"><strong>Alasan Ban:</strong> ${banReason}</div>
+                <div class="ban-info"><strong>Admin:</strong> Taher (Owner)</div>
+            `;
+            
+            document.getElementById('banModal').classList.add('active');
+        }
+        
+        function closeBanModal() {
+            document.getElementById('banModal').classList.remove('active');
+            // Clear any stored user data
+            localStorage.removeItem('currentUser');
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        document.getElementById('faqModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFAQ();
             }
         });
-        
-        // Login Function
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            
-            try {
-                // Cari user
-                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                
-                if (!snapshot.exists()) {
-                    showMessage('Username tidak ditemukan!', 'error');
-                    return;
-                }
-                
-                const userData = snapshot.val();
-                const userId = Object.keys(userData)[0];
-                const user = userData[userId];
-                
-                // Cek password
-                if (user.password !== password) {
-                    showMessage('Password salah!', 'error');
-                    return;
-                }
-                
-                // Update status
-                await database.ref('users/' + userId).update({
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    status: 'online'
-                });
-                
-                // Save user data and redirect to lobby
-                const currentUser = {
-                    uid: userId,
-                    username: user.username,
-                    money: user.money,
-                    diamond: user.diamond,
-                    rank: user.rank || 0,
-                    stars: user.stars || 0
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                showMessage('Login berhasil✅!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'lobby.html';
-                }, 1000);
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        });
-        
-        // Auto focus to login form
-        window.onload = () => {
-            document.getElementById('loginUsername').focus();
-            
-            // Check if user is already logged in
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                // Redirect to lobby if already logged in
-                window.location.href = 'lobby.html';
-            }
-        };
         
         // Enter key support
         document.getElementById('regPassword').addEventListener('keypress', (e) => {
@@ -571,8 +631,205 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeFAQ();
+                closeBanModal();
             }
         });
+        
+        // ==================== REGISTER FUNCTION ====================
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            
+            if (username.length < 3) {
+                showMessage('Username minimal 3 karakter!', 'error');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showMessage('Password minimal 4 karakter!', 'error');
+                return;
+            }
+            
+            // Check if username contains inappropriate words
+            const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
+            if (badWords.some(word => username.toLowerCase().includes(word))) {
+                showMessage('Username tidak diperbolehkan!', 'error');
+                return;
+            }
+            
+            try {
+                // Check if username already exists
+                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                
+                if (snapshot.exists()) {
+                    showMessage('Username udah Ada yang pakai bro!', 'error');
+                    return;
+                }
+                
+                // Create user ID
+                const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Save to database with initial rank
+                await database.ref('users/' + userId).set({
+                    uid: userId,
+                    username: username,
+                    password: password,
+                    money: 1000,
+                    diamond: 10,
+                    rank: 0,
+                    stars: 0,
+                    credit: 0,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    lastPlayed: Date.now(),
+                    status: 'online',
+                    gamesPlayed: 0,
+                    banned: false,
+                    registeredIP: 'unknown'
+                });
+                
+                // Create empty friends list
+                await database.ref('friends/' + userId).set({});
+                
+                // Save user data and redirect to lobby
+                const userData = {
+                    uid: userId,
+                    username: username,
+                    money: 1000,
+                    diamond: 10,
+                    rank: 0,
+                    stars: 0,
+                    banned: false
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                showMessage('Akun berhasil dibuat! ✅', 'success');
+                setTimeout(() => {
+                    window.location.href = 'lobby.html';
+                }, 1000);
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        // ==================== LOGIN FUNCTION WITH BAN CHECK ====================
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showMessage('Isi username dan password!', 'error');
+                return;
+            }
+            
+            try {
+                // Find user
+                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                
+                if (!snapshot.exists()) {
+                    showMessage('Username tidak ditemukan!', 'error');
+                    return;
+                }
+                
+                const userData = snapshot.val();
+                const userId = Object.keys(userData)[0];
+                const user = userData[userId];
+                
+                // ===== CHECK IF USER IS BANNED =====
+                if (user.banned) {
+                    // Show ban message
+                    showMessage('❌ AKUN ANDA TELAH DI BAN!', 'error');
+                    
+                    // Show detailed ban modal after short delay
+                    setTimeout(() => {
+                        showBanModal(user);
+                    }, 500);
+                    
+                    return;
+                }
+                
+                // Check password
+                if (user.password !== password) {
+                    showMessage('Password salah!', 'error');
+                    return;
+                }
+                
+                // Update status
+                await database.ref('users/' + userId).update({
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'online',
+                    loginCount: (user.loginCount || 0) + 1
+                });
+                
+                // Save user data and redirect to lobby
+                const currentUser = {
+                    uid: userId,
+                    username: user.username,
+                    money: user.money,
+                    diamond: user.diamond,
+                    rank: user.rank || 0,
+                    stars: user.stars || 0,
+                    banned: false
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                showMessage('Login berhasil✅!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'lobby.html';
+                }, 1000);
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        // ==================== INITIALIZATION ====================
+        window.onload = () => {
+            // Auto focus to login form
+            document.getElementById('loginUsername').focus();
+            
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                
+                // Check ban status even if already logged in
+                checkBanStatus(user.uid).then(isBanned => {
+                    if (isBanned) {
+                        // Clear localStorage if banned
+                        localStorage.removeItem('currentUser');
+                        // Don't redirect, stay on login page
+                    } else {
+                        // Redirect to lobby if not banned
+                        window.location.href = 'lobby.html';
+                    }
+                });
+            }
+        };
+        
+        // Function to check ban status
+        async function checkBanStatus(userId) {
+            try {
+                const snapshot = await database.ref('users/' + userId).once('value');
+                const user = snapshot.val();
+                
+                if (user && user.banned) {
+                    // User is banned, show ban modal
+                    setTimeout(() => {
+                        showBanModal(user);
+                    }, 100);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Error checking ban status:', error);
+                return false;
+            }
+        }
     </script>
 </body>
 </html>

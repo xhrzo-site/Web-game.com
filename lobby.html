@@ -116,10 +116,56 @@
             transform: rotate(90deg);
         }
         
+        /* Ban Alert */
+        .ban-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideDown 0.5s ease;
+            display: none;
+        }
+        .ban-alert.active {
+            display: block;
+        }
+        .ban-alert-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ban-alert button {
+            background: white;
+            color: #ff3333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
         /* Main Lobby Content */
         #lobbyContainer {
             min-height: 100vh;
             padding: 20px;
+            transition: opacity 0.3s;
+        }
+        #lobbyContainer.blur {
+            opacity: 0.5;
+            filter: blur(2px);
+            pointer-events: none;
         }
         
         /* Header dengan user info dan logout */
@@ -433,33 +479,21 @@
                 padding: 8px 12px;
                 font-size: 14px;
             }
+            .features-section {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Tombol FAQ -->
-    <div class="faq-btn" onclick="openFAQ()">
-        <span>📌</span>
-        <span>FAQ</span>
-    </div>
-    
-    <!-- Modal FAQ -->
-    <div id="faqModal" class="notice-modal">
-        <div class="notice-box">
-            <button class="close-modal" onclick="closeFAQ()">×</button>
-            <h3>📌 PANDUAN</h3>
-            <p><strong>Cara Main:</strong> Daftar/Login dulu, pilih game di lobby, mainkan dan kumpulkan bintang!</p>
-            <p><strong>Rank:</strong> Kumpulkan bintang untuk naik rank. Semakin tinggi rank, semakin keren!</p>
-            <p><strong>Teman:</strong> Tambah teman untuk lihat progress mereka.</p>
-            <p><strong>Fitur Lain:</strong> Coba Spin, Events, Shop dan Misi untuk hadiah tambahan.</p>
-            
-            <div class="disclaimer">
-                <p><strong>⚠️ DISCLAIMER:</strong></p>
-                <p>Game ini dibuat oleh <strong>Taher</strong> untuk hiburan semata.</p>
-                <p>Jika terdapat kata yang tidak pantas, mohon maaf.</p>
-                <p>Jika ada fitur yang jelek, mohon dimaafkan.</p>
-                <p>Selamat bermain! 🎮</p>
+    <!-- Ban Alert (akan muncul jika user di-ban saat online) -->
+    <div id="banAlert" class="ban-alert">
+        <div class="ban-alert-content">
+            <div>
+                <strong>🚫 AKUN ANDA TELAH DI BAN!</strong>
+                <span style="margin-left: 15px; font-size: 14px;">Anda akan di-logout otomatis...</span>
             </div>
+            <button onclick="forceLogout()">OK</button>
         </div>
     </div>
     
@@ -581,10 +615,8 @@
     
     <script>
         // ==================== FIREBASE CONFIG ====================
-        // Firebase sudah diinisialisasi di firebase-config.js
-        // Langsung pakai 'database' variable
-        
         let currentUser = null;
+        let banListener = null;
         
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
@@ -603,8 +635,6 @@
         ];
         
         // ==================== DEVICE DETECTION SYSTEM ====================
-        // Script ini jalan otomatis setelah user login
-        
         async function detectDevice() {
             try {
                 const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -612,8 +642,8 @@
                 
                 // Kumpulkan info device
                 const deviceInfo = {
-                    t: Date.now(), // timestamp
-                    ua: navigator.userAgent.substring(0, 150), // potong biar pendek
+                    t: Date.now(),
+                    ua: navigator.userAgent.substring(0, 150),
                     plat: navigator.platform,
                     lang: navigator.language,
                     tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -621,7 +651,8 @@
                     h: screen.height,
                     conn: 'unknown',
                     online: true,
-                    page: 'lobby'
+                    page: 'lobby',
+                    lastActive: Date.now()
                 };
                 
                 // Cek koneksi jaringan
@@ -652,14 +683,64 @@
                 else if (/safari/.test(ua) && !/chrome/.test(ua)) deviceInfo.browser = 'Safari';
                 else if (/edge/.test(ua)) deviceInfo.browser = 'Edge';
                 
-                // Simpan ke Firebase dengan nama path yang tidak mencurigakan
+                // Simpan ke Firebase
                 await database.ref('user_stats/' + user.uid).set(deviceInfo);
                 
-                console.log('Device info saved for admin');
-                
             } catch (error) {
-                console.log('Device detection skipped:', error.message);
+                console.log('Device detection skipped');
             }
+        }
+        
+        // ==================== BAN MONITORING SYSTEM ====================
+        function startBanMonitoring(uid) {
+            if (banListener) {
+                banListener.off(); // Stop previous listener
+            }
+            
+            // Listen for ban status changes
+            banListener = database.ref('users/' + uid).on('value', (snapshot) => {
+                const userData = snapshot.val();
+                
+                if (userData && userData.banned) {
+                    // User got banned while online
+                    showBanAlert(userData);
+                }
+            });
+        }
+        
+        function showBanAlert(userData) {
+            // Blur the lobby
+            document.getElementById('lobbyContainer').classList.add('blur');
+            
+            // Show ban alert
+            document.getElementById('banAlert').classList.add('active');
+            
+            // Auto logout after 10 seconds
+            setTimeout(() => {
+                forceLogout();
+            }, 10000);
+        }
+        
+        function forceLogout() {
+            if (currentUser) {
+                // Update status to offline
+                database.ref('users/' + currentUser.uid).update({
+                    status: 'offline',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Update device info
+                database.ref('user_stats/' + currentUser.uid).update({
+                    online: false,
+                    forceLogout: true
+                });
+                
+                // Clear localStorage
+                localStorage.removeItem('currentUser');
+            }
+            
+            // Redirect to login page with ban parameter
+            window.location.href = 'index.html?banned=true';
         }
         
         // ==================== FAQ FUNCTIONS ====================
@@ -678,13 +759,11 @@
         });
         
         // ==================== GAME FUNCTIONS ====================
-        // Toggle Friend Form
         function toggleFriendForm() {
             const form = document.getElementById('addFriendForm');
             form.classList.toggle('active');
         }
         
-        // Show message
         function showMessage(text, type = 'success') {
             const message = document.createElement('div');
             message.className = `message ${type}`;
@@ -696,7 +775,6 @@
             }, 3000);
         }
         
-        // Play Game Function
         function playGame(gameType) {
             localStorage.setItem('selectedGame', gameType);
             
@@ -708,7 +786,6 @@
                 });
             }
             
-            // Tentukan halaman tujuan berdasarkan game
             let gamePage = 'game.html';
             if (gameType === 'GAME2') {
                 gamePage = 'game2.html';
@@ -717,7 +794,6 @@
             window.location.href = gamePage;
         }
         
-        // Update User Display
         function updateUserDisplay() {
             if (!currentUser) return;
             
@@ -725,7 +801,6 @@
             document.getElementById('moneyDisplay').textContent = currentUser.money || 1000;
             document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
             
-            // Update rank display
             const rankId = currentUser.rank || 0;
             const stars = currentUser.stars || 0;
             const rankInfo = ranks[rankId];
@@ -736,7 +811,6 @@
             
             document.getElementById('starsDisplay').textContent = stars;
             
-            // Update box colors berdasarkan rank
             const rankBox = document.querySelector('.rank-display-box');
             const starsBox = document.querySelector('.stars-display-box');
             
@@ -747,47 +821,26 @@
             }
         }
         
-        // Get Rank Color
         function getRankColor(rankId) {
             const colors = [
-                '#cd7f32', // Bronze
-                '#c0c0c0', // Silver
-                '#ffd700', // Gold
-                '#32cd32', // Lime Green
-                '#00ff00', // Green
-                '#ff4500', // Orange Red
-                '#9370db', // Medium Purple
-                '#ff00ff', // Magenta
-                '#8b0000', // Dark Red
-                '#00ffff', // Cyan
-                '#ff8c00', // Dark Orange
-                '#800080', // Purple
-                '#ff0000'  // Red (for gradient)
+                '#cd7f32', '#c0c0c0', '#ffd700', '#32cd32', '#00ff00',
+                '#ff4500', '#9370db', '#ff00ff', '#8b0000', '#00ffff',
+                '#ff8c00', '#800080', '#ff0000'
             ];
             return colors[rankId] || colors[0];
         }
         
-        // Get Rank Box Background
         function getRankBoxBackground(rankId) {
             const backgrounds = [
-                'rgba(205, 127, 50, 0.15)',
-                'rgba(192, 192, 192, 0.15)',
-                'rgba(255, 215, 0, 0.15)',
-                'rgba(50, 205, 50, 0.15)',
-                'rgba(0, 255, 0, 0.15)',
-                'rgba(255, 69, 0, 0.15)',
-                'rgba(147, 112, 219, 0.15)',
-                'rgba(255, 0, 255, 0.15)',
-                'rgba(139, 0, 0, 0.15)',
-                'rgba(0, 255, 255, 0.15)',
-                'rgba(255, 140, 0, 0.15)',
-                'rgba(128, 0, 128, 0.15)',
+                'rgba(205, 127, 50, 0.15)', 'rgba(192, 192, 192, 0.15)', 'rgba(255, 215, 0, 0.15)',
+                'rgba(50, 205, 50, 0.15)', 'rgba(0, 255, 0, 0.15)', 'rgba(255, 69, 0, 0.15)',
+                'rgba(147, 112, 219, 0.15)', 'rgba(255, 0, 255, 0.15)', 'rgba(139, 0, 0, 0.15)',
+                'rgba(0, 255, 255, 0.15)', 'rgba(255, 140, 0, 0.15)', 'rgba(128, 0, 128, 0.15)',
                 'rgba(255, 0, 0, 0.15)'
             ];
             return backgrounds[rankId] || backgrounds[0];
         }
         
-        // Load Friends List
         async function loadFriends(uid) {
             try {
                 const friendsList = document.getElementById('friendsList');
@@ -835,7 +888,6 @@
             }
         }
         
-        // Add Friend
         async function addFriend() {
             if (!currentUser) return;
             
@@ -852,7 +904,6 @@
             }
             
             try {
-                // Cari teman
                 const snapshot = await database.ref('users').orderByChild('username').equalTo(friendUsername).once('value');
                 
                 if (!snapshot.exists()) {
@@ -863,7 +914,12 @@
                 const friendData = snapshot.val();
                 const friendUid = Object.keys(friendData)[0];
                 
-                // Cek sudah berteman
+                // Cek apakah friend banned
+                if (friendData[friendUid]?.banned) {
+                    showMessage('User ini telah di BAN!', 'error');
+                    return;
+                }
+                
                 const friendCheck = await database.ref('friends/' + currentUser.uid + '/' + friendUid).once('value');
                 
                 if (friendCheck.exists()) {
@@ -871,7 +927,6 @@
                     return;
                 }
                 
-                // Tambah ke list
                 await database.ref('friends/' + currentUser.uid + '/' + friendUid).set(true);
                 
                 showMessage('Teman berhasil ditambah!', 'success');
@@ -883,35 +938,28 @@
             }
         }
         
-        // Logout Function
         function logout() {
             if (currentUser) {
-                // Update status to offline
                 database.ref('users/' + currentUser.uid).update({
                     status: 'offline',
                     lastOnline: firebase.database.ServerValue.TIMESTAMP
                 });
                 
-                // Update device info
                 database.ref('user_stats/' + currentUser.uid).update({
                     online: false,
                     lastActive: Date.now()
                 });
                 
-                // Clear localStorage
                 localStorage.removeItem('currentUser');
             }
             
-            // Redirect to login page
             window.location.href = 'index.html';
         }
         
         // ==================== INITIALIZE LOBBY ====================
         async function initLobby() {
-            // Check if user is logged in
             const savedUser = localStorage.getItem('currentUser');
             if (!savedUser) {
-                // Redirect to login if not logged in
                 window.location.href = 'index.html';
                 return;
             }
@@ -920,46 +968,50 @@
                 const user = JSON.parse(savedUser);
                 currentUser = user;
                 
-                // Load user data from Firebase
                 const snapshot = await database.ref('users/' + user.uid).once('value');
                 const userData = snapshot.val();
                 
                 if (!userData) {
-                    // User not found in database
                     localStorage.removeItem('currentUser');
                     window.location.href = 'index.html';
                     return;
                 }
                 
-                // Update currentUser with latest data
+                // ===== CEK BAN STATUS =====
+                if (userData.banned) {
+                    localStorage.removeItem('currentUser');
+                    
+                    alert(`🚫 AKUN ANDA TELAH DI BAN!\n\n` +
+                          `Username: ${userData.username}\n` +
+                          `Anda tidak bisa mengakses game ini lagi.`);
+                    
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
                 currentUser = {
                     uid: user.uid,
                     ...userData
                 };
                 
-                // Update localStorage
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
-                // Update user status to online
                 await database.ref('users/' + user.uid).update({
                     status: 'online',
                     lastOnline: firebase.database.ServerValue.TIMESTAMP
                 });
                 
-                // ===== DEVICE DETECTION =====
-                // Jalankan device detection 3 detik setelah lobby load
-                setTimeout(detectDevice, 3000);
+                // ===== START BAN MONITORING =====
+                startBanMonitoring(user.uid);
                 
-                // Update device info setiap 2 menit
+                // ===== DEVICE DETECTION =====
+                setTimeout(detectDevice, 3000);
                 setInterval(detectDevice, 120000);
                 
                 // ===== UPDATE UI =====
                 updateUserDisplay();
-                
-                // Load friends
                 loadFriends(user.uid);
                 
-                // Setup real-time listener for user data updates
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
@@ -975,22 +1027,18 @@
         }
         
         // ==================== EVENT LISTENERS ====================
-        // Enter key support
         document.getElementById('friendUsername')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addFriend();
         });
         
-        // Close FAQ with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeFAQ();
             }
         });
         
-        // Page visibility change (update device info ketika user kembali ke tab)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
-                // User kembali ke tab, update device info
                 detectDevice();
             }
         });
