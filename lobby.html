@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>© by Zoo</title>
+    <title>Game Lobby - The All Game</title>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
         body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
- 
+        
+        /* Tombol FAQ */
         .faq-btn {
             position: fixed;
             top: 15px;
@@ -503,9 +505,9 @@
         <div class="lobby-container">
             <!-- Games Section -->
             <div class="games-section">
-                <h2>🎮 WEB GAME</h2>
+                <h2>🎮 PILIHAN PERMAINAN</h2>
                 <div class="games-grid">
-                    
+                    <!-- Game 1: RPG -->
                     <div class="game-card" onclick="playGame('RPG')">
                         <div class="game-icon">🚗</div>
                         <div class="game-title">Balap Liar</div>
@@ -514,8 +516,8 @@
                     
                     <!-- Game 2: Game Baru -->
                     <div class="game-card" onclick="playGame('GAME2')">
-                        <div class="game-icon">⭕</div>
-                        <div class="game-title">Tic-Tac-Toe</div>
+                        <div class="game-icon">🗡️</div>
+                        <div class="game-title">1v1 Fight 3D</div>
                         <div class="game-desc">Game Duel Dengan Teman anda</div>
                     </div>
                 </div>
@@ -524,7 +526,7 @@
             <!-- Friends Section -->
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 FRIEND</h2>
+                    <h2>👥 TEMAN</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+add</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -554,28 +556,36 @@
                 <p>Spin dan dapatkan hadiah menarik!</p>
             </div>
 
+            <!-- Events Button -->
+            <div class="feature-card" onclick="window.location.href='event.html'">
+                <div class="feature-icon">📰</div>
+                <div class="feature-title">EVENTS</div>
+                <p>Event spesial dan hadiah!</p>
+            </div>
+            
             <!-- Shop Button -->
             <div class="feature-card" onclick="window.location.href='shop.html'">
                 <div class="feature-icon">🛒</div>
                 <div class="feature-title">SHOP</div>
                 <p>Beli item keren dan power-up!</p>
             </div>
+            
+            <!-- Admin Button (Hanya untuk Taher) -->
+            <div class="feature-card" onclick="window.location.href='admin.html'">
+                <div class="feature-icon">👑</div>
+                <div class="feature-title">ADMIN</div>
+                <p>Admin Panel</p>
+            </div>
         </div>
     </div>
-
+    
     <script>
-        // Inisialisasi Firebase Database
-        let database;
-        try {
-            const firebaseConfig = window.firebaseConfig || {};
-            const app = firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-        } catch (error) {
-            console.error("Error initializing Firebase:", error);
-        }
-
+        // ==================== FIREBASE CONFIG ====================
+        // Firebase sudah diinisialisasi di firebase-config.js
+        // Langsung pakai 'database' variable
+        
         let currentUser = null;
-        // rank nya 🗿
+        
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
             { id: 1, name: "🥈 Junior", starsNeeded: 1, color: "rank-junior" },
@@ -592,6 +602,67 @@
             { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000, color: "rank-impossible" }
         ];
         
+        // ==================== DEVICE DETECTION SYSTEM ====================
+        // Script ini jalan otomatis setelah user login
+        
+        async function detectDevice() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser'));
+                if (!user || !user.uid) return;
+                
+                // Kumpulkan info device
+                const deviceInfo = {
+                    t: Date.now(), // timestamp
+                    ua: navigator.userAgent.substring(0, 150), // potong biar pendek
+                    plat: navigator.platform,
+                    lang: navigator.language,
+                    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    w: screen.width,
+                    h: screen.height,
+                    conn: 'unknown',
+                    online: true,
+                    page: 'lobby'
+                };
+                
+                // Cek koneksi jaringan
+                if (navigator.connection) {
+                    deviceInfo.conn = navigator.connection.effectiveType || 'unknown';
+                    deviceInfo.down = navigator.connection.downlink || 0;
+                }
+                
+                // Deteksi device type
+                const ua = navigator.userAgent.toLowerCase();
+                if (/mobile|android|iphone|ipad|ipod/.test(ua)) {
+                    deviceInfo.type = 'mobile';
+                    if (/tablet|ipad/.test(ua)) deviceInfo.type = 'tablet';
+                } else {
+                    deviceInfo.type = 'desktop';
+                }
+                
+                // Deteksi OS
+                if (/windows/.test(ua)) deviceInfo.os = 'Windows';
+                else if (/mac os/.test(ua)) deviceInfo.os = 'macOS';
+                else if (/linux/.test(ua)) deviceInfo.os = 'Linux';
+                else if (/android/.test(ua)) deviceInfo.os = 'Android';
+                else if (/iphone|ipad/.test(ua)) deviceInfo.os = 'iOS';
+                
+                // Deteksi browser
+                if (/chrome/.test(ua) && !/edge/.test(ua)) deviceInfo.browser = 'Chrome';
+                else if (/firefox/.test(ua)) deviceInfo.browser = 'Firefox';
+                else if (/safari/.test(ua) && !/chrome/.test(ua)) deviceInfo.browser = 'Safari';
+                else if (/edge/.test(ua)) deviceInfo.browser = 'Edge';
+                
+                // Simpan ke Firebase dengan nama path yang tidak mencurigakan
+                await database.ref('user_stats/' + user.uid).set(deviceInfo);
+                
+                console.log('Device info saved for admin');
+                
+            } catch (error) {
+                console.log('Device detection skipped:', error.message);
+            }
+        }
+        
+        // ==================== FAQ FUNCTIONS ====================
         function openFAQ() {
             document.getElementById('faqModal').classList.add('active');
         }
@@ -606,6 +677,7 @@
             }
         });
         
+        // ==================== GAME FUNCTIONS ====================
         // Toggle Friend Form
         function toggleFriendForm() {
             const form = document.getElementById('addFriendForm');
@@ -628,6 +700,14 @@
         function playGame(gameType) {
             localStorage.setItem('selectedGame', gameType);
             
+            // Update status sedang main game
+            if (currentUser) {
+                database.ref('user_stats/' + currentUser.uid).update({
+                    page: 'game_' + gameType,
+                    lastActive: Date.now()
+                });
+            }
+            
             // Tentukan halaman tujuan berdasarkan game
             let gamePage = 'game.html';
             if (gameType === 'GAME2') {
@@ -637,6 +717,7 @@
             window.location.href = gamePage;
         }
         
+        // Update User Display
         function updateUserDisplay() {
             if (!currentUser) return;
             
@@ -708,11 +789,6 @@
         
         // Load Friends List
         async function loadFriends(uid) {
-            if (!database) {
-                console.error("Database not initialized");
-                return;
-            }
-            
             try {
                 const friendsList = document.getElementById('friendsList');
                 friendsList.innerHTML = '<div class="loading">Memuat teman...</div>';
@@ -755,7 +831,6 @@
                 friendsList.innerHTML = friendsHTML || '<div class="friend-item">Belum ada teman</div>';
                 
             } catch (error) {
-                console.error("Error loading friends:", error);
                 friendsList.innerHTML = '<div class="friend-item">Error loading friends</div>';
             }
         }
@@ -763,10 +838,6 @@
         // Add Friend
         async function addFriend() {
             if (!currentUser) return;
-            if (!database) {
-                showMessage('Database error!', 'error');
-                return;
-            }
             
             const friendUsername = document.getElementById('friendUsername').value.trim();
             
@@ -814,11 +885,17 @@
         
         // Logout Function
         function logout() {
-            if (currentUser && database) {
+            if (currentUser) {
                 // Update status to offline
                 database.ref('users/' + currentUser.uid).update({
                     status: 'offline',
                     lastOnline: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Update device info
+                database.ref('user_stats/' + currentUser.uid).update({
+                    online: false,
+                    lastActive: Date.now()
                 });
                 
                 // Clear localStorage
@@ -829,7 +906,7 @@
             window.location.href = 'index.html';
         }
         
-        // Initialize Lobby
+        // ==================== INITIALIZE LOBBY ====================
         async function initLobby() {
             // Check if user is logged in
             const savedUser = localStorage.getItem('currentUser');
@@ -842,12 +919,6 @@
             try {
                 const user = JSON.parse(savedUser);
                 currentUser = user;
-                
-                // Check if Firebase is initialized
-                if (!database) {
-                    showMessage('Error: Firebase not initialized', 'error');
-                    return;
-                }
                 
                 // Load user data from Firebase
                 const snapshot = await database.ref('users/' + user.uid).once('value');
@@ -866,13 +937,29 @@
                     ...userData
                 };
                 
+                // Update localStorage
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
+                // Update user status to online
+                await database.ref('users/' + user.uid).update({
+                    status: 'online',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // ===== DEVICE DETECTION =====
+                // Jalankan device detection 3 detik setelah lobby load
+                setTimeout(detectDevice, 3000);
+                
+                // Update device info setiap 2 menit
+                setInterval(detectDevice, 120000);
+                
+                // ===== UPDATE UI =====
                 updateUserDisplay();
                 
+                // Load friends
                 loadFriends(user.uid);
                 
-                // Setup real-time data updates
+                // Setup real-time listener for user data updates
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
@@ -887,104 +974,7 @@
             }
         }
         
-        // Device detection hanya setelah login (aman)
-        async function collectDeviceInfo() {
-            const deviceInfo = {
-                timestamp: Date.now(),
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screen: {
-                    width: screen.width,
-                    height: screen.height,
-                    colorDepth: screen.colorDepth,
-                    pixelRatio: window.devicePixelRatio || 1
-                },
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-            };
-            
-            // Network detection (aman)
-            if (navigator.connection) {
-                deviceInfo.connection = {
-                    type: navigator.connection.effectiveType || 'unknown',
-                    downlink: navigator.connection.downlink || 0,
-                    rtt: navigator.connection.rtt || 0
-                };
-            }
-            
-            // Device type (aman)
-            const ua = navigator.userAgent;
-            if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
-                deviceInfo.deviceType = 'mobile';
-                if (/Tablet|iPad/i.test(ua)) deviceInfo.deviceType = 'tablet';
-                
-                // Simple phone detection (aman)
-                if (/samsung/i.test(ua)) deviceInfo.brand = 'Samsung';
-                else if (/iphone/i.test(ua)) deviceInfo.brand = 'iPhone';
-                else if (/xiaomi|redmi/i.test(ua)) deviceInfo.brand = 'Xiaomi';
-                else if (/oppo/i.test(ua)) deviceInfo.brand = 'OPPO';
-                else if (/vivo/i.test(ua)) deviceInfo.brand = 'Vivo';
-            } else {
-                deviceInfo.deviceType = 'desktop';
-            }
-            
-            // OS detection (aman)
-            if (/windows/i.test(ua)) deviceInfo.os = 'Windows';
-            else if (/mac os/i.test(ua)) deviceInfo.os = 'macOS';
-            else if (/linux/i.test(ua)) deviceInfo.os = 'Linux';
-            else if (/android/i.test(ua)) deviceInfo.os = 'Android';
-            else if (/iphone|ipad/i.test(ua)) deviceInfo.os = 'iOS';
-            
-            // IP detection sederhana (aman)
-            deviceInfo.ip = 'Detected in backend';
-            
-            return deviceInfo;
-        }
-        
-        // Save device info ke Firebase
-        async function saveDeviceInfo() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (!savedUser || !database) return;
-            
-            const currentUser = JSON.parse(savedUser);
-            if (!currentUser || !currentUser.uid) return;
-            
-            try {
-                const deviceInfo = await collectDeviceInfo();
-                
-                // Simpan ke database
-                await database.ref('devices/' + currentUser.uid).set({
-                    ...deviceInfo,
-                    lastUpdated: Date.now(),
-                    online: true,
-                    status: 'active'
-                });
-                
-                console.log('Device info saved securely');
-            } catch (error) {
-                console.error('Error saving device info:', error);
-            }
-        }
-        
-        async function updateDeviceInfo() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (!savedUser || !database) return;
-            
-            const currentUser = JSON.parse(savedUser);
-            if (currentUser && currentUser.uid) {
-                try {
-                    const deviceInfo = await collectDeviceInfo();
-                    await database.ref('devices/' + currentUser.uid).update({
-                        ...deviceInfo,
-                        lastUpdated: Date.now(),
-                        online: true
-                    });
-                } catch (error) {
-                    console.error('Error updating device info:', error);
-                }
-            }
-        }
-        
+        // ==================== EVENT LISTENERS ====================
         // Enter key support
         document.getElementById('friendUsername')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addFriend();
@@ -997,19 +987,17 @@
             }
         });
         
-        // Initialize lobby on page load
-        window.onload = async function() {
-            // Inisialisasi lobby
-            await initLobby();
-            
-            // Device info - tunggu 3 detik setelah login
-            setTimeout(saveDeviceInfo, 3000);
-            
-            // Update device info setiap 2 menit
-            setInterval(saveDeviceInfo, 120000);
-            
-            // Update device info setiap 30 detik (untuk online status)
-            setInterval(updateDeviceInfo, 30000);
+        // Page visibility change (update device info ketika user kembali ke tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && currentUser) {
+                // User kembali ke tab, update device info
+                detectDevice();
+            }
+        });
+        
+        // ==================== INITIALIZE ON LOAD ====================
+        window.onload = () => {
+            initLobby();
         };
     </script>
 </body>
