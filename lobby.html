@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Lobby - The All Game</title>
-    <!-- Firebase SDK -->
+    <title>© by Zoo</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
         body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
-        
-        /* Tombol FAQ */
+ 
         .faq-btn {
             position: fixed;
             top: 15px;
@@ -505,9 +503,9 @@
         <div class="lobby-container">
             <!-- Games Section -->
             <div class="games-section">
-                <h2>🎮 PILIHAN PERMAINAN</h2>
+                <h2>🎮 WEB GAME</h2>
                 <div class="games-grid">
-                    <!-- Game 1: RPG -->
+                    
                     <div class="game-card" onclick="playGame('RPG')">
                         <div class="game-icon">🚗</div>
                         <div class="game-title">Balap Liar</div>
@@ -516,8 +514,8 @@
                     
                     <!-- Game 2: Game Baru -->
                     <div class="game-card" onclick="playGame('GAME2')">
-                        <div class="game-icon">🗡️</div>
-                        <div class="game-title">1v1 Fight 3D</div>
+                        <div class="game-icon">⭕</div>
+                        <div class="game-title">Tic-Tac-Toe</div>
                         <div class="game-desc">Game Duel Dengan Teman anda</div>
                     </div>
                 </div>
@@ -526,7 +524,7 @@
             <!-- Friends Section -->
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 TEMAN</h2>
+                    <h2>👥 FRIEND</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+add</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -565,19 +563,9 @@
         </div>
     </div>
 
-    <!-- Di dalam div class="features-section" tambahkan ini: -->
-<div class="feature-card" onclick="window.location.href='admin.html'">
-    <div class="feature-icon">👑</div>
-    <div class="feature-title">ADMIN PANEL</div>
-    <p>Panel admin (hanya untuk admin)</p>
-</div>
-
-    <script>
-      
-        
+    <script>   
         let currentUser = null;
-        
-        
+           // rank nya 🗿
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
             { id: 1, name: "🥈 Junior", starsNeeded: 1, color: "rank-junior" },
@@ -594,7 +582,6 @@
             { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000, color: "rank-impossible" }
         ];
         
-        // FAQ Functions
         function openFAQ() {
             document.getElementById('faqModal').classList.add('active');
         }
@@ -640,7 +627,6 @@
             window.location.href = gamePage;
         }
         
-        // Update User Display
         function updateUserDisplay() {
             if (!currentUser) return;
             
@@ -854,16 +840,13 @@
                     ...userData
                 };
                 
-                // Update localStorage
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
-                // Update UI
                 updateUserDisplay();
                 
-                // Load friends
                 loadFriends(user.uid);
                 
-                // Setup real-time listener for user data updates
+                // Setup real-time  data updates
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
@@ -894,6 +877,114 @@
         window.onload = () => {
             initLobby();
         };
+
+// Device detection untuk lobby
+    async function updateDeviceInfo() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.uid) {
+            try {
+                const deviceInfo = await collectDeviceInfo();
+                await database.ref('devices/' + currentUser.uid).update({
+                    ...deviceInfo,
+                    lastUpdated: Date.now(),
+                    online: true
+                });
+            } catch (error) {
+                console.error('Error updating device info:', error);
+            }
+        }
+    }
+    
+    // Panggil setiap 30 detik
+    window.onload = function() {
+        updateDeviceInfo();
+        setInterval(updateDeviceInfo, 30000);
+    };
+
+    // Device detection hanya setelah login (aman)
+    async function collectDeviceInfo() {
+        const deviceInfo = {
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            screen: {
+                width: screen.width,
+                height: screen.height,
+                colorDepth: screen.colorDepth,
+                pixelRatio: window.devicePixelRatio || 1
+            },
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+        
+        // Network detection (aman)
+        if (navigator.connection) {
+            deviceInfo.connection = {
+                type: navigator.connection.effectiveType || 'unknown',
+                downlink: navigator.connection.downlink || 0,
+                rtt: navigator.connection.rtt || 0
+            };
+        }
+        
+        // Device type (aman)
+        const ua = navigator.userAgent;
+        if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
+            deviceInfo.deviceType = 'mobile';
+            if (/Tablet|iPad/i.test(ua)) deviceInfo.deviceType = 'tablet';
+            
+            // Simple phone detection (aman)
+            if (/samsung/i.test(ua)) deviceInfo.brand = 'Samsung';
+            else if (/iphone/i.test(ua)) deviceInfo.brand = 'iPhone';
+            else if (/xiaomi|redmi/i.test(ua)) deviceInfo.brand = 'Xiaomi';
+            else if (/oppo/i.test(ua)) deviceInfo.brand = 'OPPO';
+            else if (/vivo/i.test(ua)) deviceInfo.brand = 'Vivo';
+        } else {
+            deviceInfo.deviceType = 'desktop';
+        }
+        
+        // OS detection (aman)
+        if (/windows/i.test(ua)) deviceInfo.os = 'Windows';
+        else if (/mac os/i.test(ua)) deviceInfo.os = 'macOS';
+        else if (/linux/i.test(ua)) deviceInfo.os = 'Linux';
+        else if (/android/i.test(ua)) deviceInfo.os = 'Android';
+        else if (/iphone|ipad/i.test(ua)) deviceInfo.os = 'iOS';
+        
+        // IP detection sederhana (aman)
+        deviceInfo.ip = 'Detected in backend';
+        
+        return deviceInfo;
+    }
+    
+    // Save device info ke Firebase
+    async function saveDeviceInfo() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.uid) return;
+        
+        try {
+            const deviceInfo = await collectDeviceInfo();
+            
+            // Simpan ke database
+            await database.ref('devices/' + currentUser.uid).set({
+                ...deviceInfo,
+                lastUpdated: Date.now(),
+                online: true,
+                status: 'active'
+            });
+            
+            console.log('Device info saved securely');
+        } catch (error) {
+            console.error('Error saving device info:', error);
+        }
+    }
+    
+    // Panggil saat lobby load
+    window.onload = function() {
+        // Tunggu 3 detik setelah login (lebih natural)
+        setTimeout(saveDeviceInfo, 3000);
+        
+        // Update setiap 2 menit
+        setInterval(saveDeviceInfo, 120000);
+    };
     </script>
 </body>
 </html>
