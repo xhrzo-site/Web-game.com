@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - The All Game</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+        body{background:#1a1a2e;color:#fff;min-height:100vh;padding:15px}
+        
+        .admin-container{max-width:1200px;margin:auto}
+        
+        /* Login Form */
+        .admin-login{
+            background:#1e1e2e;border-radius:12px;padding:25px;
+            max-width:380px;margin:40px auto;border:2px solid #00ff88;
+            box-shadow:0 5px 20px rgba(0,0,0,0.5)
+        }
+        .admin-login h2{color:#00ff88;margin-bottom:15px;text-align:center}
+        .admin-login input{
+            width:100%;padding:12px;margin:8px 0;border-radius:8px;
+            background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+            color:#fff;font-size:14px
+        }
+        .admin-login button{
+            width:100%;padding:12px;background:linear-gradient(135deg,#ff3333,#cc0000);
+            color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;
+            margin-top:10px;transition:0.2s
+        }
+        .admin-login button:hover{transform:translateY(-2px)}
+        
+        /* Admin Panel */
+        #adminPanel{display:none}
+        .admin-header{
+            background:rgba(0,0,0,0.4);border-radius:12px;padding:20px;
+            margin-bottom:20px;border:2px solid #ff3333;text-align:center
+        }
+        .admin-header h1{color:#ff3333;font-size:1.8em;margin-bottom:5px}
+        
+        /* Tombol Logout & Kembali */
+        .top-buttons{
+            position:fixed;top:15px;right:15px;display:flex;gap:10px;z-index:100
+        }
+        .top-btn{
+            padding:8px 15px;border:none;border-radius:6px;
+            cursor:pointer;font-weight:bold;font-size:13px
+        }
+        .logout-btn{background:#ff3333;color:#fff}
+        .back-btn{background:#00ff88;color:#1a1a2e}
+        
+        /* Stats */
+        .stats-grid{
+            display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:15px;margin-bottom:20px
+        }
+        .stat-card{
+            background:rgba(0,0,0,0.3);padding:15px;border-radius:10px;
+            text-align:center;border:2px solid #00ff88
+        }
+        .stat-card h3{color:#00ff88;margin-bottom:8px;font-size:14px}
+        .stat-card .number{font-size:1.5em;font-weight:bold}
+        
+        /* Search */
+        .search-box{margin:15px 0;display:flex;gap:8px}
+        .search-box input{
+            flex:1;padding:10px;background:rgba(255,255,255,0.1);
+            border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px
+        }
+        .search-box button{
+            padding:10px 15px;background:#00ff88;color:#1a1a2e;
+            border:none;border-radius:6px;font-weight:bold;cursor:pointer
+        }
+        .search-box .reset-btn{background:#666;color:#fff}
+        
+        /* Table */
+        .users-table-container{
+            background:#1e1e2e;border-radius:12px;padding:15px;
+            margin-top:15px;overflow-x:auto
+        }
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1)}
+        th{background:rgba(0,0,0,0.3);color:#00ff88}
+        tr:hover{background:rgba(255,255,255,0.05)}
+        
+        /* Action Buttons */
+        .user-action-btn{
+            padding:5px 10px;border:none;border-radius:4px;cursor:pointer;
+            margin:2px;font-size:11px;font-weight:bold
+        }
+        .edit-btn{background:#4CAF50;color:#fff}
+        .ban-btn{background:#f44336;color:#fff}
+        .unban-btn{background:#2196F3;color:#fff}
+        .give-btn{background:#FF9800;color:#fff}
+        .delete-btn{background:#9C27B0;color:#fff}
+        
+        /* Modal */
+        .action-modal{
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.9);display:none;justify-content:center;
+            align-items:center;z-index:1000
+        }
+        .action-modal.active{display:flex}
+        .modal-content{
+            background:#1e1e2e;padding:20px;border-radius:12px;
+            border:2px solid #00ff88;max-width:450px;width:90%
+        }
+        .modal-content h3{color:#00ff88;margin-bottom:10px}
+        .modal-content input{
+            width:100%;padding:10px;margin:5px 0;background:rgba(255,255,255,0.1);
+            border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px
+        }
+        .modal-buttons{display:flex;gap:8px;margin-top:15px}
+        .modal-buttons button{flex:1;padding:10px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
+        .save-btn{background:#4CAF50;color:#fff}
+        .cancel-btn{background:#f44336;color:#fff}
+        .confirm-btn{background:#9C27B0;color:#fff}
+        
+        /* Messages */
+        .message{
+            position:fixed;top:15px;right:15px;padding:12px 18px;
+            border-radius:6px;color:#fff;font-weight:bold;z-index:1001;
+            animation:slideIn 0.3s ease
+        }
+        .success{background:linear-gradient(135deg,#00ff88,#00cc6a)}
+        .error{background:linear-gradient(135deg,#ff3333,#cc0000)}
+        .warning{background:linear-gradient(135deg,#FF9800,#F57C00)}
+        
+        @keyframes slideIn{
+            from{transform:translateX(100%);opacity:0}
+            to{transform:translateX(0);opacity:1}
+        }
+        
+        /* Responsive */
+        @media (max-width:768px){
+            .stats-grid{grid-template-columns:1fr 1fr}
+            .top-buttons{flex-direction:column;gap:5px}
+            .top-btn{font-size:11px;padding:6px 10px}
+            table{font-size:12px}
+            th,td{padding:8px 10px}
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Login Form -->
+    <div id="loginForm" class="admin-login" style="display: none;">
+        <h2>🔐 Admin Login</h2>
+        <input type="text" id="adminUsername" placeholder="Username" value="Taher">
+        <input type="password" id="adminPassword" placeholder="Password" value="admin">
+        <button onclick="adminLogin()">LOGIN</button>
+    </div>
+    
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-container" style="display: none;">
+        <!-- Tombol Logout & Kembali -->
+        <div class="top-buttons">
+            <button class="top-btn back-btn" onclick="goBack()">← KEMBALI</button>
+            <button class="top-btn logout-btn" onclick="adminLogout()">LOGOUT</button>
+        </div>
+        
+        <div class="admin-header">
+            <h1>👑 ADMIN PANEL</h1>
+            <p>Selamat datang, <span id="adminName"></span>!</p>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="number" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Online Users</h3>
+                <div class="number" id="onlineUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Money</h3>
+                <div class="number" id="totalMoney">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Diamonds</h3>
+                <div class="number" id="totalDiamonds">0</div>
+            </div>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-box">
+            <input type="text" id="searchUser" placeholder="Cari user...">
+            <button onclick="searchUser()">Cari</button>
+            <button onclick="clearSearch()" class="reset-btn">Reset</button>
+        </div>
+        
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <h2>📋 DAFTAR USER</h2>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Rank</th>
+                        <th>Money</th>
+                        <th>Diamond</th>
+                        <th>Stars</th>
+                        <th>Terakhir Online</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Edit User -->
+    <div id="editModal" class="action-modal">
+        <div class="modal-content">
+            <h3>✏️ Edit User</h3>
+            <p id="editUserInfo"></p>
+            <input type="number" id="editMoney" placeholder="Uang">
+            <input type="number" id="editDiamond" placeholder="Diamond">
+            <input type="number" id="editStars" placeholder="Stars">
+            <input type="number" id="editRank" placeholder="Rank (0-12)">
+            <div class="modal-buttons">
+                <button class="save-btn" onclick="saveUserEdit()">SIMPAN</button>
+                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Give Resources -->
+    <div id="giveModal" class="action-modal">
+        <div class="modal-content">
+            <h3>🎁 Give Resources</h3>
+            <p id="giveUserInfo"></p>
+            <input type="number" id="giveMoney" placeholder="Jumlah Uang">
+            <input type="number" id="giveDiamond" placeholder="Jumlah Diamond">
+            <div class="modal-buttons">
+                <button class="save-btn" onclick="giveResources()">KASIHKAN</button>
+                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Hapus Akun -->
+    <div id="deleteModal" class="action-modal">
+        <div class="modal-content">
+            <h3>🗑️ Hapus Akun</h3>
+            <p id="deleteUserInfo"></p>
+            <p style="color:#ff6666;font-size:14px;margin:10px 0;">
+                ⚠️ PERINGATAN: Tindakan ini tidak dapat dibatalkan!
+                Semua data user akan dihapus permanen.
+            </p>
+            <input type="text" id="confirmUsername" placeholder="Ketik username untuk konfirmasi">
+            <div class="modal-buttons">
+                <button class="confirm-btn" onclick="confirmDelete()">HAPUS PERMANEN</button>
+                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentEditingUser = null;
+        let allUsers = [];
+        
+        // Check if already logged in as admin
+        window.onload = function() {
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession === 'true') {
+                showAdminPanel();
+            } else {
+                showLoginForm();
+            }
+        };
+        
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        function showAdminPanel() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadUsers();
+            startRealTimeUpdates();
+        }
+        
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            
+            if (username === 'Taher' && password === 'admin') {
+                localStorage.setItem('adminSession', 'true');
+                document.getElementById('adminName').textContent = username;
+                showAdminPanel();
+                showMessage('Login admin berhasil!', 'success');
+            } else {
+                showMessage('Username atau password salah!', 'error');
+            }
+        }
+        
+        function adminLogout() {
+            localStorage.removeItem('adminSession');
+            showLoginForm();
+        }
+        
+        function goBack() {
+            window.location.href = 'lobby.html';
+        }
+        
+        function showMessage(text, type) {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        async function loadUsers() {
+            try {
+                const snapshot = await database.ref('users').once('value');
+                allUsers = [];
+                const usersTableBody = document.getElementById('usersTableBody');
+                usersTableBody.innerHTML = '';
+                
+                let totalMoney = 0;
+                let totalDiamonds = 0;
+                let onlineCount = 0;
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    const uid = childSnapshot.key;
+                    
+                    allUsers.push({ uid, ...user });
+                    
+                    // Hitung statistik
+                    totalMoney += parseInt(user.money || 0);
+                    totalDiamonds += parseInt(user.diamond || 0);
+                    if (user.status === 'online') onlineCount++;
+                    
+                    // Format waktu
+                    const lastOnline = user.lastOnline ? 
+                        new Date(user.lastOnline).toLocaleDateString('id-ID') : '-';
+                    
+                    // Warna status
+                    const statusColor = user.status === 'online' ? '#00ff88' : 
+                                       user.banned ? '#ff3333' : '#888';
+                    const statusText = user.status === 'online' ? 'Online' : 
+                                      user.banned ? 'Banned' : 'Offline';
+                    
+                    // Tambah ke tabel
+                    usersTableBody.innerHTML += `
+                        <tr>
+                            <td><strong>${user.username}</strong><br>
+                                <small style="color:#888;font-size:11px">${uid.substring(0, 8)}...</small>
+                            </td>
+                            <td style="color: ${statusColor}">${statusText}</td>
+                            <td>${getRankName(user.rank || 0)}</td>
+                            <td>${user.money || 0}</td>
+                            <td>${user.diamond || 0}</td>
+                            <td>${user.stars || 0}</td>
+                            <td>${lastOnline}</td>
+                            <td>
+                                <button class="user-action-btn edit-btn" onclick="openEditModal('${uid}')">Edit</button>
+                                <button class="user-action-btn give-btn" onclick="openGiveModal('${uid}')">Give</button>
+                                ${user.banned ? 
+                                    `<button class="user-action-btn unban-btn" onclick="toggleBan('${uid}', false)">Unban</button>` :
+                                    `<button class="user-action-btn ban-btn" onclick="toggleBan('${uid}', true)">Ban</button>`
+                                }
+                                <button class="user-action-btn delete-btn" onclick="openDeleteModal('${uid}')">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                // Update statistik
+                document.getElementById('totalUsers').textContent = allUsers.length;
+                document.getElementById('onlineUsers').textContent = onlineCount;
+                document.getElementById('totalMoney').textContent = totalMoney;
+                document.getElementById('totalDiamonds').textContent = totalDiamonds;
+                
+            } catch (error) {
+                showMessage('Error loading users: ' + error.message, 'error');
+            }
+        }
+        
+        function getRankName(rankId) {
+            const ranks = ["Newbie","Junior","Senior","Great","Super Great","Legend",
+                          "Kings","Greatest","Mad Kings","Greatness","Unbeatable",
+                          "Monster Kings","Impossible"];
+            return ranks[rankId] || "Unknown";
+        }
+        
+        function searchUser() {
+            const searchTerm = document.getElementById('searchUser').value.toLowerCase();
+            const usersTableBody = document.getElementById('usersTableBody');
+            
+            if (!searchTerm) {
+                loadUsers();
+                return;
+            }
+            
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) || 
+                user.uid.toLowerCase().includes(searchTerm)
+            );
+            
+            usersTableBody.innerHTML = '';
+            
+            filteredUsers.forEach(user => {
+                const lastOnline = user.lastOnline ? 
+                    new Date(user.lastOnline).toLocaleDateString('id-ID') : '-';
+                
+                const statusColor = user.status === 'online' ? '#00ff88' : 
+                                   user.banned ? '#ff3333' : '#888';
+                const statusText = user.status === 'online' ? 'Online' : 
+                                  user.banned ? 'Banned' : 'Offline';
+                
+                usersTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${user.username}</strong><br>
+                            <small style="color:#888;font-size:11px">${user.uid.substring(0, 8)}...</small>
+                        </td>
+                        <td style="color: ${statusColor}">${statusText}</td>
+                        <td>${getRankName(user.rank || 0)}</td>
+                        <td>${user.money || 0}</td>
+                        <td>${user.diamond || 0}</td>
+                        <td>${user.stars || 0}</td>
+                        <td>${lastOnline}</td>
+                        <td>
+                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')">Edit</button>
+                            <button class="user-action-btn give-btn" onclick="openGiveModal('${user.uid}')">Give</button>
+                            ${user.banned ? 
+                                `<button class="user-action-btn unban-btn" onclick="toggleBan('${user.uid}', false)">Unban</button>` :
+                                `<button class="user-action-btn ban-btn" onclick="toggleBan('${user.uid}', true)">Ban</button>`
+                            }
+                            <button class="user-action-btn delete-btn" onclick="openDeleteModal('${user.uid}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function clearSearch() {
+            document.getElementById('searchUser').value = '';
+            loadUsers();
+        }
+        
+        function openEditModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) return;
+            
+            currentEditingUser = uid;
+            document.getElementById('editUserInfo').textContent = `Edit: ${user.username}`;
+            document.getElementById('editMoney').value = user.money || 0;
+            document.getElementById('editDiamond').value = user.diamond || 0;
+            document.getElementById('editStars').value = user.stars || 0;
+            document.getElementById('editRank').value = user.rank || 0;
+            document.getElementById('editModal').classList.add('active');
+        }
+        
+        function openGiveModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) return;
+            
+            currentEditingUser = uid;
+            document.getElementById('giveUserInfo').textContent = `Give ke: ${user.username}`;
+            document.getElementById('giveMoney').value = '';
+            document.getElementById('giveDiamond').value = '';
+            document.getElementById('giveModal').classList.add('active');
+        }
+        
+        function openDeleteModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) return;
+            
+            currentEditingUser = uid;
+            document.getElementById('deleteUserInfo').textContent = 
+                `Hapus akun: ${user.username} (${uid.substring(0, 10)}...)`;
+            document.getElementById('confirmUsername').value = '';
+            document.getElementById('deleteModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('giveModal').classList.remove('active');
+            document.getElementById('deleteModal').classList.remove('active');
+            currentEditingUser = null;
+        }
+        
+        async function saveUserEdit() {
+            if (!currentEditingUser) return;
+            
+            const money = parseInt(document.getElementById('editMoney').value) || 0;
+            const diamond = parseInt(document.getElementById('editDiamond').value) || 0;
+            const stars = parseInt(document.getElementById('editStars').value) || 0;
+            const rank = parseInt(document.getElementById('editRank').value) || 0;
+            
+            if (rank < 0 || rank > 12) {
+                showMessage('Rank harus 0-12', 'error');
+                return;
+            }
+            
+            try {
+                await database.ref('users/' + currentEditingUser).update({
+                    money: money,
+                    diamond: diamond,
+                    stars: stars,
+                    rank: rank
+                });
+                
+                showMessage('User updated!', 'success');
+                closeModal();
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function giveResources() {
+            if (!currentEditingUser) return;
+            
+            const addMoney = parseInt(document.getElementById('giveMoney').value) || 0;
+            const addDiamond = parseInt(document.getElementById('giveDiamond').value) || 0;
+            
+            if (addMoney <= 0 && addDiamond <= 0) {
+                showMessage('Masukkan jumlah', 'error');
+                return;
+            }
+            
+            try {
+                const snapshot = await database.ref('users/' + currentEditingUser).once('value');
+                const user = snapshot.val();
+                
+                const newMoney = (user.money || 0) + addMoney;
+                const newDiamond = (user.diamond || 0) + addDiamond;
+                
+                await database.ref('users/' + currentEditingUser).update({
+                    money: newMoney,
+                    diamond: newDiamond
+                });
+                
+                showMessage(`Given: ${addMoney} money, ${addDiamond} diamond`, 'success');
+                closeModal();
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function toggleBan(uid, ban) {
+            if (!confirm(`${ban ? 'BAN' : 'UNBAN'} user ini?`)) return;
+            
+            try {
+                await database.ref('users/' + uid).update({
+                    banned: ban,
+                    status: ban ? 'banned' : 'offline'
+                });
+                
+                showMessage(`User ${ban ? 'banned' : 'unbanned'}`, 'success');
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function confirmDelete() {
+            if (!currentEditingUser) return;
+            
+            const user = allUsers.find(u => u.uid === currentEditingUser);
+            const confirmInput = document.getElementById('confirmUsername').value.trim();
+            
+            if (confirmInput !== user.username) {
+                showMessage('Username tidak cocok!', 'error');
+                return;
+            }
+            
+            if (!confirm(`YAKIN hapus PERMANEN akun ${user.username}? TIDAK BISA DIBATALKAN!`)) {
+                return;
+            }
+            
+            try {
+                // Hapus dari users
+                await database.ref('users/' + currentEditingUser).remove();
+                
+                // Hapus dari friends list semua user yang berteman
+                const friendsSnapshot = await database.ref('friends').once('value');
+                friendsSnapshot.forEach((childSnapshot) => {
+                    const friendUid = childSnapshot.key;
+                    database.ref('friends/' + friendUid + '/' + currentEditingUser).remove();
+                });
+                
+                // Hapus friends list user ini
+                await database.ref('friends/' + currentEditingUser).remove();
+                
+                showMessage('Akun berhasil dihapus permanen!', 'success');
+                closeModal();
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function startRealTimeUpdates() {
+            database.ref('users').on('value', () => {
+                loadUsers();
+            });
+        }
+        
+        // Close modal dengan Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Street Race V1.1 - Hard Mode</title>
+    <!-- Tambahkan Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        /* CSS Umum dan Full Screen */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100vw; 
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            position: absolute;
+            top: 5px;
+            z-index: 10;
+            font-size: 1.2em;
+            color: #ffcc00;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-canvas {
+            display: block;
+            max-width: 600px; 
+            height: 100%; 
+            border: 3px solid #ffcc00;
+            background-color: #333333;
+        }
+        
+        /* HUD Styling */
+        #hud {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border-right: 5px solid #00AAFF;
+            border-radius: 5px 0 0 5px;
+            font-size: 1em;
+            z-index: 15;
+            color: #fff;
+        }
+
+        /* Tombol Exit */
+        #exit-btn {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            padding: 10px 15px;
+            background: rgba(255, 0, 0, 0.7);
+            border-left: 5px solid #FF3333;
+            border-radius: 0 5px 5px 0;
+            font-size: 1em;
+            z-index: 15;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        #exit-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+            transform: scale(1.05);
+        }
+        
+        #exit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Notifikasi baru */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+            text-align: center;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        #notification.success {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            display: block;
+        }
+
+        #notification.error {
+            background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%);
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* Kontrol Mobile */
+        #mobile-controls {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            z-index: 20;
+        }
+        
+        .control-area {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .dpad-button {
+            width: 65px;
+            height: 65px;
+            margin: 5px;
+            background-color: rgba(255, 204, 0, 0.9);
+            color: #1a1a1a;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.6);
+            transition: transform 0.1s;
+        }
+
+        .dpad-button:active {
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+            transform: translateY(3px);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 THE RACE STREET - HARD MODE</h1>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Tombol Exit -->
+    <button id="exit-btn" onclick="exitToLobby()">← KELUAR</button>
+
+    <div id="notification"></div>
+
+    <div id="hud">
+        <div>Kecepatan: <span id="speed-display" class="value">0 km/j</span></div>
+        <div>Jarak: <span id="distance-display" class="value">0 m</span></div>
+        <div>Uang: <span id="money-display" class="value">0</span></div>
+        <div>Skor: <span id="score-display" class="value">0</span></div>
+    </div>
+
+    <div id="mobile-controls">
+        <div id="rotation-controls" class="control-area">
+            <div class="dpad-button" id="btn-left">◀️</div>
+            <div class="dpad-button" id="btn-right">▶️</div>
+        </div>
+
+        <div id="acceleration-controls" class="control-area">
+            <div class="dpad-button" id="btn-accelerate">🚀</div>
+        </div>
+    </div>
+
+<script>
+    // Firebase Configuration (Sama dengan index.html)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAlMyO9iybb7Zc3-JWpaJTOU6mp7dVZw7A",
+        authDomain: "taher-online.firebaseapp.com",
+        databaseURL: "https://taher-online-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "taher-online",
+        storageBucket: "taher-online.firebasestorage.app",
+        messagingSenderId: "254196950669",
+        appId: "1:254196950669:web:ea7dc25e29e459e791e4c4",
+        measurementId: "G-W288VV18S2"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    // --- Variabel Konfigurasi Game (HARD MODE) ---
+    const PLAYER_W = 28;
+    const PLAYER_H = 45;
+    const MAX_SPEED = 13.3; // 13.3 * 15 = ~200 km/jam
+    const ACCELERATION = 0.3;
+    const DECELERATION = 0.15;
+    const SIDE_SPEED = 4.0;
+    const COLLISION_DAMPING = 0.15;
+    const SPEED_MULTIPLIER = 15;
+    const LANE_COUNT = 4;
+    const TRAFFIC_SPAWN_INTERVAL_BASE = 700;
+    const TRAFFIC_MIN_SPEED = 4;
+    const TRAFFIC_MAX_SPEED = 7;
+    const TRAFFIC_COLORS = ['#0000FF', '#00008B', '#00FF00', '#FFFF00', '#FF00FF', '#FF4500', '#32CD32'];
+    
+    // Variabel untuk HARD MODE
+    const LANE_OFFSET = 10;
+    const MIN_LANE_POSITION = 0.1;
+    const MAX_LANE_POSITION = 0.9;
+    const BOUNDARY_PENALTY = 0.3;
+    const MAX_TRAFFIC_CARS = Infinity; // Unlimited traffic
+    const DIFFICULTY_INCREASE_RATE = 0.001;
+    
+    // --- Variabel State ---
+    let friction = 0.015;
+    let gameState = 'READY';
+    let car = { x: 0, y: 0, speed: 0, color: '#FF4500', currentLane: 2 };
+    let keys = { w: false, a: false, d: false, accelerate: false, left: false, right: false };
+    let roadOffset = 0;
+    let accumulatedRoadOffset = 0; // Untuk menghindari floating point error
+    let distance = 0;
+    let score = 0;
+    let trafficCars = [];
+    let LANE_WIDTH = 0;
+    let lastTrafficSpawnTime = 0;
+    let currentUser = null;
+    let userMoney = 0;
+    let lanePosition = 0.5;
+    let difficultyMultiplier = 1;
+    let isTouchingBoundary = false;
+
+    // --- DOM Elements ---
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('game-container');
+    const speedDisplay = document.getElementById('speed-display');
+    const distanceDisplay = document.getElementById('distance-display');
+    const moneyDisplay = document.getElementById('money-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const notification = document.getElementById('notification');
+
+    // Fungsi untuk keluar ke lobby
+    function exitToLobby() {
+        if (confirm('Apakah Anda yakin ingin keluar? Semua progress akan hilang.')) {
+            window.location.href = 'index.html';
+        }
+    }
+
+    // Fungsi untuk menampilkan notifikasi
+    function showNotification(text, type = 'success') {
+        notification.textContent = text;
+        notification.className = type;
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+        
+        setTimeout(() => {
+            notification.style.display = 'block';
+        }, 10);
+    }
+
+    // Fungsi untuk update skor dan uang ke Firebase
+    async function updateGameDataInFirebase(earnedMoney, earnedScore) {
+        if (!currentUser) return;
+        
+        try {
+            const userId = currentUser.uid;
+            const userRef = database.ref('users/' + userId);
+            
+            // Ambil data user terbaru
+            const snapshot = await userRef.once('value');
+            const userData = snapshot.val();
+            
+            if (userData) {
+                const currentMoney = userData.money || 0;
+                const currentStars = userData.stars || 0;
+                const newMoney = currentMoney + earnedMoney;
+                const newStars = currentStars + earnedScore;
+                
+                // Update di Firebase
+                await userRef.update({
+                    money: newMoney,
+                    stars: newStars
+                });
+                
+                // Update localStorage
+                currentUser.money = newMoney;
+                currentUser.stars = newStars;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update tampilan
+                moneyDisplay.textContent = newMoney;
+                
+                // Tampilkan notifikasi
+                showNotification(`🎉 +${earnedMoney} Uang! +${earnedScore} Bintang!`, 'success');
+                
+                return { money: newMoney, stars: newStars };
+            }
+        } catch (error) {
+            console.error('Error updating game data:', error);
+            showNotification('Gagal menyimpan progress: ' + error.message, 'error');
+        }
+        
+        return { money: 0, stars: 0 };
+    }
+
+    // Fungsi untuk load user data
+    async function loadUserData() {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            userMoney = currentUser.money || 0;
+            moneyDisplay.textContent = userMoney;
+            
+            // Cek validitas user di Firebase
+            try {
+                const userId = currentUser.uid;
+                const snapshot = await database.ref('users/' + userId).once('value');
+                if (!snapshot.exists()) {
+                    // User tidak ada di Firebase, logout
+                    localStorage.removeItem('currentUser');
+                    showNotification('Session expired. Silakan login kembali.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                // Update data dari Firebase
+                const userData = snapshot.val();
+                currentUser = { ...currentUser, ...userData };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                userMoney = currentUser.money || 0;
+                moneyDisplay.textContent = userMoney;
+                
+                return true;
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                return false;
+            }
+        } else {
+            // Tidak ada user, redirect ke login
+            showNotification('Silakan login terlebih dahulu', 'error');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+            return false;
+        }
+    }
+
+    function initGame() {
+        // Load user data terlebih dahulu
+        loadUserData().then(success => {
+            if (success) {
+                resizeCanvas();
+                setupControls();
+                requestAnimationFrame(gameLoop);
+            }
+        });
+    }
+
+    // --- Fungsi Resizing dan Rendering ---
+    function resizeCanvas() {
+        const maxW = 600;
+        const viewW = container.clientWidth;
+        const viewH = container.clientHeight;
+
+        canvas.height = viewH;
+        
+        if (viewW > maxW) {
+            canvas.width = maxW;
+        } else {
+            canvas.width = viewW;
+        }
+        
+        LANE_WIDTH = canvas.width / LANE_COUNT;
+        car.x = (LANE_WIDTH * 2) + (LANE_WIDTH * 0.5);
+        car.y = canvas.height * 0.8;
+        car.currentLane = 2;
+        lanePosition = 0.5;
+        trafficCars = [];
+        
+        // Reset offset untuk mencegah bug saat resize
+        roadOffset = 0;
+        accumulatedRoadOffset = 0;
+    }
+    
+    // FIXED: Fungsi drawRoad yang diperbaiki
+    function drawRoad() {
+        const laneMarkerWidth = 8;
+        const markerHeight = 30;
+        const markerGap = 60;
+        const totalMarkerLength = markerHeight + markerGap; // 90
+        const boundaryGap = canvas.width / 12;
+        
+        // Gambar jalan dasar
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(boundaryGap, 0, canvas.width - (2 * boundaryGap), canvas.height);
+        
+        // Gambar batas kiri dan kanan (PAGAR MERAH)
+        ctx.fillStyle = '#FF3333';
+        ctx.fillRect(boundaryGap - 10, 0, 10, canvas.height);
+        ctx.fillRect(canvas.width - boundaryGap, 0, 10, canvas.height);
+        
+        // Gambar garis putus-putus - VERSI TETAP
+        ctx.fillStyle = '#FFFFFF';
+        
+        // Gunakan integer offset untuk konsistensi
+        const offset = Math.floor(roadOffset % totalMarkerLength);
+        
+        // Mulai dari atas layar (negatif) sampai bawah layar
+        for (let y = -offset; y < canvas.height + totalMarkerLength; y += totalMarkerLength) {
+            // Gambar garis lane (putus-putus di tengah)
+            for (let i = 1; i < LANE_COUNT; i++) {
+                const laneCenter = boundaryGap + (i * (canvas.width - 2 * boundaryGap) / LANE_COUNT);
+                
+                // Gambar hanya jika y berada dalam rentang canvas
+                if (y + markerHeight > 0 && y < canvas.height) {
+                    const drawY = Math.max(y, 0);
+                    const drawHeight = Math.min(markerHeight, canvas.height - drawY, y + markerHeight - drawY);
+                    
+                    if (drawHeight > 0) {
+                        ctx.fillRect(laneCenter - laneMarkerWidth / 2, drawY, laneMarkerWidth, drawHeight);
+                    }
+                }
+            }
+            
+            // Gambar pinggir jalan (solid) - selalu penuh
+            if (y + markerHeight > 0 && y < canvas.height) {
+                const drawY = Math.max(y, 0);
+                const drawHeight = Math.min(markerHeight, canvas.height - drawY, y + markerHeight - drawY);
+                
+                if (drawHeight > 0) {
+                    ctx.fillRect(boundaryGap - 2, drawY, 4, drawHeight);
+                    ctx.fillRect(canvas.width - boundaryGap - 2, drawY, 4, drawHeight);
+                }
+            }
+        }
+        
+        // Gambar area berbahaya di pinggir
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(boundaryGap + 5, 0);
+        ctx.lineTo(boundaryGap + 5, canvas.height);
+        ctx.moveTo(canvas.width - boundaryGap - 5, 0);
+        ctx.lineTo(canvas.width - boundaryGap - 5, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function drawPlayerCar() {
+        ctx.save();
+        ctx.translate(car.x, car.y);
+        
+        // Warna mobil berubah jika di batas
+        if (isTouchingBoundary) {
+            ctx.fillStyle = '#FF0000';
+        } else {
+            ctx.fillStyle = car.color;
+        }
+        
+        ctx.beginPath();
+        ctx.moveTo(-PLAYER_W / 2, -PLAYER_H / 2);
+        ctx.lineTo(PLAYER_W / 2, -PLAYER_H / 2);
+        ctx.lineTo(PLAYER_W / 2 - 5, PLAYER_H / 2);
+        ctx.lineTo(-PLAYER_W / 2 + 5, PLAYER_H / 2);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Lampu
+        ctx.fillStyle = '#FFFF00';
+        ctx.fillRect(PLAYER_W / 2 - 8, -PLAYER_H / 2 + 2, 5, 5);
+        ctx.fillRect(-PLAYER_W / 2 + 3, -PLAYER_H / 2 + 2, 5, 5);
+
+        // Kaca depan
+        ctx.fillStyle = '#33AADD';
+        ctx.fillRect(-PLAYER_W / 2 + 5, -10, PLAYER_W - 10, 15);
+        
+        // Strip racing
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(-PLAYER_W / 2 + 5, -PLAYER_H / 2 + 15, PLAYER_W - 10, 5);
+        ctx.fillRect(-PLAYER_W / 2 + 5, PLAYER_H / 2 - 20, PLAYER_W - 10, 5);
+        
+        ctx.restore();
+    }
+
+    function drawTrafficCar(traffic) {
+        ctx.save();
+        ctx.translate(traffic.x, traffic.y);
+        
+        // Body mobil
+        ctx.fillStyle = traffic.color;
+        ctx.beginPath();
+        ctx.moveTo(-traffic.width / 2, -traffic.height / 2);
+        ctx.lineTo(traffic.width / 2, -traffic.height / 2);
+        ctx.lineTo(traffic.width / 2 - 4, traffic.height / 2);
+        ctx.lineTo(-traffic.width / 2 + 4, traffic.height / 2);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Lampu belakang
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(-traffic.width / 2 + 2, traffic.height / 2 - 5, 5, 3);
+        ctx.fillRect(traffic.width / 2 - 7, traffic.height / 2 - 5, 5, 3);
+        
+        // Kaca depan
+        ctx.fillStyle = '#33AADD';
+        ctx.fillRect(-traffic.width / 2 + 4, -8, traffic.width - 8, 12);
+        
+        ctx.restore();
+    }
+    
+    function drawOverlay() {
+        if (gameState === 'READY') {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FFCC00';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚨 MODE SULIT 🚨', canvas.width / 2, canvas.height / 2 - 50);
+            
+            ctx.font = '25px Arial';
+            ctx.fillText('SIAP BALAPAN!', canvas.width / 2, canvas.height / 2);
+            
+            ctx.font = '18px Arial';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText('• Mobil bisa di mana saja', canvas.width / 2, canvas.height / 2 + 30);
+            ctx.fillText('• SENTUH PAGAR = MATI!', canvas.width / 2, canvas.height / 2 + 55);
+            ctx.fillText('• Kecepatan: 200 km/jam', canvas.width / 2, canvas.height / 2 + 80);
+            ctx.fillText('• Tekan 🚀 (atau W) untuk Mulai', canvas.width / 2, canvas.height / 2 + 110);
+
+        } else if (gameState === 'GAME_OVER') {
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 40px Impact';
+            ctx.textAlign = 'center';
+            ctx.fillText('CRASH!', canvas.width / 2, canvas.height / 2 - 80);
+
+            ctx.font = '25px Arial';
+            const earnedMoney = Math.floor(distance * 0.8);
+            const earnedScore = Math.floor(score / 10);
+            ctx.fillText(`Jarak: ${Math.floor(distance)} m`, canvas.width / 2, canvas.height / 2 - 40);
+            ctx.fillText(`Skor: ${score}`, canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillText(`Uang: +${earnedMoney}`, canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText(`Bintang: +${earnedScore}`, canvas.width / 2, canvas.height / 2 + 50);
+            
+            ctx.font = '20px Arial';
+            ctx.fillText('Tekan 🚀 (atau W) untuk Ulang', canvas.width / 2, canvas.height / 2 + 90);
+            ctx.fillText('Atau tekan ← KELUAR untuk kembali', canvas.width / 2, canvas.height / 2 + 120);
+        }
+    }
+
+    // --- Logika Game (Update dan Loop) ---
+    function updateTrafficCars() {
+        trafficCars = trafficCars.filter(car => car.y < canvas.height + car.height);
+        trafficCars.forEach(traffic => {
+            traffic.y += (car.speed - traffic.speed) * difficultyMultiplier;
+        });
+    }
+
+    function spawnTrafficCar() {
+        if (gameState !== 'RUNNING') return;
+        
+        const now = performance.now();
+        
+        // Interval spawn makin cepat seiring waktu
+        const currentInterval = Math.max(300, TRAFFIC_SPAWN_INTERVAL_BASE - distance * 0.7);
+        
+        if (now - lastTrafficSpawnTime < currentInterval) return;
+
+        // Traffic bisa di mana saja, termasuk di luar lane
+        const boundaryGap = canvas.width / 12;
+        const minX = boundaryGap + 20;
+        const maxX = canvas.width - boundaryGap - 20;
+        
+        // Posisi X acak di seluruh jalan (termasuk di luar lane)
+        const trafficX = minX + Math.random() * (maxX - minX);
+        
+        // Kecepatan berdasarkan kesulitan
+        const baseSpeed = TRAFFIC_MIN_SPEED + (Math.random() * (TRAFFIC_MAX_SPEED - TRAFFIC_MIN_SPEED));
+        const speed = baseSpeed * difficultyMultiplier;
+        
+        const colorIndex = Math.floor(Math.random() * TRAFFIC_COLORS.length);
+
+        trafficCars.push({
+            x: trafficX,
+            y: -PLAYER_H * 3,
+            width: PLAYER_W * 0.95,
+            height: PLAYER_H * 0.85,
+            speed: speed,
+            color: TRAFFIC_COLORS[colorIndex],
+            lane: -1 // Tidak ada lane spesifik
+        });
+
+        lastTrafficSpawnTime = now;
+    }
+
+    function checkCollision() {
+        const playerLeft = car.x - PLAYER_W / 2 + 3;
+        const playerRight = car.x + PLAYER_W / 2 - 3;
+        const playerTop = car.y - PLAYER_H / 2 + 3;
+        const playerBottom = car.y + PLAYER_H / 2 - 3;
+        
+        // Cek tabrakan dengan pagar/pinggir jalan -> langsung game over
+        const boundaryGap = canvas.width / 12;
+        isTouchingBoundary = false;
+        
+        // Cek sentuh pagar merah
+        if (playerLeft < boundaryGap + 10 || playerRight > canvas.width - boundaryGap - 10) {
+            isTouchingBoundary = true;
+            // Tabrakan dengan pagar langsung game over
+            handleGameOver();
+            return; // Langsung keluar dari fungsi
+        }
+
+        // Cek tabrakan dengan mobil lain
+        trafficCars.forEach(traffic => {
+            const trafficLeft = traffic.x - traffic.width / 2;
+            const trafficRight = traffic.x + traffic.width / 2;
+            const trafficTop = traffic.y - traffic.height / 2;
+            const trafficBottom = traffic.y + traffic.height / 2;
+
+            if (playerRight > trafficLeft && playerLeft < trafficRight && 
+                playerBottom > trafficTop && playerTop < trafficBottom) {
+            
+                handleGameOver();
+            }
+        });
+    }
+    
+    function updatePlayerPosition() {
+        const boundaryGap = canvas.width / 12;
+        const roadWidth = canvas.width - (2 * boundaryGap);
+        const laneStart = boundaryGap + LANE_OFFSET;
+        
+        // Hitung lane saat ini
+        const relativeX = car.x - laneStart;
+        car.currentLane = Math.floor(relativeX / LANE_WIDTH);
+        car.currentLane = Math.max(0, Math.min(LANE_COUNT - 1, car.currentLane));
+        
+        // Hitung posisi dalam lane
+        const laneMin = (car.currentLane * LANE_WIDTH) + laneStart;
+        lanePosition = (car.x - laneMin) / LANE_WIDTH;
+        lanePosition = Math.max(0, Math.min(1, lanePosition));
+        
+        // Batasi perpindahan agar tidak keluar jalan
+        const minX = boundaryGap + PLAYER_W/2;
+        const maxX = canvas.width - boundaryGap - PLAYER_W/2;
+        
+        car.x = Math.max(minX, Math.min(maxX, car.x));
+    }
+
+    async function handleGameOver() {
+        if (gameState === 'RUNNING') {
+            gameState = 'GAME_OVER';
+            
+            // Hitung reward
+            const earnedMoney = Math.floor(distance * 0.8);
+            const earnedScore = Math.floor(score / 10);
+            
+            if (earnedMoney > 0 || earnedScore > 0) {
+                // Update data ke Firebase
+                await updateGameDataInFirebase(earnedMoney, earnedScore);
+            }
+        }
+    }
+
+    function resetGame() {
+        car.speed = 0;
+        const boundaryGap = canvas.width / 12;
+        const laneStart = boundaryGap + LANE_OFFSET;
+        car.x = laneStart + (LANE_WIDTH * 2) + (LANE_WIDTH * 0.5);
+        car.y = canvas.height * 0.8;
+        car.currentLane = 2;
+        lanePosition = 0.5;
+        distance = 0;
+        score = 0;
+        trafficCars = [];
+        gameState = 'RUNNING';
+        lastTrafficSpawnTime = 0;
+        difficultyMultiplier = 1;
+        isTouchingBoundary = false;
+        
+        // Reset road offset
+        roadOffset = 0;
+        accumulatedRoadOffset = 0;
+    }
+
+    function update() {
+        if (gameState === 'RUNNING') {
+            const isAccelerating = keys.w || keys.accelerate;
+            const isTurningLeft = keys.a || keys.left;
+            const isTurningRight = keys.d || keys.right;
+
+            // Update kesulitan
+            difficultyMultiplier = 1 + (distance * DIFFICULTY_INCREASE_RATE);
+            
+            // Akselerasi untuk mencapai 200 km/jam
+            if (isAccelerating) {
+                car.speed = Math.min(car.speed + ACCELERATION, MAX_SPEED);
+            } else {
+                car.speed = Math.max(friction, car.speed - DECELERATION);
+            }
+
+            // Steering dengan batasan agar tidak keluar jalan
+            const boundaryGap = canvas.width / 12;
+            if (isTurningLeft) {
+                car.x = Math.max(
+                    boundaryGap + PLAYER_W/2,
+                    car.x - SIDE_SPEED
+                );
+            }
+            if (isTurningRight) {
+                car.x = Math.min(
+                    canvas.width - boundaryGap - PLAYER_W/2,
+                    car.x + SIDE_SPEED
+                );
+            }
+            
+            // Update roadOffset dengan menghindari floating point error
+            const roadSpeed = car.speed * 2.5;
+            accumulatedRoadOffset += roadSpeed;
+            roadOffset = Math.floor(accumulatedRoadOffset);
+            
+            // Reset jika terlalu besar untuk mencegah overflow
+            if (roadOffset > 100000) {
+                roadOffset = 0;
+                accumulatedRoadOffset = 0;
+            }
+            
+            distance += car.speed * 0.15;
+            
+            // Skor berdasarkan kecepatan dan waktu
+            score += Math.floor(car.speed * 2);
+            
+            updatePlayerPosition();
+            spawnTrafficCar();
+            updateTrafficCars();
+            checkCollision();
+        }
+        
+        if ((gameState === 'READY' || gameState === 'GAME_OVER') && (keys.w || keys.accelerate)) {
+            resetGame();
+        }
+    }
+    
+    function draw() {
+        // Clear canvas dengan benar
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        drawRoad();
+        trafficCars.forEach(drawTrafficCar);
+        drawPlayerCar();
+        
+        drawOverlay();
+
+        updateHUD();
+    }
+
+    function gameLoop(timestamp) {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // --- Penanganan Kontrol ---
+    function setupControls() {
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key === 'w') keys.w = true;
+            if (key === 'a') keys.a = true;
+            if (key === 'd') keys.d = true;
+            if (key === 'escape') exitToLobby();
+        });
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key === 'w') keys.w = false;
+            if (key === 'a') keys.a = false;
+            if (key === 'd') keys.d = false;
+        });
+
+        function setMobileKey(btnId, controlKey) {
+            const btn = document.getElementById(btnId);
+            
+            const activate = (e) => {
+                e.preventDefault();
+                keys[controlKey] = true;
+                if (controlKey === 'accelerate') keys.w = true;
+                if (controlKey === 'left') keys.a = true;
+                if (controlKey === 'right') keys.d = true;
+            };
+            const deactivate = (e) => {
+                e.preventDefault();
+                keys[controlKey] = false;
+                if (controlKey === 'accelerate') keys.w = false;
+                if (controlKey === 'left') keys.a = false;
+                if (controlKey === 'right') keys.d = false;
+            };
+
+            btn.addEventListener('touchstart', activate, { passive: false });
+            btn.addEventListener('touchend', deactivate, { passive: false });
+            btn.addEventListener('touchcancel', deactivate, { passive: false });
+
+            btn.addEventListener('mousedown', activate);
+            btn.addEventListener('mouseup', deactivate);
+            btn.addEventListener('mouseleave', () => {
+                if (keys[controlKey] === true) deactivate(new Event('mouseleave'));
+            });
+        }
+
+        setMobileKey('btn-accelerate', 'accelerate');
+        setMobileKey('btn-left', 'left');
+        setMobileKey('btn-right', 'right');
+    }
+
+    function updateHUD() {
+        const currentSpeed = car.speed * SPEED_MULTIPLIER;
+        speedDisplay.textContent = `${currentSpeed.toFixed(1)} km/j`;
+        distanceDisplay.textContent = `${Math.floor(distance)} m`;
+        moneyDisplay.textContent = userMoney;
+        scoreDisplay.textContent = score;
+    }
+
+    // Event listeners
+    window.addEventListener('load', initGame);
+    window.addEventListener('resize', resizeCanvas);
+
+</script>
+</body>
+</html>

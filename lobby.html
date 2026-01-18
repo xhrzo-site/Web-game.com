@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Lobby - The All Game</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
+        
+        /* Tombol FAQ */
+        .faq-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #ff3333;
+            border-radius: 12px;
+            padding: 10px 15px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            font-weight: bold;
+            color: #ff3333;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .faq-btn:hover {
+            background: rgba(255,51,51,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,0,0,0.4);
+        }
+        
+        /* Notice Box Modal */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .notice-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .notice-box {
+            background: rgba(30,30,46,0.95);
+            border: 2px solid #ff3333;
+            border-radius: 18px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 35px rgba(255,0,0,0.3);
+        }
+        .notice-box h3 {
+            color: #ff3333;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .notice-box p {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            color: #ddd;
+        }
+        .notice-box strong {
+            color: #00ff88;
+        }
+        .notice-box .disclaimer {
+            background: rgba(255,51,51,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #ff3333;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .close-modal:hover {
+            background: #ff6666;
+            transform: rotate(90deg);
+        }
+        
+        /* Main Lobby Content */
+        #lobbyContainer {
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Header dengan user info dan logout */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,255,136,0.25);
+        }
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .user-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-display-box {
+            background: rgba(255,255,255,0.08);
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+            border: 2px solid #00ff88;
+        }
+        .rank-display-box {
+            background: rgba(255,215,0,0.08);
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 2px solid #ffd700;
+        }
+        .stars-display-box {
+            background: rgba(255,255,255,0.08);
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 2px solid #ffd700;
+        }
+        .rank-stars-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .user-stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .stat {
+            background: rgba(0,0,0,0.4);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg,#ff3333,#cc0000);
+            color: #fff;
+            padding: 9px 18px;
+            border-radius: 9px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.25s;
+            height: fit-content;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(255,51,51,0.4);
+        }
+        
+        .lobby-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+        
+        .games-section {
+            background: rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 25px;
+            border: 1px solid rgba(0,255,136,0.08);
+        }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+        .game-card {
+            background: rgba(0,0,0,0.35);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s;
+            border: 2px solid transparent;
+        }
+        .game-card:hover {
+            transform: translateY(-4px);
+            border-color: #00ff88;
+            box-shadow: 0 8px 18px rgba(0,255,136,0.25);
+        }
+        .game-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .game-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .game-desc {
+            font-size: 13px;
+            color: #88ffcc;
+            opacity: 0.8;
+        }
+        
+        .friends-section {
+            background: rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 25px;
+            border: 1px solid rgba(0,255,136,0.08);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .section-header h2 {
+            margin: 0;
+        }
+        .toggle-btn {
+            background: rgba(0,255,136,0.15);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+        .toggle-btn:hover {
+            background: rgba(0,255,136,0.25);
+        }
+        
+        .add-friend {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            display: none;
+        }
+        .add-friend.active {
+            display: flex;
+        }
+        .add-friend input {
+            flex: 1;
+        }
+        .add-friend button {
+            width: auto;
+            padding: 14px 18px;
+            white-space: nowrap;
+        }
+        
+        .friends-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .friend-item {
+            background: rgba(0,0,0,0.35);
+            padding: 14px;
+            border-radius: 9px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #00ff88;
+        }
+        .friend-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .friend-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .friend-rank {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        
+        .features-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 25px;
+            margin-top: 25px;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s;
+            border: 2px solid rgba(255,255,255,0.08);
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: #ffd700;
+            box-shadow: 0 8px 18px rgba(255,215,0,0.25);
+        }
+        .feature-icon {
+            font-size: 45px;
+            margin-bottom: 12px;
+        }
+        .feature-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+        
+        /* Rank Colors */
+        .rank-newbie{color:#cd7f32}.rank-junior{color:#c0c0c0}.rank-senior{color:#ffd700}
+        .rank-great{color:#32cd32}.rank-super-great{color:#00ff00}.rank-legend{color:#ff4500}
+        .rank-kings{color:#9370db}.rank-greatest{color:#ff00ff}.rank-mad-kings{color:#8b0000}
+        .rank-greatness{color:#00ffff}.rank-unbeatable{color:#ff8c00}.rank-monster-kings{color:#800080}
+        .rank-impossible{background:linear-gradient(135deg,#f00,#ff8c00,#ff0,#0f0,#0ff,#00f,#800080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        
+        .loading {
+            text-align: center;
+            padding: 18px;
+            color: #00ff88;
+        }
+        
+        .message {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .message.success {
+            background: linear-gradient(135deg,#00ff88,#00cc6a);
+        }
+        .message.error {
+            background: linear-gradient(135deg,#ff3333,#cc0000);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .lobby-container {
+                grid-template-columns: 1fr;
+            }
+            .features-section {
+                grid-template-columns: 1fr 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            .rank-stars-container {
+                flex-direction: column;
+                width: 100%;
+            }
+            .user-display-box, .rank-display-box, .stars-display-box {
+                width: 100%;
+                justify-content: center;
+            }
+            .logout-btn {
+                align-self: flex-end;
+                margin-top: 12px;
+            }
+            .faq-btn {
+                top: 10px;
+                left: 10px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tombol FAQ -->
+    <div class="faq-btn" onclick="openFAQ()">
+        <span>📌</span>
+        <span>FAQ</span>
+    </div>
+    
+    <!-- Modal FAQ -->
+    <div id="faqModal" class="notice-modal">
+        <div class="notice-box">
+            <button class="close-modal" onclick="closeFAQ()">×</button>
+            <h3>📌 PANDUAN</h3>
+            <p><strong>Cara Main:</strong> Daftar/Login dulu, pilih game di lobby, mainkan dan kumpulkan bintang!</p>
+            <p><strong>Rank:</strong> Kumpulkan bintang untuk naik rank. Semakin tinggi rank, semakin keren!</p>
+            <p><strong>Teman:</strong> Tambah teman untuk lihat progress mereka.</p>
+            <p><strong>Fitur Lain:</strong> Coba Spin, Events, Shop dan Misi untuk hadiah tambahan.</p>
+            
+            <div class="disclaimer">
+                <p><strong>⚠️ DISCLAIMER:</strong></p>
+                <p>Game ini dibuat oleh <strong>Taher</strong> untuk hiburan semata.</p>
+                <p>Jika terdapat kata yang tidak pantas, mohon maaf.</p>
+                <p>Jika ada fitur yang jelek, mohon dimaafkan.</p>
+                <p>Selamat bermain! 🎮</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lobby Container -->
+    <div id="lobbyContainer">
+        <!-- Header dengan user info dan logout -->
+        <div class="header">
+            <div class="user-info">
+                <!-- Nama User -->
+                <div class="user-display">
+                    <div class="user-display-box">
+                        <span id="usernameDisplay">Username</span>
+                    </div>
+                </div>
+                
+                <!-- Rank dan Bintang -->
+                <div class="rank-stars-container">
+                    <div class="rank-display-box">
+                        <span id="rankDisplay">🥉 Newbie</span>
+                    </div>
+                    <div class="stars-display-box">
+                        <span>⭐</span>
+                        <span id="starsDisplay">0</span>
+                    </div>
+                </div>
+                
+                <!-- Statistik lainnya -->
+                <div class="user-stats">
+                    <div class="stat">
+                        <span>💵</span>
+                        <span id="moneyDisplay">1000</span>
+                    </div>
+                    <div class="stat">
+                        <span>💎</span>
+                        <span id="diamondDisplay">10</span>
+                    </div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+        </div>
+        
+        <!-- Lobby Content -->
+        <div class="lobby-container">
+            <!-- Games Section -->
+            <div class="games-section">
+                <h2>🎮 PILIHAN PERMAINAN</h2>
+                <div class="games-grid">
+                    <!-- Game 1: RPG -->
+                    <div class="game-card" onclick="playGame('RPG')">
+                        <div class="game-icon">🚗</div>
+                        <div class="game-title">Balap Liar</div>
+                        <div class="game-desc">Melaju Tanpa batas</div>
+                    </div>
+                    
+                    <!-- Game 2: Game Baru -->
+                    <div class="game-card" onclick="playGame('GAME2')">
+                        <div class="game-icon">🗡️</div>
+                        <div class="game-title">1v1 Fight 3D</div>
+                        <div class="game-desc">Game Duel Dengan Teman anda</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friends Section -->
+            <div class="friends-section">
+                <div class="section-header">
+                    <h2>👥 TEMAN</h2>
+                    <button class="toggle-btn" onclick="toggleFriendForm()">+add</button>
+                </div>
+                <div class="add-friend" id="addFriendForm">
+                    <input type="text" id="friendUsername" placeholder="Masukkan username teman">
+                    <button onclick="addFriend()">Tambah</button>
+                </div>
+                <div class="friends-list" id="friendsList">
+                    <!-- Friends will be loaded here -->
+                    <div class="loading">Memuat daftar teman...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features Section -->
+        <div class="features-section">
+            <!-- Leaderboard Button -->
+            <div class="feature-card" onclick="window.location.href='leaderboard.html'">
+                <div class="feature-icon">🏆</div>
+                <div class="feature-title">LEADERBOARD</div>
+                <p>Lihat peringkat pemain terbaik!</p>
+            </div>
+            
+            <!-- Spin Button -->
+            <div class="feature-card" onclick="window.location.href='spin.html'">
+                <div class="feature-icon">🎰</div>
+                <div class="feature-title">LUCKY SPIN</div>
+                <p>Spin dan dapatkan hadiah menarik!</p>
+            </div>
+
+            <!-- Shop Button -->
+            <div class="feature-card" onclick="window.location.href='shop.html'">
+                <div class="feature-icon">🛒</div>
+                <div class="feature-title">SHOP</div>
+                <p>Beli item keren dan power-up!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Di dalam div class="features-section" tambahkan ini: -->
+<div class="feature-card" onclick="window.location.href='admin.html'">
+    <div class="feature-icon">👑</div>
+    <div class="feature-title">ADMIN PANEL</div>
+    <p>Panel admin (hanya untuk admin)</p>
+</div>
+
+    <script>
+      
+        
+        let currentUser = null;
+        
+        
+        const ranks = [
+            { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
+            { id: 1, name: "🥈 Junior", starsNeeded: 1, color: "rank-junior" },
+            { id: 2, name: "🥇 Senior", starsNeeded: 1, color: "rank-senior" },
+            { id: 3, name: "🏅 Great", starsNeeded: 1, color: "rank-great" },
+            { id: 4, name: "🎖️ Super Great", starsNeeded: 1, color: "rank-super-great" },
+            { id: 5, name: "🏆 Legend", starsNeeded: 1, color: "rank-legend" },
+            { id: 6, name: "👑 Kings", starsNeeded: 10, color: "rank-kings" },
+            { id: 7, name: "☢️ Greatest", starsNeeded: 25, color: "rank-greatest" },
+            { id: 8, name: "☣️ Mad Kings", starsNeeded: 50, color: "rank-mad-kings" },
+            { id: 9, name: "🔱 Greatness", starsNeeded: 80, color: "rank-greatness" },
+            { id: 10, name: "⚜️ Unbeatable", starsNeeded: 100, color: "rank-unbeatable" },
+            { id: 11, name: "🏴‍☠️ Monster Kings", starsNeeded: 200, color: "rank-monster-kings" },
+            { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000, color: "rank-impossible" }
+        ];
+        
+        // FAQ Functions
+        function openFAQ() {
+            document.getElementById('faqModal').classList.add('active');
+        }
+        
+        function closeFAQ() {
+            document.getElementById('faqModal').classList.remove('active');
+        }
+        
+        document.getElementById('faqModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFAQ();
+            }
+        });
+        
+        // Toggle Friend Form
+        function toggleFriendForm() {
+            const form = document.getElementById('addFriendForm');
+            form.classList.toggle('active');
+        }
+        
+        // Show message
+        function showMessage(text, type = 'success') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        // Play Game Function
+        function playGame(gameType) {
+            localStorage.setItem('selectedGame', gameType);
+            
+            // Tentukan halaman tujuan berdasarkan game
+            let gamePage = 'game.html';
+            if (gameType === 'GAME2') {
+                gamePage = 'game2.html';
+            }
+            
+            window.location.href = gamePage;
+        }
+        
+        // Update User Display
+        function updateUserDisplay() {
+            if (!currentUser) return;
+            
+            document.getElementById('usernameDisplay').textContent = currentUser.username || "Guest";
+            document.getElementById('moneyDisplay').textContent = currentUser.money || 1000;
+            document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
+            
+            // Update rank display
+            const rankId = currentUser.rank || 0;
+            const stars = currentUser.stars || 0;
+            const rankInfo = ranks[rankId];
+            
+            const rankDisplay = document.getElementById('rankDisplay');
+            rankDisplay.textContent = rankInfo.name;
+            rankDisplay.className = rankInfo.color;
+            
+            document.getElementById('starsDisplay').textContent = stars;
+            
+            // Update box colors berdasarkan rank
+            const rankBox = document.querySelector('.rank-display-box');
+            const starsBox = document.querySelector('.stars-display-box');
+            
+            if (rankBox && starsBox) {
+                rankBox.style.borderColor = getRankColor(rankId);
+                starsBox.style.borderColor = getRankColor(rankId);
+                rankBox.style.background = getRankBoxBackground(rankId);
+            }
+        }
+        
+        // Get Rank Color
+        function getRankColor(rankId) {
+            const colors = [
+                '#cd7f32', // Bronze
+                '#c0c0c0', // Silver
+                '#ffd700', // Gold
+                '#32cd32', // Lime Green
+                '#00ff00', // Green
+                '#ff4500', // Orange Red
+                '#9370db', // Medium Purple
+                '#ff00ff', // Magenta
+                '#8b0000', // Dark Red
+                '#00ffff', // Cyan
+                '#ff8c00', // Dark Orange
+                '#800080', // Purple
+                '#ff0000'  // Red (for gradient)
+            ];
+            return colors[rankId] || colors[0];
+        }
+        
+        // Get Rank Box Background
+        function getRankBoxBackground(rankId) {
+            const backgrounds = [
+                'rgba(205, 127, 50, 0.15)',
+                'rgba(192, 192, 192, 0.15)',
+                'rgba(255, 215, 0, 0.15)',
+                'rgba(50, 205, 50, 0.15)',
+                'rgba(0, 255, 0, 0.15)',
+                'rgba(255, 69, 0, 0.15)',
+                'rgba(147, 112, 219, 0.15)',
+                'rgba(255, 0, 255, 0.15)',
+                'rgba(139, 0, 0, 0.15)',
+                'rgba(0, 255, 255, 0.15)',
+                'rgba(255, 140, 0, 0.15)',
+                'rgba(128, 0, 128, 0.15)',
+                'rgba(255, 0, 0, 0.15)'
+            ];
+            return backgrounds[rankId] || backgrounds[0];
+        }
+        
+        // Load Friends List
+        async function loadFriends(uid) {
+            try {
+                const friendsList = document.getElementById('friendsList');
+                friendsList.innerHTML = '<div class="loading">Memuat teman...</div>';
+                
+                const friendsSnapshot = await database.ref('friends/' + uid).once('value');
+                const friends = friendsSnapshot.val() || {};
+                
+                if (Object.keys(friends).length === 0) {
+                    friendsList.innerHTML = '<div class="friend-item">Belum ada teman</div>';
+                    return;
+                }
+                
+                let friendsHTML = '';
+                
+                for (const friendUid in friends) {
+                    const friendSnapshot = await database.ref('users/' + friendUid).once('value');
+                    const friendData = friendSnapshot.val();
+                    
+                    if (friendData) {
+                        const rankInfo = ranks[friendData.rank || 0];
+                        const status = friendData.status === 'online' ? 
+                            '<span style="color: #00ff88;">●</span>' :
+                            '<span style="color: #ff3333;">●</span>';
+                        
+                        friendsHTML += `
+                            <div class="friend-item">
+                                <div class="friend-info">
+                                    <div class="friend-name">${status} ${friendData.username}</div>
+                                    <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${friendData.stars || 0}</div>
+                                </div>
+                                <div class="friend-stats">
+                                    💵${friendData.money}<br>
+                                    💎${friendData.diamond}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                friendsList.innerHTML = friendsHTML || '<div class="friend-item">Belum ada teman</div>';
+                
+            } catch (error) {
+                friendsList.innerHTML = '<div class="friend-item">Error loading friends</div>';
+            }
+        }
+        
+        // Add Friend
+        async function addFriend() {
+            if (!currentUser) return;
+            
+            const friendUsername = document.getElementById('friendUsername').value.trim();
+            
+            if (!friendUsername) {
+                showMessage('Masukin Dulu lah nama temen lu!', 'error');
+                return;
+            }
+            
+            if (friendUsername === currentUser.username) {
+                showMessage('Tidak bisa tambah diri sendiri!', 'error');
+                return;
+            }
+            
+            try {
+                // Cari teman
+                const snapshot = await database.ref('users').orderByChild('username').equalTo(friendUsername).once('value');
+                
+                if (!snapshot.exists()) {
+                    showMessage('Ngga ketemu bg! ', 'error');
+                    return;
+                }
+                
+                const friendData = snapshot.val();
+                const friendUid = Object.keys(friendData)[0];
+                
+                // Cek sudah berteman
+                const friendCheck = await database.ref('friends/' + currentUser.uid + '/' + friendUid).once('value');
+                
+                if (friendCheck.exists()) {
+                    showMessage('Sudah berteman!', 'error');
+                    return;
+                }
+                
+                // Tambah ke list
+                await database.ref('friends/' + currentUser.uid + '/' + friendUid).set(true);
+                
+                showMessage('Teman berhasil ditambah!', 'success');
+                document.getElementById('friendUsername').value = '';
+                loadFriends(currentUser.uid);
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Logout Function
+        function logout() {
+            if (currentUser) {
+                // Update status to offline
+                database.ref('users/' + currentUser.uid).update({
+                    status: 'offline',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Clear localStorage
+                localStorage.removeItem('currentUser');
+            }
+            
+            // Redirect to login page
+            window.location.href = 'index.html';
+        }
+        
+        // Initialize Lobby
+        async function initLobby() {
+            // Check if user is logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (!savedUser) {
+                // Redirect to login if not logged in
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(savedUser);
+                currentUser = user;
+                
+                // Load user data from Firebase
+                const snapshot = await database.ref('users/' + user.uid).once('value');
+                const userData = snapshot.val();
+                
+                if (!userData) {
+                    // User not found in database
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Update currentUser with latest data
+                currentUser = {
+                    uid: user.uid,
+                    ...userData
+                };
+                
+                // Update localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update UI
+                updateUserDisplay();
+                
+                // Load friends
+                loadFriends(user.uid);
+                
+                // Setup real-time listener for user data updates
+                database.ref('users/' + user.uid).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && currentUser) {
+                        currentUser = { ...currentUser, ...data };
+                        updateUserDisplay();
+                    }
+                });
+                
+            } catch (error) {
+                showMessage('Error, Coba cek Internet Lu: ' + error.message, 'error');
+                console.error('Error initializing lobby:', error);
+            }
+        }
+        
+        // Enter key support
+        document.getElementById('friendUsername')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addFriend();
+        });
+        
+        // Close FAQ with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFAQ();
+            }
+        });
+        
+        // Initialize lobby on page load
+        window.onload = () => {
+            initLobby();
+        };
+    </script>
+</body>
+</html>

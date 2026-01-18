@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Spin - The All Game</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0, 20, 40, 0.8);
+            border-radius: 12px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .header h1 {
+            color: #00ff88;
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .balance-info {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .balance-item {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .diamond-count, .money-count {
+            color: #00ff88;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* Wheel Container */
+        .wheel-section {
+            background: rgba(0, 20, 40, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #00ccff;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .wheel-title {
+            color: #00ff88;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .wheel-wrapper {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 20px;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5),
+                        inset 0 0 20px rgba(0, 0, 0, 0.7);
+            transition: transform 3.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+            background: #0a0a1a;
+        }
+        
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-left: 20%;
+            box-sizing: border-box;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .segment-content {
+            transform: rotate(45deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 35px;
+            height: 40px;
+            z-index: 10;
+        }
+        
+        .pointer-triangle {
+            width: 0;
+            height: 0;
+            border-left: 17px solid transparent;
+            border-right: 17px solid transparent;
+            border-top: 35px solid #ff3366;
+            filter: drop-shadow(0 0 5px #ff3366);
+        }
+        
+        .pointer-circle {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #00ff88;
+            border-radius: 50%;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        /* Diamond Payment Info */
+        .payment-info {
+            background: rgba(0, 204, 255, 0.1);
+            border: 2px solid #00ccff;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .payment-title {
+            color: #00ff88;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .diamond-cost {
+            background: rgba(0, 255, 136, 0.15);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff88;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #00ff88;
+            margin: 10px 0;
+        }
+        
+        .cost-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        /* Spin Button */
+        .spin-button {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #1a1a2e;
+            border: none;
+            padding: 16px 45px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px auto 0;
+            letter-spacing: 0.5px;
+        }
+        
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 255, 136, 0.6);
+        }
+        
+        .spin-button:disabled {
+            background: linear-gradient(135deg, #666, #444);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .spin-button.spinning {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 8px 25px rgba(0, 255, 136, 0.6);
+            }
+        }
+        
+        /* Free Spin Section */
+        .free-section {
+            background: rgba(255, 204, 0, 0.1);
+            border: 2px solid #ffcc00;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .free-title {
+            color: #ffcc00;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .free-timer {
+            background: rgba(255, 204, 0, 0.15);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ffcc00;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffcc00;
+            margin: 10px 0;
+        }
+        
+        .free-button {
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px auto 0;
+        }
+        
+        .free-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(255, 204, 0, 0.6);
+        }
+        
+        .free-button:disabled {
+            background: linear-gradient(135deg, #666, #444);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* Prize Section */
+        .prize-section {
+            background: rgba(0, 20, 40, 0.8);
+            border-radius: 10px;
+            padding: 18px;
+            border: 2px solid #ff3366;
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .prize-title {
+            color: #00ff88;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+        
+        .prize-result {
+            font-size: 1.9em;
+            font-weight: bold;
+            color: #ffcc00;
+            text-align: center;
+            margin: 12px 0;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 204, 0, 0.3);
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .prize-desc {
+            color: #88ffcc;
+            text-align: center;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #1a1a2e;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        /* Message */
+        .message {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border-left: 4px solid #00cc6a;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+            border-left: 4px solid #cc0000;
+        }
+        
+        .message.info {
+            background: linear-gradient(135deg, #00ccff, #0066ff);
+            border-left: 4px solid #0066ff;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Simple confetti */
+        .confetti {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background-color: #00ff88;
+            opacity: 0;
+            z-index: 999;
+            pointer-events: none;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 15px;
+            color: #00ff88;
+        }
+        
+        /* Jackpot animation */
+        .jackpot {
+            animation: jackpotGlow 0.5s infinite alternate;
+        }
+        
+        @keyframes jackpotGlow {
+            from { 
+                text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
+                color: #ffcc00;
+            }
+            to { 
+                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
+                color: #ff9900;
+            }
+        }
+        
+        /* Prize List */
+        .prize-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .prize-item {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .prize-item.jackpot {
+            background: rgba(255, 51, 102, 0.2);
+            border-color: #ff3366;
+            grid-column: span 2;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .wheel-wrapper {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .wheel-segment {
+                font-size: 11px;
+            }
+            
+            .segment-content {
+                font-size: 11px;
+            }
+            
+            .diamond-cost {
+                padding: 10px 15px;
+                font-size: 1.2em;
+            }
+            
+            .spin-button {
+                padding: 14px 35px;
+                font-size: 1em;
+            }
+            
+            .prize-result {
+                font-size: 1.8em;
+                min-height: 60px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-btn {
+                width: 100%;
+                max-width: 220px;
+                justify-content: center;
+            }
+            
+            .prize-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .prize-item.jackpot {
+                grid-column: span 1;
+            }
+        }
+        
+        /* Diamond Animation */
+        .diamond-float {
+            position: fixed;
+            font-size: 20px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        /* Insufficient Funds Warning */
+        .warning {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid #ff3366;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            color: #ff6666;
+            font-size: 0.9em;
+        }
+        
+        /* Zonk Animation */
+        @keyframes redFlash {
+            0%, 100% { 
+                background: rgba(255, 0, 0, 0.1);
+            }
+            50% { 
+                background: rgba(255, 0, 0, 0.3);
+            }
+        }
+        
+        
+        
+        .zonk-result {
+            color: #ff0000 !important;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5) !important;
+            animation: pulseRed 0.5s ease-in-out 3;
+        }
+        
+        @keyframes pulseRed {
+            0%, 100% { 
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.1);
+            }
+        }
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 LUCKY SPIN</h1>
+            <div class="balance-info">
+                <div class="balance-item">
+                    <span>Player:</span>
+                    <span id="usernameDisplay">Loading...</span>
+                </div>
+                <div class="balance-item">
+                    <span>💎 Diamond:</span>
+                    <span class="diamond-count" id="diamondCount">0</span>
+                </div>
+                <div class="balance-item">
+                    <span>💰 Uang:</span>
+                    <span class="money-count" id="moneyCount">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wheel Section -->
+        <div class="wheel-section">
+            <div class="wheel-title">PUTAR & MENANG DIAMOND!</div>
+            
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer">
+                    <div class="pointer-triangle"></div>
+                    <div class="pointer-circle"></div>
+                </div>
+                <div class="wheel" id="wheel">
+                    <!-- Wheel segments dibuat oleh JS -->
+                </div>
+            </div>
+            
+            <!-- Diamond Payment Info -->
+            <div class="payment-info">
+                <div class="payment-title">
+                    <span>💎</span>
+                </div>
+                <div class="diamond-cost">
+                    <span>50</span>
+                    <span>💎</span>
+                </div>
+                <div class="cost-label">1x Putaran</div>
+            </div>
+            
+            <div class="prize-list">
+                <div class="prize-item">250 Diamond</div>
+                <div class="prize-item">500 Diamond</div>
+                <div class="prize-item">1000 Diamond</div>
+                <div class="prize-item jackpot">🔥 JACKPOT 2000 🔥</div>
+            </div>
+            
+            <div class="warning" id="warningMessage" style="display: none;">
+                ⚠️ Sory bg Tapi DM lu ga cukup!
+            </div>
+            
+            <button class="spin-button" id="spinButton" onclick="spinWheel()">
+                <span>🎯</span> SPIN
+            </button>
+        </div>
+        
+        <!-- Free Spin Section -->
+        <div class="free-section">
+            <div class="free-title">
+                <span>🎁</span> SPIN GRATIS
+            </div>
+            <div class="free-timer" id="freeSpinTimer">
+                Tersedia!
+            </div>
+            <button class="free-button" id="freeSpinButton" onclick="useFreeSpin()">
+                <span>🆓</span> SPIN
+            </button>
+        </div>
+        
+        <!-- Prize Section -->
+        <div class="prize-section">
+            <div class="prize-title">PENDAPATAN</div>
+            <div class="prize-result" id="prizeResult">
+                Belum ada hasil
+            </div>
+            <div class="prize-desc" id="prizeDescription">
+                Spin sekarang untuk menang diamond! harga murah cuma 50💎!
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn back-btn" onclick="window.location.href='lobby.html'">
+                    <span>←</span> KEMBALI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlMyO9iybb7Zc3-JWpaJTOU6mp7dVZw7A",
+            authDomain: "taher-online.firebaseapp.com",
+            databaseURL: "https://taher-online-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "taher-online",
+            storageBucket: "taher-online.firebasestorage.app",
+            messagingSenderId: "254196950669",
+            appId: "1:254196950669:web:ea7dc25e29e459e791e4c4",
+            measurementId: "G-W288VV18S2"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Variables
+        let currentUser = null;
+        let isSpinning = false;
+        let freeSpinAvailable = false;
+        let lastFreeSpinTime = null;
+        
+        // Prizes configuration
+        const prizes = [
+            { value: 0, name: "Zonk", color: "#FF6B6B", chance: 30 },
+            { value: 50, name: "50 Diamond", color: "#4ECDC4", chance: 25 },
+            { value: 100, name: "100 Diamond", color: "#FFD166", chance: 20 },
+            { value: 250, name: "250 Diamond", color: "#06D6A0", chance: 10 },
+            { value: 500, name: "500 Diamond", color: "#118AB2", chance: 5 },
+            { value: 1000, name: "1000 Diamond", color: "#EF476F", chance: 8 },
+            { value: 2000, name: "JACKPOT 2000", color: "#FF0000", chance: 5 },
+            { value: 10000, name: "🔥SECREET🔥", color: "#6A0572", chance: 2 }
+        ];
+        
+        // Show message function
+        function showMessage(text, type = 'success') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            
+            let icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'info') icon = 'ℹ️';
+            
+            message.innerHTML = `
+                <span style="font-size: 1.1em;">${icon}</span>
+                <span>${text}</span>
+            `;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            }, 2500);
+        }
+        
+        // Create diamond animation (only for jackpot)
+        function createDiamondAnimation(count) {
+            for (let i = 0; i < count; i++) {
+                const diamond = document.createElement('div');
+                diamond.className = 'diamond-float';
+                diamond.innerHTML = '💎';
+                diamond.style.left = Math.random() * 100 + 'vw';
+                diamond.style.top = '100vh';
+                
+                const duration = Math.random() * 2 + 1;
+                const delay = Math.random() * 0.5;
+                
+                diamond.style.animation = `
+                    floatUp ${duration}s ease-in ${delay}s forwards
+                `;
+                
+                document.body.appendChild(diamond);
+                
+                setTimeout(() => diamond.remove(), (duration + delay) * 1000);
+            }
+        }
+        
+        // Show zonk animation
+        function showZonkAnimation() {
+            // Add red flash effect to body
+            document.body.classList.add('zonk-flash');
+            
+            // Remove after animation
+            setTimeout(() => {
+                document.body.classList.remove('zonk-flash');
+            }, 1500);
+        }
+        
+        // Load current user data
+        function loadCurrentUser() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUserDisplay();
+                checkFreeSpin();
+                createWheel();
+                checkDiamondBalance();
+            } else {
+                showMessage('Silakan login dulu!', 'error');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        }
+        
+        // Update user display
+        function updateUserDisplay() {
+            if (!currentUser) return;
+            
+            document.getElementById('usernameDisplay').textContent = currentUser.username || "Guest";
+            document.getElementById('diamondCount').textContent = currentUser.diamond || 0;
+            document.getElementById('moneyCount').textContent = currentUser.money || 0;
+        }
+        
+        // Check diamond balance and show warning if insufficient
+        function checkDiamondBalance() {
+            const diamondBalance = currentUser.diamond || 0;
+            const warningMessage = document.getElementById('warningMessage');
+            
+            if (diamondBalance < 50 && !freeSpinAvailable) {
+                warningMessage.style.display = 'block';
+            } else {
+                warningMessage.style.display = 'none';
+            }
+        }
+        
+        // Check free spin availability
+        function checkFreeSpin() {
+            const now = Date.now();
+            const lastFreeSpin = localStorage.getItem('lastFreeSpin');
+            
+            if (!lastFreeSpin || (now - parseInt(lastFreeSpin)) >= 24 * 60 * 60 * 1000) {
+                freeSpinAvailable = true;
+                document.getElementById('freeSpinButton').disabled = false;
+                document.getElementById('freeSpinTimer').innerHTML = 'Tersedia!';
+                document.getElementById('freeSpinTimer').style.color = '#00ff88';
+            } else {
+                freeSpinAvailable = false;
+                document.getElementById('freeSpinButton').disabled = true;
+                lastFreeSpinTime = parseInt(lastFreeSpin);
+                startFreeSpinTimer();
+            }
+        }
+        
+        // Start free spin timer
+        function startFreeSpinTimer() {
+            if (!lastFreeSpinTime) return;
+            
+            const updateTimer = () => {
+                const now = Date.now();
+                const timeLeft = 24 * 60 * 60 * 1000 - (now - lastFreeSpinTime);
+                
+                if (timeLeft <= 0) {
+                    freeSpinAvailable = true;
+                    document.getElementById('freeSpinButton').disabled = false;
+                    document.getElementById('freeSpinTimer').innerHTML = 'Tersedia!';
+                    document.getElementById('freeSpinTimer').style.color = '#00ff88';
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                document.getElementById('freeSpinTimer').innerHTML = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('freeSpinTimer').style.color = '#ffcc00';
+                
+                setTimeout(updateTimer, 1000);
+            };
+            
+            updateTimer();
+        }
+        
+        // Create wheel
+        function createWheel() {
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+            
+            const totalChance = prizes.reduce((sum, prize) => sum + prize.chance, 0);
+            let currentAngle = 0;
+            
+            prizes.forEach(prize => {
+                const angle = (prize.chance / totalChance) * 360;
+                
+                const segment = document.createElement('div');
+                segment.className = 'wheel-segment';
+                segment.style.transform = `rotate(${currentAngle}deg)`;
+                segment.style.backgroundColor = prize.color;
+                
+                const content = document.createElement('div');
+                content.className = 'segment-content';
+                
+                if (prize.value === 2000) {
+                    content.innerHTML = `
+                        <div style="font-size: 14px; font-weight: bold; color: #ffcc00;">JACKPOT</div>
+                        <div style="font-size: 16px; font-weight: bold; color: white;">${prize.value}</div>
+                        <div style="font-size: 12px; color: white;">💎</div>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div style="font-size: 14px; font-weight: bold; color: white;">${prize.value}</div>
+                        <div style="font-size: 12px; color: white;">💎</div>
+                    `;
+                }
+                
+                segment.appendChild(content);
+                wheel.appendChild(segment);
+                
+                // Add separator line
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.width = '50%';
+                line.style.height = '2px';
+                line.style.backgroundColor = '#000';
+                line.style.top = '50%';
+                line.style.left = '0';
+                line.style.transformOrigin = 'right center';
+                line.style.transform = `rotate(${currentAngle}deg)`;
+                wheel.appendChild(line);
+                
+                currentAngle += angle;
+            });
+        }
+        
+        // Spin wheel with diamond payment
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            // Check diamond balance
+            const diamondBalance = currentUser.diamond || 0;
+            if (diamondBalance < 50) {
+                showMessage('Diamond tidak cukup! 💎', 'error');
+                checkDiamondBalance();
+                return;
+            }
+            
+            startSpinning('diamond');
+        }
+        
+        // Use free spin
+        function useFreeSpin() {
+            if (isSpinning || !freeSpinAvailable) return;
+            startSpinning('free');
+        }
+        
+        // Start spinning process
+        function startSpinning(paymentType) {
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinButton');
+            const freeBtn = document.getElementById('freeSpinButton');
+            
+            spinBtn.disabled = true;
+            freeBtn.disabled = true;
+            spinBtn.classList.add('spinning');
+            spinBtn.innerHTML = '<span>🌀</span> MEMUTAR...';
+            
+            // Select random prize based on chance
+            const random = Math.random() * 100;
+            let cumulative = 0;
+            let selectedPrize = null;
+            
+            for (const prize of prizes) {
+                cumulative += prize.chance;
+                if (random <= cumulative) {
+                    selectedPrize = prize;
+                    break;
+                }
+            }
+            
+            if (!selectedPrize) selectedPrize = prizes[0];
+            
+            // Find prize position on wheel
+            const prizeIndex = prizes.findIndex(p => p.value === selectedPrize.value);
+            const segmentCount = prizes.length;
+            const segmentAngle = 360 / segmentCount;
+            
+            // Random position within segment
+            const minAngle = prizeIndex * segmentAngle;
+            const maxAngle = (prizeIndex + 1) * segmentAngle;
+            const stopAngle = minAngle + Math.random() * (maxAngle - minAngle);
+            
+            // Full rotations + stop position
+            const fullRotations = 3;
+            const totalRotation = fullRotations * 360 + (360 - stopAngle % 360);
+            
+            // Animate wheel
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            
+            // Process after animation
+            setTimeout(async () => {
+                await processPrize(selectedPrize, paymentType);
+                
+                // Reset buttons
+                setTimeout(() => {
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    freeBtn.disabled = !freeSpinAvailable;
+                    spinBtn.classList.remove('spinning');
+                    spinBtn.innerHTML = '<span>🎯</span> SPIN';
+                }, 1000);
+            }, 3500);
+        }
+        
+        // Process prize
+        async function processPrize(prize, paymentType) {
+            try {
+                let updates = {};
+                
+                // Deduct cost for diamond payment
+                if (paymentType === 'diamond') {
+                    updates.diamond = (currentUser.diamond || 0) - 50;
+                }
+                
+                // Add prize diamonds (except for zonk)
+                if (prize.value !== 0) {
+                    updates.diamond = (updates.diamond || currentUser.diamond || 0) + prize.value;
+                }
+                
+                // Display result
+                const prizeResult = document.getElementById('prizeResult');
+                const prizeDesc = document.getElementById('prizeDescription');
+                
+                if (prize.value === 0) {
+                    // Zonk - Red animation
+                    prizeResult.innerHTML = `😢 ZONK!`;
+                    prizeResult.classList.add('zonk-result');
+                    prizeResult.style.color = '#ff0000';
+                    prizeDesc.textContent = 'Sayang sekali! Coba lagi!';
+                    prizeDesc.style.color = '#ff6666';
+                    
+                    // Show red flash animation
+                    showZonkAnimation();
+                    
+                    // Red message
+                    showMessage('Sayang sekali! Zonk! 😢', 'error');
+                    
+                } else {
+                    // Reset zonk styles
+                    prizeResult.classList.remove('zonk-result');
+                    prizeResult.style.color = '';
+                    prizeResult.innerHTML = `+${prize.value} 💎`;
+                    prizeDesc.textContent = `Selamat! Kamu dapat ${prize.name}`;
+                    prizeDesc.style.color = '#88ffcc';
+                    
+                    // Special effects for jackpot only
+                    if (prize.value === 2000) {
+                        prizeResult.classList.add('jackpot');
+                        prizeDesc.innerHTML = '🎊 JACKPOT! KAMU MENANG BESAR! 🎊';
+                        createDiamondAnimation(50);
+                        showMessage('🎉 JACKPOT! Menang 2000 Diamond!', 'success');
+                    } else {
+                        showMessage(`Selamat! Menang ${prize.value} Diamond!`, 'success');
+                    }
+                }
+                
+                // Update user data
+                currentUser = { ...currentUser, ...updates };
+                
+                // Save to Firebase
+                await database.ref('users/' + currentUser.uid).update(updates);
+                
+                // Update display
+                updateUserDisplay();
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                checkDiamondBalance();
+                
+                // Update free spin if used
+                if (paymentType === 'free') {
+                    localStorage.setItem('lastFreeSpin', Date.now().toString());
+                    checkFreeSpin();
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Gagal memproses spin', 'error');
+            }
+        }
+        
+        // Initialize
+        window.onload = function() {
+            loadCurrentUser();
+            
+            // Real-time updates
+            if (currentUser && currentUser.uid) {
+                database.ref('users/' + currentUser.uid).on('value', (snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        currentUser = { ...currentUser, ...userData };
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateUserDisplay();
+                        checkDiamondBalance();
+                    }
+                });
+            }
+            
+            // Add keyboard shortcut (Space for spin)
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && !isSpinning) {
+                    e.preventDefault();
+                    spinWheel();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
