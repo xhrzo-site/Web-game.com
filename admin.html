@@ -12,7 +12,7 @@
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
         body{background:#1a1a2e;color:#fff;min-height:100vh;padding:15px}
         
-        .admin-container{max-width:1200px;margin:auto}
+        .admin-container{max-width:1400px;margin:auto}
         
         /* Login Form */
         .admin-login{
@@ -51,6 +51,28 @@
         }
         .logout-btn{background:#ff3333;color:#fff}
         .back-btn{background:#00ff88;color:#1a1a2e}
+        .refresh-btn{background:#2196F3;color:#fff}
+        
+        /* Tab Navigation */
+        .tabs{
+            display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap;
+            background:rgba(0,0,0,0.3);padding:5px;border-radius:8px
+        }
+        .tab-btn{
+            padding:10px 20px;background:rgba(255,255,255,0.1);
+            border:none;border-radius:6px;color:#aaa;cursor:pointer;
+            font-weight:bold;transition:0.3s;flex:1;min-width:120px
+        }
+        .tab-btn.active{
+            background:#00ff88;color:#1a1a2e;box-shadow:0 0 10px rgba(0,255,136,0.3)
+        }
+        .tab-btn:hover:not(.active){background:rgba(255,255,255,0.2)}
+        
+        /* Tab Content */
+        .tab-content{display:none}
+        .tab-content.active{display:block;animation:fadeIn 0.5s}
+        
+        @keyframes fadeIn{from{opacity:0} to{opacity:1}}
         
         /* Stats */
         .stats-grid{
@@ -86,18 +108,74 @@
         th{background:rgba(0,0,0,0.3);color:#00ff88}
         tr:hover{background:rgba(255,255,255,0.05)}
         
+        /* Status Badge */
+        .status-badge{
+            padding:4px 8px;border-radius:4px;font-size:11px;font-weight:bold
+        }
+        .online-badge{background:rgba(0,255,136,0.2);color:#00ff88}
+        .offline-badge{background:rgba(255,51,51,0.2);color:#ff3333}
+        .banned-badge{background:rgba(255,0,0,0.2);color:#ff0000}
+        
         /* Action Buttons */
         .user-action-btn{
             padding:5px 10px;border:none;border-radius:4px;cursor:pointer;
-            margin:2px;font-size:11px;font-weight:bold
+            margin:2px;font-size:11px;font-weight:bold;transition:0.2s
         }
+        .user-action-btn:hover{opacity:0.9;transform:translateY(-1px)}
         .edit-btn{background:#4CAF50;color:#fff}
         .ban-btn{background:#f44336;color:#fff}
         .unban-btn{background:#2196F3;color:#fff}
         .give-btn{background:#FF9800;color:#fff}
         .delete-btn{background:#9C27B0;color:#fff}
+        .view-btn{background:#2196F3;color:#fff}
+        .kick-btn{background:#FF5722;color:#fff}
         
-        /* Modal */
+        /* Device Info Modal */
+        .device-modal{
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.95);display:none;justify-content:center;
+            align-items:center;z-index:1000;padding:20px
+        }
+        .device-modal.active{display:flex}
+        .device-content{
+            background:#1e1e2e;border-radius:15px;padding:25px;
+            border:3px solid #00ff88;max-width:800px;width:100%;
+            max-height:90vh;overflow-y:auto
+        }
+        .device-header{
+            display:flex;justify-content:space-between;align-items:center;
+            margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid rgba(255,255,255,0.1)
+        }
+        .device-header h3{
+            color:#00ff88;font-size:1.5em;margin:0
+        }
+        .close-modal{
+            background:#ff3333;color:#fff;border:none;border-radius:50%;
+            width:35px;height:35px;font-size:20px;cursor:pointer;
+            display:flex;align-items:center;justify-content:center
+        }
+        
+        /* Device Info Grid */
+        .device-grid{
+            display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:15px;margin-top:20px
+        }
+        .info-card{
+            background:rgba(0,0,0,0.3);border-radius:10px;padding:15px;
+            border-left:4px solid #00ff88
+        }
+        .info-card h4{
+            color:#00ff88;margin-bottom:10px;font-size:14px;
+            display:flex;align-items:center;gap:8px
+        }
+        .info-value{
+            font-size:16px;font-weight:bold;word-break:break-all
+        }
+        .info-detail{
+            font-size:12px;color:#aaa;margin-top:5px
+        }
+        
+        /* Modal untuk Edit User */
         .action-modal{
             position:fixed;top:0;left:0;width:100%;height:100%;
             background:rgba(0,0,0,0.9);display:none;justify-content:center;
@@ -141,15 +219,18 @@
             .top-btn{font-size:11px;padding:6px 10px}
             table{font-size:12px}
             th,td{padding:8px 10px}
+            .tabs{flex-direction:column}
+            .tab-btn{width:100%}
+            .device-grid{grid-template-columns:1fr}
         }
     </style>
 </head>
 <body>
     <!-- Admin Login Form -->
     <div id="loginForm" class="admin-login" style="display: none;">
-        <h2>🔐 Admin Login</h2>
-        <input type="text" id="adminUsername" placeholder="Username" value="Taher">
-        <input type="password" id="adminPassword" placeholder="Password" value="admin">
+        <h2>🔐 Fitur Premium - Login</h2>
+        <input type="text" id="adminUsername" placeholder="Username" value="">
+        <input type="password" id="adminPassword" placeholder="Password" value="">
         <button onclick="adminLogin()">LOGIN</button>
     </div>
     
@@ -157,62 +238,158 @@
     <div id="adminPanel" class="admin-container" style="display: none;">
         <!-- Tombol Logout & Kembali -->
         <div class="top-buttons">
-            <button class="top-btn back-btn" onclick="goBack()">← KEMBALI</button>
+            <button class="top-btn back-btn" onclick="goBack()">← BACK</button>
+            <button class="top-btn refresh-btn" onclick="refreshAllData()">🔄 REFRESH</button>
             <button class="top-btn logout-btn" onclick="adminLogout()">LOGOUT</button>
         </div>
         
         <div class="admin-header">
-            <h1>👑 ADMIN PANEL</h1>
-            <p>Selamat datang, <span id="adminName"></span>!</p>
+            <h1>👑 Fitur Premium</h1>
+            <p>Selamat datang, <span id="adminName"></span>! | <span id="lastUpdate">Loading...</span></p>
         </div>
         
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <div class="number" id="totalUsers">0</div>
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('users')">👥 USER MANAGEMENT</button>
+            <button class="tab-btn" onclick="switchTab('devices')">📱 DEVICE MONITOR</button>
+            <button class="tab-btn" onclick="switchTab('online')">🟢 ONLINE USERS</button>
+        </div>
+        
+        <!-- Tab 1: User Management -->
+        <div id="usersTab" class="tab-content active">
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <div class="number" id="totalUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Online Now</h3>
+                    <div class="number" id="onlineUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Playing Games</h3>
+                    <div class="number" id="playingUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Banned Users</h3>
+                    <div class="number" id="bannedUsers">0</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Online Users</h3>
-                <div class="number" id="onlineUsers">0</div>
+            
+            <!-- Search Box -->
+            <div class="search-box">
+                <input type="text" id="searchUser" placeholder="Cari username atau UID...">
+                <button onclick="searchUser()">Cari</button>
+                <button onclick="clearSearch()" class="reset-btn">Reset</button>
             </div>
-            <div class="stat-card">
-                <h3>Total Money</h3>
-                <div class="number" id="totalMoney">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Total Diamonds</h3>
-                <div class="number" id="totalDiamonds">0</div>
+            
+            <!-- Users Table -->
+            <div class="users-table-container">
+                <h2>📋 DAFTAR SEMUA USER</h2>
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Money</th>
+                            <th>Diamond</th>
+                            <th>Rank</th>
+                            <th>Stars</th>
+                            <th>Terakhir Online</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
         
-        <!-- Search Box -->
-        <div class="search-box">
-            <input type="text" id="searchUser" placeholder="Cari user...">
-            <button onclick="searchUser()">Cari</button>
-            <button onclick="clearSearch()" class="reset-btn">Reset</button>
+        <!-- Tab 2: Device Monitor -->
+        <div id="devicesTab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Mobile Devices</h3>
+                    <div class="number" id="mobileCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Desktop Devices</h3>
+                    <div class="number" id="desktopCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Android Users</h3>
+                    <div class="number" id="androidCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>iOS Users</h3>
+                    <div class="number" id="iosCount">0</div>
+                </div>
+            </div>
+            
+            <div class="users-table-container">
+                <h2>📱 DEVICE MONITORING</h2>
+                <table id="devicesTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Device</th>
+                            <th>OS</th>
+                            <th>Browser</th>
+                            <th>Screen</th>
+                            <th>Timezone</th>
+                            <th>Last Update</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="devicesTableBody">
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
         
-        <!-- Users Table -->
-        <div class="users-table-container">
-            <h2>📋 DAFTAR USER</h2>
-            <table id="usersTable">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>Rank</th>
-                        <th>Money</th>
-                        <th>Diamond</th>
-                        <th>Stars</th>
-                        <th>Terakhir Online</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                    <!-- Data akan diisi oleh JavaScript -->
-                </tbody>
-            </table>
+        <!-- Tab 3: Online Users -->
+        <div id="onlineTab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>In Lobby</h3>
+                    <div class="number" id="lobbyCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>In Game 1</h3>
+                    <div class="number" id="game1Count">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>In Game 2</h3>
+                    <div class="number" id="game2Count">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Idle Users</h3>
+                    <div class="number" id="idleCount">0</div>
+                </div>
+            </div>
+            
+            <div class="users-table-container">
+                <h2>🟢 USER ONLINE REAL-TIME</h2>
+                <div id="onlineUsersList" class="device-grid">
+                    <!-- Online users will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Device Detail -->
+    <div id="deviceModal" class="device-modal">
+        <div class="device-content">
+            <div class="device-header">
+                <h3 id="deviceModalTitle">📱 Device Information</h3>
+                <button class="close-modal" onclick="closeDeviceModal()">×</button>
+            </div>
+            <div class="device-grid" id="deviceInfoGrid">
+                <!-- Device info will be inserted here -->
+            </div>
         </div>
     </div>
     
@@ -221,10 +398,10 @@
         <div class="modal-content">
             <h3>✏️ Edit User</h3>
             <p id="editUserInfo"></p>
-            <input type="number" id="editMoney" placeholder="Uang">
-            <input type="number" id="editDiamond" placeholder="Diamond">
-            <input type="number" id="editStars" placeholder="Stars">
-            <input type="number" id="editRank" placeholder="Rank (0-12)">
+            <input type="number" id="editMoney" placeholder="Uang" min="0">
+            <input type="number" id="editDiamond" placeholder="Diamond" min="0">
+            <input type="number" id="editStars" placeholder="Stars" min="0">
+            <input type="number" id="editRank" placeholder="Rank (0-12)" min="0" max="12">
             <div class="modal-buttons">
                 <button class="save-btn" onclick="saveUserEdit()">SIMPAN</button>
                 <button class="cancel-btn" onclick="closeModal()">BATAL</button>
@@ -237,8 +414,8 @@
         <div class="modal-content">
             <h3>🎁 Give Resources</h3>
             <p id="giveUserInfo"></p>
-            <input type="number" id="giveMoney" placeholder="Jumlah Uang">
-            <input type="number" id="giveDiamond" placeholder="Jumlah Diamond">
+            <input type="number" id="giveMoney" placeholder="Jumlah Uang" min="0">
+            <input type="number" id="giveDiamond" placeholder="Jumlah Diamond" min="0">
             <div class="modal-buttons">
                 <button class="save-btn" onclick="giveResources()">KASIHKAN</button>
                 <button class="cancel-btn" onclick="closeModal()">BATAL</button>
@@ -264,10 +441,13 @@
     </div>
     
     <script>
+        // ==================== GLOBAL VARIABLES ====================
         let currentEditingUser = null;
         let allUsers = [];
+        let allDevices = {};
+        let realTimeListeners = [];
         
-        // Check if already logged in as admin
+        // ==================== INITIALIZATION ====================
         window.onload = function() {
             const adminSession = localStorage.getItem('adminSession');
             if (adminSession === 'true') {
@@ -285,8 +465,16 @@
         function showAdminPanel() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
-            loadUsers();
-            startRealTimeUpdates();
+            
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = 
+                'Last Update: ' + new Date().toLocaleTimeString('id-ID');
+            
+            // Load all data
+            loadAllData();
+            
+            // Start real-time monitoring
+            startRealTimeMonitoring();
         }
         
         function adminLogin() {
@@ -304,12 +492,464 @@
         }
         
         function adminLogout() {
+            // Stop all real-time listeners
+            realTimeListeners.forEach(ref => ref.off());
+            realTimeListeners = [];
+            
             localStorage.removeItem('adminSession');
             showLoginForm();
         }
         
         function goBack() {
             window.location.href = 'lobby.html';
+        }
+        
+        function refreshAllData() {
+            loadAllData();
+            showMessage('Data diperbarui!', 'success');
+            document.getElementById('lastUpdate').textContent = 
+                'Last Update: ' + new Date().toLocaleTimeString('id-ID');
+        }
+        
+        // ==================== TAB MANAGEMENT ====================
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activate corresponding tab button
+            event.target.classList.add('active');
+            
+            // Load data for tab if needed
+            if (tabName === 'devices') {
+                loadDevicesTable();
+            } else if (tabName === 'online') {
+                loadOnlineUsers();
+            }
+        }
+        
+        // ==================== DATA LOADING ====================
+        async function loadAllData() {
+            try {
+                // Load users
+                const usersSnapshot = await database.ref('users').once('value');
+                allUsers = [];
+                usersSnapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    const uid = childSnapshot.key;
+                    allUsers.push({ uid, ...user });
+                });
+                
+                // Load device data
+                const devicesSnapshot = await database.ref('user_stats').once('value');
+                allDevices = devicesSnapshot.val() || {};
+                
+                // Update UI
+                updateStatistics();
+                loadUsersTable();
+                loadDevicesTable();
+                loadOnlineUsers();
+                
+            } catch (error) {
+                showMessage('Error loading data: ' + error.message, 'error');
+                console.error('Error loading all data:', error);
+            }
+        }
+        
+        function updateStatistics() {
+            // User stats
+            const totalUsers = allUsers.length;
+            const onlineUsers = allUsers.filter(u => u.status === 'online').length;
+            const bannedUsers = allUsers.filter(u => u.banned).length;
+            
+            // Device stats
+            let mobileCount = 0, desktopCount = 0;
+            let androidCount = 0, iosCount = 0;
+            let playingCount = 0, lobbyCount = 0, game1Count = 0, game2Count = 0, idleCount = 0;
+            
+            for (const uid in allDevices) {
+                const device = allDevices[uid];
+                
+                if (device.type === 'mobile') mobileCount++;
+                if (device.type === 'desktop') desktopCount++;
+                if (device.os === 'Android') androidCount++;
+                if (device.os === 'iOS') iosCount++;
+                
+                // Check current page
+                if (device.page) {
+                    if (device.page.includes('game')) playingCount++;
+                    if (device.page === 'lobby') lobbyCount++;
+                    if (device.page.includes('GAME1')) game1Count++;
+                    if (device.page.includes('GAME2')) game2Count++;
+                    if (!device.page || device.page === 'unknown') idleCount++;
+                }
+            }
+            
+            // Update stats display
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('onlineUsers').textContent = onlineUsers;
+            document.getElementById('bannedUsers').textContent = bannedUsers;
+            document.getElementById('playingUsers').textContent = playingCount;
+            
+            document.getElementById('mobileCount').textContent = mobileCount;
+            document.getElementById('desktopCount').textContent = desktopCount;
+            document.getElementById('androidCount').textContent = androidCount;
+            document.getElementById('iosCount').textContent = iosCount;
+            
+            document.getElementById('lobbyCount').textContent = lobbyCount;
+            document.getElementById('game1Count').textContent = game1Count;
+            document.getElementById('game2Count').textContent = game2Count;
+            document.getElementById('idleCount').textContent = idleCount;
+        }
+        
+        // ==================== USER MANAGEMENT ====================
+        function loadUsersTable() {
+            const usersTableBody = document.getElementById('usersTableBody');
+            usersTableBody.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                // Status badge
+                let statusBadge = '';
+                if (user.banned) {
+                    statusBadge = '<span class="status-badge banned-badge">BANNED</span>';
+                } else if (user.status === 'online') {
+                    statusBadge = '<span class="status-badge online-badge">ONLINE</span>';
+                } else {
+                    statusBadge = '<span class="status-badge offline-badge">OFFLINE</span>';
+                }
+                
+                // Rank name
+                const rankNames = ["Newbie","Junior","Senior","Great","Super Great","Legend",
+                                  "Kings","Greatest","Mad Kings","Greatness","Unbeatable",
+                                  "Monster Kings","Impossible"];
+                const rankName = rankNames[user.rank || 0] || "Unknown";
+                
+                // Last online time
+                const lastOnline = user.lastOnline ? 
+                    formatTimeAgo(user.lastOnline) : 'Never';
+                
+                // Add to table
+                usersTableBody.innerHTML += `
+                    <tr>
+                        <td>
+                            <strong>${user.username}</strong><br>
+                            <small style="color:#888;font-size:11px">${user.uid.substring(0, 8)}...</small>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>${user.money || 0}</td>
+                        <td>${user.diamond || 0}</td>
+                        <td>${rankName}</td>
+                        <td>${user.stars || 0}</td>
+                        <td>${lastOnline}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${user.uid}')" title="View Device Info">View</button>
+                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')" title="Edit User">Edit</button>
+                            <button class="user-action-btn give-btn" onclick="openGiveModal('${user.uid}')" title="Give Resources">Give</button>
+                            ${user.banned ? 
+                                `<button class="user-action-btn unban-btn" onclick="toggleBan('${user.uid}', false)" title="Unban User">Unban</button>` :
+                                `<button class="user-action-btn ban-btn" onclick="toggleBan('${user.uid}', true)" title="Ban User">Ban</button>`
+                            }
+                            <button class="user-action-btn kick-btn" onclick="forceLogout('${user.uid}')" title="Force Logout">Kick</button>
+                            <button class="user-action-btn delete-btn" onclick="openDeleteModal('${user.uid}')" title="Delete User">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function searchUser() {
+            const searchTerm = document.getElementById('searchUser').value.toLowerCase();
+            const usersTableBody = document.getElementById('usersTableBody');
+            
+            if (!searchTerm) {
+                loadUsersTable();
+                return;
+            }
+            
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) || 
+                user.uid.toLowerCase().includes(searchTerm)
+            );
+            
+            usersTableBody.innerHTML = '';
+            
+            filteredUsers.forEach(user => {
+                let statusBadge = '';
+                if (user.banned) {
+                    statusBadge = '<span class="status-badge banned-badge">BANNED</span>';
+                } else if (user.status === 'online') {
+                    statusBadge = '<span class="status-badge online-badge">ONLINE</span>';
+                } else {
+                    statusBadge = '<span class="status-badge offline-badge">OFFLINE</span>';
+                }
+                
+                usersTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td>${user.money || 0}</td>
+                        <td>${user.diamond || 0}</td>
+                        <td>Rank ${user.rank || 0}</td>
+                        <td>${user.stars || 0}</td>
+                        <td>${user.lastOnline ? formatTimeAgo(user.lastOnline) : 'Never'}</td>
+                        <td>
+                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${user.uid}')">View</button>
+                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function clearSearch() {
+            document.getElementById('searchUser').value = '';
+            loadUsersTable();
+        }
+        
+        // ==================== DEVICE MONITORING ====================
+        function loadDevicesTable() {
+            const devicesTableBody = document.getElementById('devicesTableBody');
+            devicesTableBody.innerHTML = '';
+            
+            let deviceCount = 0;
+            
+            for (const uid in allDevices) {
+                const device = allDevices[uid];
+                
+                // Find user info
+                const user = allUsers.find(u => u.uid === uid);
+                if (!user) continue;
+                
+                deviceCount++;
+                
+                // Device icon
+                const deviceIcon = device.type === 'mobile' ? '📱' : 
+                                 device.type === 'tablet' ? '📟' : '💻';
+                
+                // Screen size
+                const screenSize = device.w && device.h ? `${device.w}x${device.h}` : 'unknown';
+                
+                // Last update time
+                const lastUpdate = device.t ? formatTimeAgo(device.t) : 'unknown';
+                
+                // Add to table
+                devicesTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${deviceIcon} ${device.type || 'unknown'}</td>
+                        <td>${device.os || 'unknown'}</td>
+                        <td>${device.browser || 'unknown'}</td>
+                        <td>${screenSize}</td>
+                        <td>${device.tz || 'unknown'}</td>
+                        <td>${lastUpdate}</td>
+                        <td>
+                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${uid}')">Details</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            if (deviceCount === 0) {
+                devicesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="loader">
+                            Tidak ada device data yang ditemukan.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // ==================== ONLINE USERS ====================
+        function loadOnlineUsers() {
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            onlineUsersList.innerHTML = '';
+            
+            let onlineCount = 0;
+            
+            for (const uid in allDevices) {
+                const device = allDevices[uid];
+                const user = allUsers.find(u => u.uid === uid);
+                
+                if (!user || user.status !== 'online' || user.banned) continue;
+                
+                onlineCount++;
+                
+                // Get current activity
+                let activity = 'Idle';
+                let activityColor = '#888';
+                
+                if (device.page) {
+                    if (device.page === 'lobby') {
+                        activity = 'In Lobby';
+                        activityColor = '#00ff88';
+                    } else if (device.page.includes('game')) {
+                        activity = 'Playing Game';
+                        activityColor = '#ffd700';
+                    }
+                }
+                
+                // Calculate time since last update
+                const lastSeen = device.t ? 
+                    Math.floor((Date.now() - device.t) / 1000) : 999;
+                const lastSeenText = lastSeen < 60 ? 
+                    `${lastSeen}s ago` : `${Math.floor(lastSeen/60)}m ago`;
+                
+                onlineUsersList.innerHTML += `
+                    <div class="info-card">
+                        <h4>${user.username}</h4>
+                        <div class="info-value" style="color:${activityColor}">${activity}</div>
+                        <div class="info-detail">
+                            📱 ${device.type || 'unknown'} | ${device.os || 'unknown'}<br>
+                            🖥️ ${device.w || 0}x${device.h || 0}<br>
+                            🗺️ ${device.tz || 'unknown'} | 🕐 ${lastSeenText}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (onlineCount === 0) {
+                onlineUsersList.innerHTML = `
+                    <div class="info-card" style="grid-column:1/-1;text-align:center">
+                        <h4>No Online Users</h4>
+                        <div class="info-value">Tidak ada user yang online saat ini</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // ==================== DEVICE DETAIL VIEW ====================
+        function viewDeviceInfo(uid) {
+            const device = allDevices[uid];
+            const user = allUsers.find(u => u.uid === uid);
+            
+            if (!device || !user) {
+                showMessage('Device info tidak ditemukan', 'error');
+                return;
+            }
+            
+            document.getElementById('deviceModalTitle').textContent = 
+                `📱 ${user.username} - Device Details`;
+            
+            const deviceGrid = document.getElementById('deviceInfoGrid');
+            deviceGrid.innerHTML = '';
+            
+            // Basic Info
+            deviceGrid.innerHTML += `
+                <div class="info-card">
+                    <h4>👤 User Info</h4>
+                    <div class="info-value">${user.username}</div>
+                    <div class="info-detail">UID: ${uid}</div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>📱 Device Type</h4>
+                    <div class="info-value">${device.type || 'unknown'}</div>
+                    <div class="info-detail">${device.os || 'OS tidak terdeteksi'}</div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🌐 Browser & Platform</h4>
+                    <div class="info-value">${device.browser || 'unknown'}</div>
+                    <div class="info-detail">Platform: ${device.plat || 'unknown'}</div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🖥️ Screen & Language</h4>
+                    <div class="info-value">${device.w || 0}x${device.h || 0}</div>
+                    <div class="info-detail">Language: ${device.lang || 'unknown'}</div>
+                </div>
+            `;
+            
+            // Connection Info
+            deviceGrid.innerHTML += `
+                <div class="info-card">
+                    <h4>📶 Connection</h4>
+                    <div class="info-value">${device.conn || 'unknown'}</div>
+                    <div class="info-detail">
+                        ${device.down ? `Speed: ${device.down} Mbps<br>` : ''}
+                        Online: ${device.online ? 'Yes' : 'No'}
+                    </div>
+                </div>
+            `;
+            
+            // Location & Time
+            deviceGrid.innerHTML += `
+                <div class="info-card">
+                    <h4>🗺️ Location & Time</h4>
+                    <div class="info-value">${device.tz || 'unknown'}</div>
+                    <div class="info-detail">
+                        Last Update: ${device.t ? formatTimeAgo(device.t) : 'Never'}<br>
+                        Current Page: ${device.page || 'unknown'}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('deviceModal').classList.add('active');
+        }
+        
+        function closeDeviceModal() {
+            document.getElementById('deviceModal').classList.remove('active');
+        }
+        
+        // ==================== REAL-TIME MONITORING ====================
+        function startRealTimeMonitoring() {
+            // Listen for user updates
+            const usersRef = database.ref('users');
+            realTimeListeners.push(usersRef);
+            
+            usersRef.on('value', (snapshot) => {
+                allUsers = [];
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    const uid = childSnapshot.key;
+                    allUsers.push({ uid, ...user });
+                });
+                
+                updateStatistics();
+                
+                // Refresh current tab if on users tab
+                if (document.getElementById('usersTab').classList.contains('active')) {
+                    loadUsersTable();
+                }
+                if (document.getElementById('onlineTab').classList.contains('active')) {
+                    loadOnlineUsers();
+                }
+            });
+            
+            // Listen for device updates
+            const devicesRef = database.ref('user_stats');
+            realTimeListeners.push(devicesRef);
+            
+            devicesRef.on('value', (snapshot) => {
+                allDevices = snapshot.val() || {};
+                
+                updateStatistics();
+                
+                // Refresh current tab based on active tab
+                const activeTab = document.querySelector('.tab-content.active').id;
+                if (activeTab === 'devicesTab') loadDevicesTable();
+                if (activeTab === 'onlineTab') loadOnlineUsers();
+            });
+        }
+        
+        // ==================== HELPER FUNCTIONS ====================
+        function formatTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return `${seconds} detik lalu`;
+            if (seconds < 3600) return `${Math.floor(seconds/60)} menit lalu`;
+            if (seconds < 86400) return `${Math.floor(seconds/3600)} jam lalu`;
+            return `${Math.floor(seconds/86400)} hari lalu`;
         }
         
         function showMessage(text, type) {
@@ -323,188 +963,46 @@
             }, 3000);
         }
         
-        async function loadUsers() {
-            try {
-                const snapshot = await database.ref('users').once('value');
-                allUsers = [];
-                const usersTableBody = document.getElementById('usersTableBody');
-                usersTableBody.innerHTML = '';
-                
-                let totalMoney = 0;
-                let totalDiamonds = 0;
-                let onlineCount = 0;
-                
-                snapshot.forEach((childSnapshot) => {
-                    const user = childSnapshot.val();
-                    const uid = childSnapshot.key;
-                    
-                    allUsers.push({ uid, ...user });
-                    
-                    // Hitung statistik
-                    totalMoney += parseInt(user.money || 0);
-                    totalDiamonds += parseInt(user.diamond || 0);
-                    if (user.status === 'online') onlineCount++;
-                    
-                    // Format waktu
-                    const lastOnline = user.lastOnline ? 
-                        new Date(user.lastOnline).toLocaleDateString('id-ID') : '-';
-                    
-                    // Warna status
-                    const statusColor = user.status === 'online' ? '#00ff88' : 
-                                       user.banned ? '#ff3333' : '#888';
-                    const statusText = user.status === 'online' ? 'Online' : 
-                                      user.banned ? 'Banned' : 'Offline';
-                    
-                    // Tambah ke tabel
-                    usersTableBody.innerHTML += `
-                        <tr>
-                            <td><strong>${user.username}</strong><br>
-                                <small style="color:#888;font-size:11px">${uid.substring(0, 8)}...</small>
-                            </td>
-                            <td style="color: ${statusColor}">${statusText}</td>
-                            <td>${getRankName(user.rank || 0)}</td>
-                            <td>${user.money || 0}</td>
-                            <td>${user.diamond || 0}</td>
-                            <td>${user.stars || 0}</td>
-                            <td>${lastOnline}</td>
-                            <td>
-                                <button class="user-action-btn edit-btn" onclick="openEditModal('${uid}')">Edit</button>
-                                <button class="user-action-btn give-btn" onclick="openGiveModal('${uid}')">Give</button>
-                                ${user.banned ? 
-                                    `<button class="user-action-btn unban-btn" onclick="toggleBan('${uid}', false)">Unban</button>` :
-                                    `<button class="user-action-btn ban-btn" onclick="toggleBan('${uid}', true)">Ban</button>`
-                                }
-                                <button class="user-action-btn delete-btn" onclick="openDeleteModal('${uid}')">Hapus</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                // Update statistik
-                document.getElementById('totalUsers').textContent = allUsers.length;
-                document.getElementById('onlineUsers').textContent = onlineCount;
-                document.getElementById('totalMoney').textContent = totalMoney;
-                document.getElementById('totalDiamonds').textContent = totalDiamonds;
-                
-            } catch (error) {
-                showMessage('Error loading users: ' + error.message, 'error');
-            }
-        }
-        
-        function getRankName(rankId) {
-            const ranks = ["Newbie","Junior","Senior","Great","Super Great","Legend",
-                          "Kings","Greatest","Mad Kings","Greatness","Unbeatable",
-                          "Monster Kings","Impossible"];
-            return ranks[rankId] || "Unknown";
-        }
-        
-        function searchUser() {
-            const searchTerm = document.getElementById('searchUser').value.toLowerCase();
-            const usersTableBody = document.getElementById('usersTableBody');
-            
-            if (!searchTerm) {
-                loadUsers();
+        // ==================== EDIT USER ====================
+        function openEditModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
                 return;
             }
             
-            const filteredUsers = allUsers.filter(user => 
-                user.username.toLowerCase().includes(searchTerm) || 
-                user.uid.toLowerCase().includes(searchTerm)
-            );
-            
-            usersTableBody.innerHTML = '';
-            
-            filteredUsers.forEach(user => {
-                const lastOnline = user.lastOnline ? 
-                    new Date(user.lastOnline).toLocaleDateString('id-ID') : '-';
-                
-                const statusColor = user.status === 'online' ? '#00ff88' : 
-                                   user.banned ? '#ff3333' : '#888';
-                const statusText = user.status === 'online' ? 'Online' : 
-                                  user.banned ? 'Banned' : 'Offline';
-                
-                usersTableBody.innerHTML += `
-                    <tr>
-                        <td><strong>${user.username}</strong><br>
-                            <small style="color:#888;font-size:11px">${user.uid.substring(0, 8)}...</small>
-                        </td>
-                        <td style="color: ${statusColor}">${statusText}</td>
-                        <td>${getRankName(user.rank || 0)}</td>
-                        <td>${user.money || 0}</td>
-                        <td>${user.diamond || 0}</td>
-                        <td>${user.stars || 0}</td>
-                        <td>${lastOnline}</td>
-                        <td>
-                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')">Edit</button>
-                            <button class="user-action-btn give-btn" onclick="openGiveModal('${user.uid}')">Give</button>
-                            ${user.banned ? 
-                                `<button class="user-action-btn unban-btn" onclick="toggleBan('${user.uid}', false)">Unban</button>` :
-                                `<button class="user-action-btn ban-btn" onclick="toggleBan('${user.uid}', true)">Ban</button>`
-                            }
-                            <button class="user-action-btn delete-btn" onclick="openDeleteModal('${user.uid}')">Hapus</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-        
-        function clearSearch() {
-            document.getElementById('searchUser').value = '';
-            loadUsers();
-        }
-        
-        function openEditModal(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) return;
-            
             currentEditingUser = uid;
-            document.getElementById('editUserInfo').textContent = `Edit: ${user.username}`;
+            
+            document.getElementById('editUserInfo').textContent = 
+                `Edit data untuk: ${user.username}`;
+            
             document.getElementById('editMoney').value = user.money || 0;
             document.getElementById('editDiamond').value = user.diamond || 0;
             document.getElementById('editStars').value = user.stars || 0;
             document.getElementById('editRank').value = user.rank || 0;
+            
             document.getElementById('editModal').classList.add('active');
-        }
-        
-        function openGiveModal(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) return;
-            
-            currentEditingUser = uid;
-            document.getElementById('giveUserInfo').textContent = `Give ke: ${user.username}`;
-            document.getElementById('giveMoney').value = '';
-            document.getElementById('giveDiamond').value = '';
-            document.getElementById('giveModal').classList.add('active');
-        }
-        
-        function openDeleteModal(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) return;
-            
-            currentEditingUser = uid;
-            document.getElementById('deleteUserInfo').textContent = 
-                `Hapus akun: ${user.username} (${uid.substring(0, 10)}...)`;
-            document.getElementById('confirmUsername').value = '';
-            document.getElementById('deleteModal').classList.add('active');
-        }
-        
-        function closeModal() {
-            document.getElementById('editModal').classList.remove('active');
-            document.getElementById('giveModal').classList.remove('active');
-            document.getElementById('deleteModal').classList.remove('active');
-            currentEditingUser = null;
+            document.getElementById('editMoney').focus();
         }
         
         async function saveUserEdit() {
-            if (!currentEditingUser) return;
+            if (!currentEditingUser) {
+                showMessage('Tidak ada user yang dipilih', 'error');
+                return;
+            }
             
             const money = parseInt(document.getElementById('editMoney').value) || 0;
             const diamond = parseInt(document.getElementById('editDiamond').value) || 0;
             const stars = parseInt(document.getElementById('editStars').value) || 0;
             const rank = parseInt(document.getElementById('editRank').value) || 0;
             
+            if (money < 0 || diamond < 0 || stars < 0) {
+                showMessage('Nilai tidak boleh minus', 'error');
+                return;
+            }
+            
             if (rank < 0 || rank > 12) {
-                showMessage('Rank harus 0-12', 'error');
+                showMessage('Rank harus antara 0-12', 'error');
                 return;
             }
             
@@ -513,26 +1011,65 @@
                     money: money,
                     diamond: diamond,
                     stars: stars,
-                    rank: rank
+                    rank: rank,
+                    lastEdited: Date.now(),
+                    editedBy: 'admin'
                 });
                 
-                showMessage('User updated!', 'success');
+                // Update local data
+                const userIndex = allUsers.findIndex(u => u.uid === currentEditingUser);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].money = money;
+                    allUsers[userIndex].diamond = diamond;
+                    allUsers[userIndex].stars = stars;
+                    allUsers[userIndex].rank = rank;
+                }
+                
+                showMessage('✅ User berhasil diupdate!', 'success');
                 closeModal();
-                loadUsers();
+                loadUsersTable();
                 
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('❌ Error: ' + error.message, 'error');
             }
         }
         
+        // ==================== GIVE RESOURCES ====================
+        function openGiveModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
+                return;
+            }
+            
+            currentEditingUser = uid;
+            
+            document.getElementById('giveUserInfo').textContent = 
+                `Give resources ke: ${user.username}`;
+            
+            document.getElementById('giveMoney').value = '';
+            document.getElementById('giveDiamond').value = '';
+            
+            document.getElementById('giveModal').classList.add('active');
+            document.getElementById('giveMoney').focus();
+        }
+        
         async function giveResources() {
-            if (!currentEditingUser) return;
+            if (!currentEditingUser) {
+                showMessage('Tidak ada user yang dipilih', 'error');
+                return;
+            }
             
             const addMoney = parseInt(document.getElementById('giveMoney').value) || 0;
             const addDiamond = parseInt(document.getElementById('giveDiamond').value) || 0;
             
             if (addMoney <= 0 && addDiamond <= 0) {
-                showMessage('Masukkan jumlah', 'error');
+                showMessage('Masukkan jumlah yang valid', 'error');
+                return;
+            }
+            
+            if (addMoney < 0 || addDiamond < 0) {
+                showMessage('Jumlah tidak boleh minus', 'error');
                 return;
             }
             
@@ -540,87 +1077,251 @@
                 const snapshot = await database.ref('users/' + currentEditingUser).once('value');
                 const user = snapshot.val();
                 
-                const newMoney = (user.money || 0) + addMoney;
-                const newDiamond = (user.diamond || 0) + addDiamond;
+                if (!user) {
+                    showMessage('User tidak ditemukan di database', 'error');
+                    return;
+                }
+                
+                const currentMoney = parseInt(user.money) || 0;
+                const currentDiamond = parseInt(user.diamond) || 0;
+                
+                const newMoney = currentMoney + addMoney;
+                const newDiamond = currentDiamond + addDiamond;
                 
                 await database.ref('users/' + currentEditingUser).update({
                     money: newMoney,
-                    diamond: newDiamond
+                    diamond: newDiamond,
+                    lastGift: Date.now(),
+                    giftedBy: 'admin'
                 });
                 
-                showMessage(`Given: ${addMoney} money, ${addDiamond} diamond`, 'success');
+                const userIndex = allUsers.findIndex(u => u.uid === currentEditingUser);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].money = newMoney;
+                    allUsers[userIndex].diamond = newDiamond;
+                }
+                
+                let message = '✅ Berhasil memberi ';
+                if (addMoney > 0) message += `${addMoney} Money `;
+                if (addDiamond > 0) message += `${addDiamond} Diamond`;
+                message += ` ke user!`;
+                
+                showMessage(message, 'success');
                 closeModal();
-                loadUsers();
+                loadUsersTable();
                 
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('❌ Error: ' + error.message, 'error');
             }
         }
         
+        // ==================== BAN/UNBAN USER ====================
         async function toggleBan(uid, ban) {
-            if (!confirm(`${ban ? 'BAN' : 'UNBAN'} user ini?`)) return;
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
+                return;
+            }
+            
+            const action = ban ? 'BAN' : 'UNBAN';
+            const username = user.username;
+            
+            const reason = prompt(
+                `${action} user: ${username}\n\n` +
+                `Masukkan alasan ${action.toLowerCase()} (optional):`
+            );
+            
+            if (ban && !confirm(
+                `Yakin ingin BAN user ${username}?\n\n` +
+                `Alasan: ${reason || 'No reason provided'}\n\n` +
+                `User tidak akan bisa login lagi!`
+            )) {
+                return;
+            }
+            
+            try {
+                const updates = {
+                    banned: ban,
+                    status: ban ? 'banned' : 'offline',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                if (ban) {
+                    updates.banHistory = {
+                        action: 'BAN',
+                        timestamp: Date.now(),
+                        by: 'admin',
+                        reason: reason || 'Admin action',
+                        admin: 'Taher'
+                    };
+                    updates.banDate = new Date().toISOString();
+                }
+                
+                await database.ref('users/' + uid).update(updates);
+                
+                if (ban) {
+                    await database.ref('user_stats/' + uid).update({
+                        online: false,
+                        banned: true,
+                        forceLogout: true
+                    });
+                }
+                
+                showMessage(`✅ User ${username} berhasil di${ban ? 'BAN' : 'UNBAN'}!`, 'success');
+                
+                // Update local data
+                const userIndex = allUsers.findIndex(u => u.uid === uid);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].banned = ban;
+                    allUsers[userIndex].status = ban ? 'banned' : 'offline';
+                }
+                
+                loadUsersTable();
+                updateStatistics();
+                
+            } catch (error) {
+                showMessage('❌ Error: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== FORCE LOGOUT ====================
+        async function forceLogout(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
+                return;
+            }
+            
+            if (!confirm(`Force logout user ${user.username}?\nUser akan dikick dari semua sesi.`)) {
+                return;
+            }
             
             try {
                 await database.ref('users/' + uid).update({
-                    banned: ban,
-                    status: ban ? 'banned' : 'offline'
+                    status: 'offline',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    forceLogout: Date.now(),
+                    forceBy: 'admin'
                 });
                 
-                showMessage(`User ${ban ? 'banned' : 'unbanned'}`, 'success');
-                loadUsers();
+                await database.ref('user_stats/' + uid).update({
+                    online: false,
+                    forceLogout: true
+                });
+                
+                const userIndex = allUsers.findIndex(u => u.uid === uid);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].status = 'offline';
+                }
+                
+                showMessage(`✅ User ${user.username} berhasil di force logout!`, 'success');
+                loadUsersTable();
                 
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('❌ Error: ' + error.message, 'error');
             }
         }
         
+        // ==================== DELETE USER ====================
+        function openDeleteModal(uid) {
+            const user = allUsers.find(u => u.uid === uid);
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
+                return;
+            }
+            
+            currentEditingUser = uid;
+            
+            document.getElementById('deleteUserInfo').textContent = 
+                `Hapus akun PERMANEN: ${user.username}`;
+            
+            document.getElementById('confirmUsername').value = '';
+            
+            document.getElementById('deleteModal').classList.add('active');
+            document.getElementById('confirmUsername').focus();
+        }
+        
         async function confirmDelete() {
-            if (!currentEditingUser) return;
+            if (!currentEditingUser) {
+                showMessage('Tidak ada user yang dipilih', 'error');
+                return;
+            }
             
             const user = allUsers.find(u => u.uid === currentEditingUser);
-            const confirmInput = document.getElementById('confirmUsername').value.trim();
+            if (!user) {
+                showMessage('User tidak ditemukan', 'error');
+                return;
+            }
             
-            if (confirmInput !== user.username) {
+            const confirmInput = document.getElementById('confirmUsername').value.trim();
+            const username = user.username;
+            
+            if (confirmInput !== username) {
                 showMessage('Username tidak cocok!', 'error');
                 return;
             }
             
-            if (!confirm(`YAKIN hapus PERMANEN akun ${user.username}? TIDAK BISA DIBATALKAN!`)) {
+            const finalWarning = `⚠️ PERINGATAN AKHIR! ⚠️\n\n` +
+                `YAKIN ingin menghapus PERMANEN akun:\n` +
+                `👤 ${username}\n\n` +
+                `🚨 TINDAKAN INI TIDAK BISA DIBATALKAN!\n` +
+                `🚨 Semua data user akan dihapus selamanya!\n\n` +
+                `Ketik: "YA, HAPUS PERMANEN" untuk konfirmasi`;
+            
+            const finalConfirm = prompt(finalWarning);
+            if (finalConfirm !== "YA, HAPUS PERMANEN") {
+                showMessage('Penghapusan dibatalkan', 'warning');
+                closeModal();
                 return;
             }
             
             try {
-                // Hapus dari users
                 await database.ref('users/' + currentEditingUser).remove();
+                await database.ref('user_stats/' + currentEditingUser).remove();
                 
-                // Hapus dari friends list semua user yang berteman
                 const friendsSnapshot = await database.ref('friends').once('value');
+                const deletePromises = [];
+                
                 friendsSnapshot.forEach((childSnapshot) => {
                     const friendUid = childSnapshot.key;
-                    database.ref('friends/' + friendUid + '/' + currentEditingUser).remove();
+                    deletePromises.push(
+                        database.ref('friends/' + friendUid + '/' + currentEditingUser).remove()
+                    );
                 });
                 
-                // Hapus friends list user ini
+                await Promise.all(deletePromises);
                 await database.ref('friends/' + currentEditingUser).remove();
                 
-                showMessage('Akun berhasil dihapus permanen!', 'success');
+                allUsers = allUsers.filter(u => u.uid !== currentEditingUser);
+                delete allDevices[currentEditingUser];
+                
+                showMessage(`✅ Akun ${username} berhasil dihapus PERMANEN!`, 'success');
                 closeModal();
-                loadUsers();
+                
+                updateStatistics();
+                loadUsersTable();
+                loadDevicesTable();
+                loadOnlineUsers();
                 
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('❌ Error: ' + error.message, 'error');
             }
         }
         
-        function startRealTimeUpdates() {
-            database.ref('users').on('value', () => {
-                loadUsers();
-            });
+        // ==================== CLOSE MODAL ====================
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('giveModal').classList.remove('active');
+            document.getElementById('deleteModal').classList.remove('active');
+            currentEditingUser = null;
         }
         
         // Close modal dengan Escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeDeviceModal();
+                closeModal();
+            }
         });
     </script>
 </body>

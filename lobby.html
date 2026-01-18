@@ -12,110 +12,6 @@
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
         body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
         
-        /* Tombol FAQ */
-        .faq-btn {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: rgba(0,0,0,0.85);
-            border: 2px solid #ff3333;
-            border-radius: 12px;
-            padding: 10px 15px;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
-            backdrop-filter: blur(5px);
-            cursor: pointer;
-            font-weight: bold;
-            color: #ff3333;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .faq-btn:hover {
-            background: rgba(255,51,51,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,0,0,0.4);
-        }
-        
-        /* Notice Box Modal */
-        .notice-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .notice-modal.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-        .notice-box {
-            background: rgba(30,30,46,0.95);
-            border: 2px solid #ff3333;
-            border-radius: 18px;
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 15px 35px rgba(255,0,0,0.3);
-        }
-        .notice-box h3 {
-            color: #ff3333;
-            margin-bottom: 15px;
-            font-size: 20px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .notice-box p {
-            font-size: 15px;
-            line-height: 1.5;
-            margin-bottom: 12px;
-            color: #ddd;
-        }
-        .notice-box strong {
-            color: #00ff88;
-        }
-        .notice-box .disclaimer {
-            background: rgba(255,51,51,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border-left: 4px solid #ff3333;
-        }
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #ff3333;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-        .close-modal:hover {
-            background: #ff6666;
-            transform: rotate(90deg);
-        }
-        
         /* Ban Alert */
         .ban-alert {
             position: fixed;
@@ -380,7 +276,7 @@
         
         .features-section {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 25px;
             margin-top: 25px;
         }
@@ -473,12 +369,6 @@
                 align-self: flex-end;
                 margin-top: 12px;
             }
-            .faq-btn {
-                top: 10px;
-                left: 10px;
-                padding: 8px 12px;
-                font-size: 14px;
-            }
             .features-section {
                 grid-template-columns: 1fr 1fr;
             }
@@ -528,7 +418,7 @@
                     </div>
                     <div class="stat">
                         <span>💎</span>
-                        <span id="diamondDisplay">10</span>
+                        <span id="diamondDisplay">0</span>
                     </div>
                 </div>
             </div>
@@ -576,39 +466,11 @@
         
         <!-- Features Section -->
         <div class="features-section">
-            <!-- Leaderboard Button -->
-            <div class="feature-card" onclick="window.location.href='leaderboard.html'">
-                <div class="feature-icon">🏆</div>
-                <div class="feature-title">LEADERBOARD</div>
-                <p>Lihat peringkat pemain terbaik!</p>
-            </div>
-            
             <!-- Spin Button -->
             <div class="feature-card" onclick="window.location.href='spin.html'">
                 <div class="feature-icon">🎰</div>
                 <div class="feature-title">LUCKY SPIN</div>
                 <p>Spin dan dapatkan hadiah menarik!</p>
-            </div>
-
-            <!-- Events Button -->
-            <div class="feature-card" onclick="window.location.href='event.html'">
-                <div class="feature-icon">📰</div>
-                <div class="feature-title">EVENTS</div>
-                <p>Event spesial dan hadiah!</p>
-            </div>
-            
-            <!-- Shop Button -->
-            <div class="feature-card" onclick="window.location.href='shop.html'">
-                <div class="feature-icon">🛒</div>
-                <div class="feature-title">SHOP</div>
-                <p>Beli item keren dan power-up!</p>
-            </div>
-            
-            <!-- Admin Button (Hanya untuk Taher) -->
-            <div class="feature-card" onclick="window.location.href='admin.html'">
-                <div class="feature-icon">👑</div>
-                <div class="feature-title">ADMIN</div>
-                <p>Admin Panel</p>
             </div>
         </div>
     </div>
@@ -743,21 +605,6 @@
             window.location.href = 'index.html?banned=true';
         }
         
-        // ==================== FAQ FUNCTIONS ====================
-        function openFAQ() {
-            document.getElementById('faqModal').classList.add('active');
-        }
-        
-        function closeFAQ() {
-            document.getElementById('faqModal').classList.remove('active');
-        }
-        
-        document.getElementById('faqModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFAQ();
-            }
-        });
-        
         // ==================== GAME FUNCTIONS ====================
         function toggleFriendForm() {
             const form = document.getElementById('addFriendForm');
@@ -797,6 +644,7 @@
         function updateUserDisplay() {
             if (!currentUser) return;
             
+            // FIX: Display username from Firebase data, not from localStorage
             document.getElementById('usernameDisplay').textContent = currentUser.username || "Guest";
             document.getElementById('moneyDisplay').textContent = currentUser.money || 1000;
             document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
@@ -968,6 +816,7 @@
                 const user = JSON.parse(savedUser);
                 currentUser = user;
                 
+                // FIX: Get fresh data from Firebase, not from localStorage
                 const snapshot = await database.ref('users/' + user.uid).once('value');
                 const userData = snapshot.val();
                 
@@ -989,11 +838,18 @@
                     return;
                 }
                 
+                // FIX: Update currentUser dengan data dari Firebase
                 currentUser = {
                     uid: user.uid,
-                    ...userData
+                    username: userData.username, // Ambil dari Firebase
+                    money: userData.money || 1000,
+                    diamond: userData.diamond || 0, // FIX: Diamond dari Firebase
+                    rank: userData.rank || 0,
+                    stars: userData.stars || 0,
+                    status: userData.status || 'online'
                 };
                 
+                // FIX: Update localStorage dengan data yang benar
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
                 await database.ref('users/' + user.uid).update({
@@ -1012,10 +868,21 @@
                 updateUserDisplay();
                 loadFriends(user.uid);
                 
+                // FIX: Real-time update untuk data user
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
-                        currentUser = { ...currentUser, ...data };
+                        // Update hanya field yang penting
+                        currentUser.username = data.username;
+                        currentUser.money = data.money || 0;
+                        currentUser.diamond = data.diamond || 0;
+                        currentUser.rank = data.rank || 0;
+                        currentUser.stars = data.stars || 0;
+                        currentUser.status = data.status || 'online';
+                        
+                        // Update localStorage
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        
                         updateUserDisplay();
                     }
                 });
@@ -1029,12 +896,6 @@
         // ==================== EVENT LISTENERS ====================
         document.getElementById('friendUsername')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addFriend();
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeFAQ();
-            }
         });
         
         document.addEventListener('visibilitychange', function() {
