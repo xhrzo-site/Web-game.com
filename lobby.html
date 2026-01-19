@@ -605,6 +605,35 @@
             window.location.href = 'index.html?banned=true';
         }
         
+        // ==================== LOGOUT FUNCTION - PERBAIKAN ====================
+        function logout() {
+            // Tampilkan konfirmasi
+            const confirmLogout = confirm("Yakin ingin logout?");
+            if (!confirmLogout) return;
+            
+            if (currentUser && currentUser.uid) {
+                // Update status menjadi offline
+                database.ref('users/' + currentUser.uid).update({
+                    status: 'offline',
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    console.log('User status updated to offline');
+                }).catch((error) => {
+                    console.error('Failed to update user status:', error);
+                }).finally(() => {
+                    // Hapus data dari localStorage
+                    localStorage.removeItem('currentUser');
+                    
+                    // Redirect ke halaman index (login)
+                    window.location.href = 'index.html';
+                });
+            } else {
+                // Jika tidak ada user data, langsung redirect
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+        
         // ==================== GAME FUNCTIONS ====================
         function toggleFriendForm() {
             const form = document.getElementById('addFriendForm');
@@ -786,24 +815,6 @@
             }
         }
         
-        function logout() {
-            if (currentUser) {
-                database.ref('users/' + currentUser.uid).update({
-                    status: 'offline',
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP
-                });
-                
-                database.ref('user_stats/' + currentUser.uid).update({
-                    online: false,
-                    lastActive: Date.now()
-                });
-                
-                localStorage.removeItem('currentUser');
-            }
-            
-            window.location.href = 'index.html';
-        }
-        
         // ==================== INITIALIZE LOBBY ====================
         async function initLobby() {
             const savedUser = localStorage.getItem('currentUser');
@@ -832,7 +843,7 @@
                     
                     alert(`🚫 AKUN ANDA TELAH DI BAN!\n\n` +
                           `Username: ${userData.username}\n` +
-                          `Anda tidak bisa mengakses game ini lagi.`);
+                          `Anda tidak bisa mengakses akun ini lagi.`);
                     
                     window.location.href = 'index.html';
                     return;
