@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAP TAP PANIC - Gak Asik Tapi Asik!</title>
+    
+    <!-- Android Meta -->
+    <meta name="theme-color" content="#ff4757">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <style>
+        /* ==================== RESET & BASE ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        :root {
+            --primary: #ff4757;
+            --secondary: #2ed573;
+            --accent: #ffa502;
+            --dark: #1e272e;
+            --light: #f1f2f6;
+            --danger: #ff3838;
+            --success: #32ff7e;
+            --warning: #ff9f1a;
+            --info: #18dcff;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+            color: white;
+        }
+
+        /* ==================== LOADING SCREEN ==================== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            gap: 20px;
+        }
+
+        .loading-title {
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+
+        .loading-subtitle {
+            font-size: 1.2em;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .loading-bar {
+            width: 80%;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: white;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        .loading-tip {
+            position: absolute;
+            bottom: 50px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            padding: 0 20px;
+            font-style: italic;
+        }
+
+        /* ==================== GAME CONTAINER ==================== */
+        .game-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==================== TOP BAR ==================== */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(30, 39, 46, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .score-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 3px;
+        }
+
+        .score-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--success);
+            text-shadow: 0 0 10px rgba(50, 255, 126, 0.5);
+        }
+
+        .combo-display {
+            background: rgba(255, 71, 87, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+        }
+
+        .combo-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .combo-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .money-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 165, 2, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid var(--accent);
+        }
+
+        .money-icon {
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .money-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* ==================== GAME AREA ==================== */
+        .game-area {
+            position: absolute;
+            top: 70px;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, #0c2461, #1e3799);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .game-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255, 71, 87, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(46, 213, 115, 0.1) 2px, transparent 2px);
+            background-size: 50px 50px;
+        }
+
+        /* ==================== TAP TARGETS ==================== */
+        .tap-target {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            z-index: 10;
+            animation: float 3s infinite ease-in-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .tap-target:active {
+            transform: scale(0.9);
+        }
+
+        .target-emoji {
+            font-size: 40px;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+        }
+
+        .target-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        /* Target Types */
+        .target-normal {
+            background: radial-gradient(circle at 30% 30%, var(--primary), #ff3838);
+            border: 3px solid white;
+        }
+
+        .target-bonus {
+            background: radial-gradient(circle at 30% 30%, var(--accent), #ff9f1a);
+            border: 3px solid gold;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .target-bomb {
+            background: radial-gradient(circle at 30% 30%, #000, #333);
+            border: 3px solid var(--danger);
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+
+        .target-mystery {
+            background: radial-gradient(circle at 30% 30%, #8e44ad, #9b59b6);
+            border: 3px solid white;
+            animation: rainbow 2s infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* ==================== EFFECTS ==================== */
+        .tap-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 20;
+            font-size: 30px;
+            font-weight: bold;
+            animation: pop 0.6s forwards;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .combo-effect {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 30px currentColor;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 30;
+            animation: comboPop 0.8s forwards;
+        }
+
+        @keyframes comboPop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+
+        /* ==================== BOTTOM BAR ==================== */
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: rgba(30, 39, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 3px solid var(--secondary);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 100;
+        }
+
+        .powerup-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--info), #17c0eb);
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(24, 220, 255, 0.3);
+        }
+
+        .powerup-btn:active {
+            transform: scale(0.9);
+        }
+
+        .powerup-btn.disabled {
+            opacity: 0.5;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .powerup-label {
+            font-size: 10px;
+            margin-top: 5px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .powerup-cost {
+            position: absolute;
+            bottom: -20px;
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .pause-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: rgba(255, 71, 87, 0.8);
+            color: white;
+            font-size: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .pause-btn:active {
+            background: var(--primary);
+        }
+
+        /* ==================== PAUSE MENU ==================== */
+        .pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pause-content {
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid var(--primary);
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(255, 71, 87, 0.3);
+        }
+
+        .pause-title {
+            font-size: 2.5em;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .pause-stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .stat-value {
+            color: white;
+            font-weight: bold;
+        }
+
+        .menu-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary), #ff6b81);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, var(--info), #17c0eb);
+        }
+
+        /* ==================== SHOP MENU ==================== */
+        .shop-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .shop-content {
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid var(--accent);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .shop-title {
+            font-size: 2em;
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .shop-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .shop-item.owned {
+            border-color: var(--success);
+        }
+
+        .shop-item-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .shop-item-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 10px;
+        }
+
+        .shop-item-cost {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .shop-item-level {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ==================== NOTIFICATION ==================== */
+        .notification {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), #ff6b81);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); }
+            to { transform: translateX(-50%) translateY(0); }
+        }
+
+        .notification-icon {
+            font-size: 20px;
+        }
+
+        /* ==================== GAME OVER ==================== */
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 25px;
+            padding: 40px;
+            border: 5px solid var(--primary);
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(255, 71, 87, 0.4);
+        }
+
+        .game-over-title {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px currentColor;
+        }
+
+        .game-over-subtitle {
+            font-size: 1.2em;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+        }
+
+        .final-stats {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .final-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 18px;
+        }
+
+        .final-stat:last-child {
+            border-bottom: none;
+        }
+
+        .final-label {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .final-value {
+            color: white;
+            font-weight: bold;
+        }
+
+        .final-value.highlight {
+            color: var(--success);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .loading-title {
+                font-size: 2em;
+            }
+            
+            .score-value {
+                font-size: 22px;
+            }
+            
+            .combo-value {
+                font-size: 18px;
+            }
+            
+            .money-value {
+                font-size: 18px;
+            }
+            
+            .powerup-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 25px;
+            }
+            
+            .shop-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .top-bar {
+                height: 60px;
+            }
+            
+            .game-area {
+                top: 60px;
+                bottom: 90px;
+            }
+            
+            .bottom-bar {
+                height: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-title">TAP TAP PANIC</div>
+        <div class="loading-subtitle">"Game paling gak jelas tapi bikin nagih!"</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <div class="loading-tip" id="loadingTip">Loading... sabar ya!</div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container" id="gameContainer">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="score-display">
+                <div class="score-label">SCORE</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            
+            <div class="combo-display">
+                <div class="combo-value" id="combo">1x</div>
+                <div class="combo-label">COMBO</div>
+            </div>
+            
+            <div class="money-display">
+                <div class="money-icon">💰</div>
+                <div class="money-value" id="money">0</div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area" id="gameArea">
+            <div class="game-bg"></div>
+            <!-- Tap targets will be generated here -->
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="powerup-container">
+                <button class="powerup-btn" id="powerupBomb" onclick="usePowerup('bomb')">
+                    💣
+                    <div class="powerup-label">BOMB</div>
+                    <div class="powerup-cost" id="bombCost">100</div>
+                </button>
+            </div>
+            
+            <div class="powerup-container">
+                <button class="powerup-btn" id="powerupFreeze" onclick="usePowerup('freeze')">
+                    ❄️
+                    <div class="powerup-label">FREEZE</div>
+                    <div class="powerup-cost" id="freezeCost">200</div>
+                </button>
+            </div>
+            
+            <div class="powerup-container">
+                <button class="powerup-btn" id="powerupMagnet" onclick="usePowerup('magnet')">
+                    🧲
+                    <div class="powerup-label">MAGNET</div>
+                    <div class="powerup-cost" id="magnetCost">150</div>
+                </button>
+            </div>
+            
+            <button class="pause-btn" onclick="togglePause()">
+                ⏸️
+            </button>
+            
+            <div class="powerup-container">
+                <button class="powerup-btn" onclick="openShop()">
+                    🛒
+                    <div class="powerup-label">SHOP</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div class="pause-menu" id="pauseMenu">
+        <div class="pause-content">
+            <div class="pause-title">GAME PAUSED</div>
+            
+            <div class="pause-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="pauseScore">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Combo</div>
+                    <div class="stat-value" id="pauseCombo">1x</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Money</div>
+                    <div class="stat-value" id="pauseMoney">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value" id="pauseTime">0s</div>
+                </div>
+            </div>
+            
+            <button class="menu-btn" onclick="togglePause()">
+                ▶️ CONTINUE
+            </button>
+            <button class="menu-btn secondary" onclick="restartGame()">
+                🔄 RESTART
+            </button>
+            <button class="menu-btn" onclick="quitToLobby()">
+                🏠 BACK TO LOBBY
+            </button>
+        </div>
+    </div>
+
+    <!-- Shop Menu -->
+    <div class="shop-menu" id="shopMenu">
+        <div class="shop-content">
+            <div class="shop-title">🎁 UPGRADE SHOP</div>
+            <div class="shop-items" id="shopItems">
+                <!-- Shop items will be loaded here -->
+            </div>
+            <button class="menu-btn" onclick="closeShop()">
+                🔙 BACK TO GAME
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon" id="notificationIcon">💬</div>
+        <div class="notification-text" id="notificationText">Hello!</div>
+    </div>
+
+    <!-- Game Over -->
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <div class="game-over-title">GAME OVER!</div>
+            <div class="game-over-subtitle">Kamu kalah, tapi coba lagi!</div>
+            
+            <div class="final-stats" id="finalStats">
+                <!-- Final stats will be loaded here -->
+            </div>
+            
+            <button class="menu-btn" onclick="restartGame()">
+                🔄 PLAY AGAIN
+            </button>
+            <button class="menu-btn secondary" onclick="quitToLobby()">
+                🏠 BACK TO LOBBY
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME CONFIG ====================
+        const CONFIG = {
+            GAME: {
+                TARGET_SPAWN_RATE: 800, // ms
+                TARGET_LIFETIME: 3000,  // ms
+                MAX_TARGETS: 15,
+                COMBO_DECAY_TIME: 2000, // ms
+                INITIAL_MONEY: 100,
+                GAME_DURATION: 60000    // 60 seconds
+            },
+            TARGETS: {
+                TYPES: ['normal', 'bonus', 'bomb', 'mystery'],
+                PROBABILITIES: {
+                    normal: 60,
+                    bonus: 25,
+                    bomb: 10,
+                    mystery: 5
+                },
+                SIZES: {
+                    normal: { min: 60, max: 80 },
+                    bonus: { min: 70, max: 90 },
+                    bomb: { min: 50, max: 70 },
+                    mystery: { min: 80, max: 100 }
+                },
+                VALUES: {
+                    normal: { min: 10, max: 30 },
+                    bonus: { min: 50, max: 100 },
+                    bomb: -100,
+                    mystery: { min: -50, max: 150 }
+                },
+                EMOJIS: {
+                    normal: ['🎯', '🎪', '🎨', '🎮', '🎲', '🎳'],
+                    bonus: ['💎', '💰', '💵', '💎', '🏆', '👑'],
+                    bomb: ['💣', '🧨', '☠️', '⚠️', '🚨'],
+                    mystery: ['❓', '🎁', '🎰', '🔮', '✨']
+                }
+            },
+            POWERUPS: {
+                BOMB: {
+                    cost: 100,
+                    cooldown: 10000,
+                    effect: "Destroy all targets"
+                },
+                FREEZE: {
+                    cost: 200,
+                    cooldown: 15000,
+                    effect: "Freeze targets for 3s"
+                },
+                MAGNET: {
+                    cost: 150,
+                    cooldown: 12000,
+                    effect: "Auto-collect all targets"
+                }
+            },
+            UPGRADES: [
+                {
+                    id: 'tap_power',
+                    name: 'Tap Power',
+                    icon: '👆',
+                    description: 'Increase tap value by 10%',
+                    baseCost: 50,
+                    maxLevel: 20
+                },
+                {
+                    id: 'combo_time',
+                    name: 'Combo Time',
+                    icon: '⏱️',
+                    description: 'Increase combo decay time',
+                    baseCost: 100,
+                    maxLevel: 10
+                },
+                {
+                    id: 'target_size',
+                    name: 'Bigger Targets',
+                    icon: '🔍',
+                    description: 'Make targets bigger',
+                    baseCost: 75,
+                    maxLevel: 15
+                },
+                {
+                    id: 'money_multiplier',
+                    name: 'Money Boost',
+                    icon: '💰',
+                    description: 'Earn 20% more money',
+                    baseCost: 200,
+                    maxLevel: 5
+                },
+                {
+                    id: 'auto_clicker',
+                    name: 'Auto Clicker',
+                    icon: '🤖',
+                    description: 'Auto-click 1 target per second',
+                    baseCost: 500,
+                    maxLevel: 3
+                },
+                {
+                    id: 'lucky_taps',
+                    name: 'Lucky Taps',
+                    icon: '🍀',
+                    description: 'Higher chance for bonus targets',
+                    baseCost: 300,
+                    maxLevel: 8
+                }
+            ]
+        };
+
+        // ==================== GAME STATE ====================
+        let gameState = {
+            isPlaying: false,
+            isPaused: false,
+            score: 0,
+            combo: 1,
+            comboTime: 0,
+            money: 0,
+            startTime: 0,
+            elapsedTime: 0,
+            targets: [],
+            powerups: {
+                bomb: { available: true, cooldown: 0 },
+                freeze: { available: true, cooldown: 0 },
+                magnet: { available: true, cooldown: 0 }
+            },
+            upgrades: {},
+            autoClickers: 0,
+            tapMultiplier: 1
+        };
+
+        // Player data from Firebase
+        let playerData = {
+            username: "Player",
+            highScore: 0,
+            totalMoney: 0,
+            upgrades: {}
+        };
+
+        // Game intervals
+        let spawnInterval;
+        let gameTimer;
+        let autoClickerInterval;
+
+        // DOM Elements
+        const elements = {
+            loadingScreen: document.getElementById('loadingScreen'),
+            loadingProgress: document.getElementById('loadingProgress'),
+            loadingTip: document.getElementById('loadingTip'),
+            gameContainer: document.getElementById('gameContainer'),
+            gameArea: document.getElementById('gameArea'),
+            score: document.getElementById('score'),
+            combo: document.getElementById('combo'),
+            money: document.getElementById('money'),
+            pauseMenu: document.getElementById('pauseMenu'),
+            shopMenu: document.getElementById('shopMenu'),
+            notification: document.getElementById('notification'),
+            notificationIcon: document.getElementById('notificationIcon'),
+            notificationText: document.getElementById('notificationText'),
+            gameOver: document.getElementById('gameOver')
+        };
+
+        // ==================== LOADING ====================
+        const loadingTips = [
+            "Tips: Tap bonus targets for more points!",
+            "Tips: Avoid bomb targets!",
+            "Tips: Use powerups wisely!",
+            "Tips: Higher combos = more money!",
+            "Fun Fact: Game ini dibuat dalam 5 menit!",
+            "Fun Fact: Developer-nya gak tau ini game apa!",
+            "Warning: Game ini bisa bikin kecanduan!",
+            "Warning: Jangan main sambil nyetir!",
+            "Joke: Kenapa ayam seneng game ini? Karena ada tap-tap!",
+            "Joke: Game ini lebih gak jelas dari pacar kamu!"
+        ];
+
+        async function simulateLoading() {
+            const steps = 10;
+            for (let i = 0; i <= steps; i++) {
+                elements.loadingProgress.style.width = `${(i / steps) * 100}%`;
+                
+                // Random loading tip
+                if (i % 3 === 0) {
+                    const randomTip = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+                    elements.loadingTip.textContent = randomTip;
+                }
+                
+                await sleep(100 + Math.random() * 200);
+            }
+            
+            // Load complete
+            elements.loadingScreen.style.display = 'none';
+            elements.gameContainer.style.display = 'block';
+            
+            // Load player data
+            await loadPlayerData();
+            
+            // Start game
+            startGame();
+        }
+
+        // ==================== GAME INITIALIZATION ====================
+        async function loadPlayerData() {
+            try {
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    if (user && user.uid) {
+                        const snapshot = await database.ref('users/' + user.uid).once('value');
+                        const data = snapshot.val();
+                        
+                        if (data) {
+                            playerData.username = data.username || "Player";
+                            playerData.highScore = data.highScore || 0;
+                            playerData.totalMoney = data.money || 0;
+                            gameState.money = data.money || CONFIG.GAME.INITIAL_MONEY;
+                            
+                            // Load upgrades
+                            const upgradesSnap = await database.ref('tap_upgrades/' + user.uid).once('value');
+                            if (upgradesSnap.exists()) {
+                                gameState.upgrades = upgradesSnap.val();
+                                calculateUpgradeEffects();
+                            }
+                        }
+                    }
+                } else {
+                    gameState.money = CONFIG.GAME.INITIAL_MONEY;
+                }
+            } catch (error) {
+                console.log("Error loading player data:", error);
+                gameState.money = CONFIG.GAME.INITIAL_MONEY;
+            }
+            
+            updateUI();
+        }
+
+        function calculateUpgradeEffects() {
+            // Calculate tap multiplier
+            const tapPowerLevel = gameState.upgrades.tap_power?.level || 0;
+            gameState.tapMultiplier = 1 + (tapPowerLevel * 0.1);
+            
+            // Calculate auto clickers
+            const autoClickerLevel = gameState.upgrades.auto_clicker?.level || 0;
+            gameState.autoClickers = autoClickerLevel;
+            
+            // Start auto clickers if any
+            if (gameState.autoClickers > 0) {
+                startAutoClickers();
+            }
+        }
+
+        function startGame() {
+            gameState.isPlaying = true;
+            gameState.startTime = Date.now();
+            gameState.score = 0;
+            gameState.combo = 1;
+            
+            // Start spawning targets
+            spawnInterval = setInterval(spawnTarget, CONFIG.GAME.TARGET_SPAWN_RATE);
+            
+            // Start game timer
+            gameTimer = setInterval(updateGame, 100);
+            
+            // Update UI
+            updateUI();
+            
+            // Show welcome message
+            showNotification("Let's Tap!", "Tap everything that moves!", "🎮");
+        }
+
+        // ==================== GAME LOGIC ====================
+        function updateGame() {
+            if (gameState.isPaused || !gameState.isPlaying) return;
+            
+            // Update elapsed time
+            gameState.elapsedTime = Date.now() - gameState.startTime;
+            
+            // Check game over (time limit)
+            if (gameState.elapsedTime >= CONFIG.GAME.GAME_DURATION) {
+                endGame();
+                return;
+            }
+            
+            // Update combo decay
+            if (gameState.combo > 1) {
+                gameState.comboTime += 100;
+                if (gameState.comboTime >= CONFIG.GAME.COMBO_DECAY_TIME) {
+                    gameState.combo = Math.max(1, gameState.combo - 0.1);
+                    gameState.comboTime = 0;
+                    updateUI();
+                }
+            }
+            
+            // Remove expired targets
+            gameState.targets = gameState.targets.filter(target => {
+                if (Date.now() - target.createdAt > CONFIG.GAME.TARGET_LIFETIME) {
+                    target.element.remove();
+                    return false;
+                }
+                return true;
+            });
+            
+            // Update powerup cooldowns
+            updatePowerupCooldowns();
+        }
+
+        function spawnTarget() {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            // Don't spawn if too many targets
+            if (gameState.targets.length >= CONFIG.GAME.MAX_TARGETS) return;
+            
+            // Select target type based on probabilities
+            const type = getRandomTargetType();
+            const size = getTargetSize(type);
+            const value = getTargetValue(type);
+            const emoji = getRandomEmoji(type);
+            
+            // Random position
+            const gameArea = elements.gameArea.getBoundingClientRect();
+            const maxX = gameArea.width - size;
+            const maxY = gameArea.height - size;
+            
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            
+            // Create target element
+            const target = document.createElement('div');
+            target.className = `tap-target target-${type}`;
+            target.style.width = `${size}px`;
+            target.style.height = `${size}px`;
+            target.style.left = `${x}px`;
+            target.style.top = `${y}px`;
+            
+            // Add emoji and value
+            target.innerHTML = `
+                <div class="target-emoji">${emoji}</div>
+                <div class="target-value">${value > 0 ? '+' : ''}${value}</div>
+            `;
+            
+            // Add click handler
+            target.onclick = (e) => {
+                e.stopPropagation();
+                tapTarget(target, type, value, x + size/2, y + size/2);
+            };
+            
+            // Add to game
+            elements.gameArea.appendChild(target);
+            
+            // Store target data
+            const targetData = {
+                element: target,
+                type: type,
+                value: value,
+                x: x,
+                y: y,
+                size: size,
+                createdAt: Date.now()
+            };
+            
+            gameState.targets.push(targetData);
+            
+            // Special effects for certain types
+            if (type === 'bomb') {
+                // Make bomb pulse
+                target.style.animation = 'shake 0.5s infinite, float 3s infinite ease-in-out';
+            }
+        }
+
+        function tapTarget(element, type, value, x, y) {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            // Calculate final value with combo and multiplier
+            let finalValue = value * gameState.combo * gameState.tapMultiplier;
+            
+            // Apply effects based on target type
+            switch(type) {
+                case 'normal':
+                    // Normal tap - nothing special
+                    createTapEffect(x, y, `+${Math.round(finalValue)}`, '#2ed573');
+                    break;
+                    
+                case 'bonus':
+                    // Bonus - extra combo
+                    gameState.combo += 0.5;
+                    gameState.comboTime = 0;
+                    createTapEffect(x, y, `BONUS! +${Math.round(finalValue)}`, '#ffa502');
+                    showNotification("Bonus!", "+0.5 Combo!", "✨");
+                    break;
+                    
+                case 'bomb':
+                    // Bomb - lose points and reset combo
+                    gameState.combo = 1;
+                    createTapEffect(x, y, `BOOM! ${Math.round(finalValue)}`, '#ff4757');
+                    showNotification("Bomb!", "Combo reset!", "💣");
+                    vibrate(200);
+                    break;
+                    
+                case 'mystery':
+                    // Mystery - random effect
+                    const mysteryEffects = [
+                        { text: "DOUBLE!", multiplier: 2, color: '#ff9f1a' },
+                        { text: "HALF!", multiplier: 0.5, color: '#ff3838' },
+                        { text: "COMBO!", addCombo: 1, color: '#18dcff' },
+                        { text: "CASH!", addMoney: 100, color: '#32ff7e' }
+                    ];
+                    
+                    const effect = mysteryEffects[Math.floor(Math.random() * mysteryEffects.length)];
+                    finalValue *= effect.multiplier || 1;
+                    
+                    if (effect.addCombo) {
+                        gameState.combo += effect.addCombo;
+                        gameState.comboTime = 0;
+                    }
+                    
+                    if (effect.addMoney) {
+                        gameState.money += effect.addMoney;
+                    }
+                    
+                    createTapEffect(x, y, `${effect.text} +${Math.round(finalValue)}`, effect.color);
+                    showNotification("Mystery!", effect.text, "🎁");
+                    break;
+            }
+            
+            // Update score and money
+            gameState.score += Math.round(finalValue);
+            gameState.money += Math.round(finalValue * 0.1); // 10% of score as money
+            
+            // Increase combo for successful tap (except bomb)
+            if (type !== 'bomb') {
+                gameState.combo += 0.1;
+                gameState.comboTime = 0;
+                
+                // Show combo effect if combo is high
+                if (gameState.combo >= 3) {
+                    createComboEffect(gameState.combo.toFixed(1) + 'x COMBO!');
+                }
+            }
+            
+            // Remove target
+            element.remove();
+            gameState.targets = gameState.targets.filter(t => t.element !== element);
+            
+            // Update UI
+            updateUI();
+            
+            // Vibrate on tap
+            vibrate(50);
+        }
+
+        function createTapEffect(x, y, text, color) {
+            const effect = document.createElement('div');
+            effect.className = 'tap-effect';
+            effect.textContent = text;
+            effect.style.color = color;
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            effect.style.textShadow = `0 0 10px ${color}`;
+            
+            elements.gameArea.appendChild(effect);
+            
+            // Remove after animation
+            setTimeout(() => {
+                effect.remove();
+            }, 600);
+        }
+
+        function createComboEffect(text) {
+            const effect = document.createElement('div');
+            effect.className = 'combo-effect';
+            effect.textContent = text;
+            
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 800);
+        }
+
+        // ==================== POWERUPS ====================
+        function usePowerup(type) {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            if (!gameState.powerups[type].available) return;
+            
+            const powerup = CONFIG.POWERUPS[type.toUpperCase()];
+            
+            // Check if enough money
+            if (gameState.money < powerup.cost) {
+                showNotification("No Money!", `Need ${powerup.cost} coins`, "💰");
+                return;
+            }
+            
+            // Deduct money
+            gameState.money -= powerup.cost;
+            
+            // Apply powerup effect
+            switch(type) {
+                case 'bomb':
+                    // Destroy all targets
+                    gameState.targets.forEach(target => {
+                        if (target.type !== 'bomb') {
+                            createTapEffect(
+                                target.x + target.size/2,
+                                target.y + target.size/2,
+                                'BOOM!',
+                                '#ff4757'
+                            );
+                            target.element.remove();
+                        }
+                    });
+                    gameState.targets = gameState.targets.filter(t => t.type === 'bomb');
+                    showNotification("Bomb Used!", "All targets destroyed!", "💣");
+                    break;
+                    
+                case 'freeze':
+                    // Freeze all targets for 3 seconds
+                    gameState.targets.forEach(target => {
+                        target.element.style.animation = 'none';
+                        target.element.style.opacity = '0.5';
+                        
+                        setTimeout(() => {
+                            if (target.element) {
+                                target.element.style.animation = '';
+                                target.element.style.opacity = '1';
+                            }
+                        }, 3000);
+                    });
+                    showNotification("Freeze!", "Targets frozen for 3s", "❄️");
+                    break;
+                    
+                case 'magnet':
+                    // Auto-collect all targets
+                    gameState.targets.forEach(target => {
+                        setTimeout(() => {
+                            if (target.element) {
+                                tapTarget(
+                                    target.element,
+                                    target.type,
+                                    target.value,
+                                    target.x + target.size/2,
+                                    target.y + target.size/2
+                                );
+                            }
+                        }, Math.random() * 500);
+                    });
+                    showNotification("Magnet!", "All targets collected!", "🧲");
+                    break;
+            }
+            
+            // Set cooldown
+            gameState.powerups[type].available = false;
+            gameState.powerups[type].cooldown = Date.now() + powerup.cooldown;
+            
+            // Update powerup button
+            updatePowerupButton(type);
+            
+            // Update UI
+            updateUI();
+            
+            // Vibrate
+            vibrate(100);
+        }
+
+        function updatePowerupCooldowns() {
+            const now = Date.now();
+            Object.keys(gameState.powerups).forEach(type => {
+                if (!gameState.powerups[type].available) {
+                    if (now >= gameState.powerups[type].cooldown) {
+                        gameState.powerups[type].available = true;
+                        updatePowerupButton(type);
+                    }
+                }
+            });
+        }
+
+        function updatePowerupButton(type) {
+            const button = document.getElementById(`powerup${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            const cost = document.getElementById(`${type}Cost`);
+            
+            if (gameState.powerups[type].available) {
+                button.classList.remove('disabled');
+                button.disabled = false;
+            } else {
+                button.classList.add('disabled');
+                button.disabled = true;
+                
+                // Show cooldown
+                const remaining = Math.ceil((gameState.powerups[type].cooldown - Date.now()) / 1000);
+                cost.textContent = `${remaining}s`;
+            }
+        }
+
+        // ==================== AUTO CLICKERS ====================
+        function startAutoClickers() {
+            if (autoClickerInterval) clearInterval(autoClickerInterval);
+            
+            autoClickerInterval = setInterval(() => {
+                if (!gameState.isPlaying || gameState.isPaused || gameState.targets.length === 0) return;
+                
+                // Auto-tap one random target per clicker per second
+                for (let i = 0; i < gameState.autoClickers; i++) {
+                    if (gameState.targets.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * gameState.targets.length);
+                        const target = gameState.targets[randomIndex];
+                        
+                        if (target && target.element) {
+                            tapTarget(
+                                target.element,
+                                target.type,
+                                target.value,
+                                target.x + target.size/2,
+                                target.y + target.size/2
+                            );
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        // ==================== SHOP SYSTEM ====================
+        function openShop() {
+            gameState.isPaused = true;
+            elements.shopMenu.style.display = 'flex';
+            renderShopItems();
+        }
+
+        function closeShop() {
+            gameState.isPaused = false;
+            elements.shopMenu.style.display = 'none';
+        }
+
+        function renderShopItems() {
+            const shopItems = document.getElementById('shopItems');
+            shopItems.innerHTML = '';
+            
+            CONFIG.UPGRADES.forEach(upgrade => {
+                const currentLevel = gameState.upgrades[upgrade.id]?.level || 0;
+                const nextCost = upgrade.baseCost * (currentLevel + 1) * (currentLevel + 1);
+                const canAfford = gameState.money >= nextCost;
+                const isMaxLevel = currentLevel >= upgrade.maxLevel;
+                
+                const item = document.createElement('div');
+                item.className = `shop-item ${currentLevel > 0 ? 'owned' : ''} ${canAfford && !isMaxLevel ? 'affordable' : ''}`;
+                
+                if (!isMaxLevel && canAfford) {
+                    item.onclick = () => purchaseUpgrade(upgrade.id);
+                }
+                
+                item.innerHTML = `
+                    ${currentLevel > 0 ? `<div class="shop-item-level">${currentLevel}</div>` : ''}
+                    <div class="shop-item-icon">${upgrade.icon}</div>
+                    <div class="shop-item-name">${upgrade.name}</div>
+                    <div class="shop-item-desc">${upgrade.description}</div>
+                    <div class="shop-item-cost">
+                        ${isMaxLevel ? 'MAX LEVEL' : `$${nextCost}`}
+                    </div>
+                `;
+                
+                shopItems.appendChild(item);
+            });
+        }
+
+        function purchaseUpgrade(upgradeId) {
+            const upgrade = CONFIG.UPGRADES.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+            
+            const currentLevel = gameState.upgrades[upgradeId]?.level || 0;
+            if (currentLevel >= upgrade.maxLevel) {
+                showNotification("Max Level", "Already at maximum level!", "🏆");
+                return;
+            }
+            
+            const cost = upgrade.baseCost * (currentLevel + 1) * (currentLevel + 1);
+            if (gameState.money < cost) {
+                showNotification("Not Enough Money", `Need $${cost - gameState.money} more`, "💰");
+                return;
+            }
+            
+            // Purchase upgrade
+            gameState.money -= cost;
+            gameState.upgrades[upgradeId] = {
+                level: currentLevel + 1,
+                purchasedAt: Date.now()
+            };
+            
+            // Apply upgrade effects
+            calculateUpgradeEffects();
+            
+            // Save to Firebase
+            saveUpgrades();
+            
+            // Update UI
+            updateUI();
+            renderShopItems();
+            
+            // Show notification
+            showNotification("Upgraded!", `${upgrade.name} Level ${currentLevel + 1}`, "🎉");
+            vibrate(100);
+        }
+
+        // ==================== GAME CONTROLS ====================
+        function togglePause() {
+            gameState.isPaused = !gameState.isPaused;
+            
+            if (gameState.isPaused) {
+                elements.pauseMenu.style.display = 'flex';
+                
+                // Update pause menu stats
+                document.getElementById('pauseScore').textContent = gameState.score;
+                document.getElementById('pauseCombo').textContent = gameState.combo.toFixed(1) + 'x';
+                document.getElementById('pauseMoney').textContent = gameState.money;
+                document.getElementById('pauseTime').textContent = Math.floor(gameState.elapsedTime / 1000) + 's';
+            } else {
+                elements.pauseMenu.style.display = 'none';
+            }
+        }
+
+        function restartGame() {
+            // Clear game state
+            clearInterval(spawnInterval);
+            clearInterval(gameTimer);
+            clearInterval(autoClickerInterval);
+            
+            // Remove all targets
+            gameState.targets.forEach(target => target.element.remove());
+            gameState.targets = [];
+            
+            // Hide menus
+            elements.pauseMenu.style.display = 'none';
+            elements.shopMenu.style.display = 'none';
+            elements.gameOver.style.display = 'none';
+            
+            // Reset game state
+            gameState.isPlaying = false;
+            gameState.isPaused = false;
+            
+            // Start new game
+            setTimeout(startGame, 500);
+        }
+
+        function endGame() {
+            gameState.isPlaying = false;
+            clearInterval(spawnInterval);
+            clearInterval(gameTimer);
+            
+            // Remove all targets
+            gameState.targets.forEach(target => target.element.remove());
+            gameState.targets = [];
+            
+            // Update player data
+            if (gameState.score > playerData.highScore) {
+                playerData.highScore = gameState.score;
+                showNotification("New High Score!", `Score: ${gameState.score}`, "🏆");
+            }
+            
+            playerData.totalMoney += gameState.money;
+            
+            // Save to Firebase
+            saveGameResult();
+            
+            // Show game over screen
+            showGameOver();
+        }
+
+        function showGameOver() {
+            const finalStats = document.getElementById('finalStats');
+            
+            finalStats.innerHTML = `
+                <div class="final-stat">
+                    <div class="final-label">Final Score</div>
+                    <div class="final-value highlight">${gameState.score}</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-label">Highest Combo</div>
+                    <div class="final-value">${gameState.combo.toFixed(1)}x</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-label">Money Earned</div>
+                    <div class="final-value highlight">$${gameState.money}</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-label">Time Played</div>
+                    <div class="final-value">${Math.floor(gameState.elapsedTime / 1000)}s</div>
+                </div>
+                <div class="final-stat">
+                    <div class="final-label">High Score</div>
+                    <div class="final-value highlight">${playerData.highScore}</div>
+                </div>
+            `;
+            
+            elements.gameOver.style.display = 'flex';
+        }
+
+        function quitToLobby() {
+            // Save before leaving
+            saveGameResult();
+            
+            // Go back to lobby
+            window.location.href = 'lobby.html';
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function getRandomTargetType() {
+            const rand = Math.random() * 100;
+            let cumulative = 0;
+            
+            for (const [type, prob] of Object.entries(CONFIG.TARGETS.PROBABILITIES)) {
+                cumulative += prob;
+                if (rand <= cumulative) return type;
+            }
+            
+            return 'normal';
+        }
+
+        function getTargetSize(type) {
+            const sizeRange = CONFIG.TARGETS.SIZES[type];
+            return Math.random() * (sizeRange.max - sizeRange.min) + sizeRange.min;
+        }
+
+        function getTargetValue(type) {
+            const valueConfig = CONFIG.TARGETS.VALUES[type];
+            
+            if (typeof valueConfig === 'object') {
+                return Math.floor(Math.random() * (valueConfig.max - valueConfig.min + 1)) + valueConfig.min;
+            }
+            
+            return valueConfig;
+        }
+
+        function getRandomEmoji(type) {
+            const emojis = CONFIG.TARGETS.EMOJIS[type];
+            return emojis[Math.floor(Math.random() * emojis.length)];
+        }
+
+        function updateUI() {
+            elements.score.textContent = gameState.score;
+            elements.combo.textContent = gameState.combo.toFixed(1) + 'x';
+            elements.money.textContent = gameState.money;
+            
+            // Update powerup costs
+            document.getElementById('bombCost').textContent = CONFIG.POWERUPS.BOMB.cost;
+            document.getElementById('freezeCost').textContent = CONFIG.POWERUPS.FREEZE.cost;
+            document.getElementById('magnetCost').textContent = CONFIG.POWERUPS.MAGNET.cost;
+        }
+
+        function showNotification(text, subtext, icon = '💬') {
+            elements.notificationIcon.textContent = icon;
+            elements.notificationText.textContent = `${text} ${subtext}`;
+            elements.notification.style.display = 'flex';
+            
+            setTimeout(() => {
+                elements.notification.style.display = 'none';
+            }, 2000);
+        }
+
+        function vibrate(duration) {
+            if (navigator.vibrate) {
+                navigator.vibrate(duration);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ==================== FIREBASE FUNCTIONS ====================
+        async function saveGameResult() {
+            try {
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    if (user && user.uid) {
+                        // Update user data
+                        await database.ref('users/' + user.uid).update({
+                            highScore: playerData.highScore,
+                            money: playerData.totalMoney + gameState.money,
+                            lastPlayed: Date.now(),
+                            tapGamesPlayed: firebase.database.ServerValue.increment(1)
+                        });
+                        
+                        // Save game result
+                        await database.ref('tap_game_results/' + user.uid).push({
+                            score: gameState.score,
+                            moneyEarned: gameState.money,
+                            timePlayed: gameState.elapsedTime,
+                            maxCombo: gameState.combo,
+                            date: new Date().toISOString()
+                        });
+                    }
+                }
+            } catch (error) {
+                console.log("Error saving game result:", error);
+            }
+        }
+
+        async function saveUpgrades() {
+            try {
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    if (user && user.uid) {
+                        await database.ref('tap_upgrades/' + user.uid).set(gameState.upgrades);
+                    }
+                }
+            } catch (error) {
+                console.log("Error saving upgrades:", error);
+            }
+        }
+
+        // ==================== INITIALIZE GAME ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start loading
+            simulateLoading();
+            
+            // Add click handler for empty areas (miss penalty)
+            elements.gameArea.addEventListener('click', (e) => {
+                if (!gameState.isPlaying || gameState.isPaused) return;
+                if (!e.target.classList.contains('tap-target')) {
+                    // Miss penalty
+                    gameState.combo = Math.max(1, gameState.combo - 0.2);
+                    gameState.comboTime = 0;
+                    
+                    // Show miss effect
+                    createTapEffect(e.clientX, e.clientY, "MISS!", '#ff4757');
+                    
+                    // Update UI
+                    updateUI();
+                }
+            });
+        });
+
+        // ==================== EXPORT FUNCTIONS ====================
+        window.togglePause = togglePause;
+        window.restartGame = restartGame;
+        window.quitToLobby = quitToLobby;
+        window.usePowerup = usePowerup;
+        window.openShop = openShop;
+        window.closeShop = closeShop;
+        window.purchaseUpgrade = purchaseUpgrade;
+    </script>
+</body>
+</html>
