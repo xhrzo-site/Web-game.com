@@ -52,6 +52,107 @@
             to { transform: translateY(0); }
         }
         
+        /* Tombol Settings */
+        .settings-btn {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #00aaff;
+            border-radius: 50%;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #00aaff;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        .settings-btn:hover {
+            background: rgba(0,170,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,170,255,0.3);
+        }
+        
+        /* Settings Modal */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .settings-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .settings-box {
+            background: rgba(30,30,46,0.95);
+            border: 2px solid #00aaff;
+            border-radius: 18px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,170,255,0.3);
+        }
+        .settings-box h3 {
+            color: #00aaff;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #88ffcc;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .setting-item select, .setting-item input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .setting-item select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .music-option {
+            background: rgba(0,170,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .music-option:hover {
+            background: rgba(0,170,255,0.2);
+        }
+        .music-option.active {
+            background: rgba(0,170,255,0.3);
+            border: 1px solid #00aaff;
+        }
+        
         /* Main Lobby Content */
         #lobbyContainer {
             min-height: 100vh;
@@ -376,6 +477,17 @@
     </style>
 </head>
 <body>
+    <!-- Audio Elements -->
+    <audio id="bgMusic1" preload="auto">
+        <source src="https://e.top4top.io/m_3673yeacl2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic2" preload="auto">
+        <source src="https://d.top4top.io/m_36735qanc1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound" preload="auto">
+        <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
+    </audio>
+    
     <!-- Ban Alert (akan muncul jika user di-ban saat online) -->
     <div id="banAlert" class="ban-alert">
         <div class="ban-alert-content">
@@ -384,6 +496,43 @@
                 <span style="margin-left: 15px; font-size: 14px;">Anda akan di-logout otomatis...</span>
             </div>
             <button onclick="forceLogout()">OK</button>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-box">
+            <button class="close-modal" onclick="closeSettings()">×</button>
+            <h3>⚙️ SETTINGS</h3>
+            
+            <div class="setting-item">
+                <label>🎵 Background Music</label>
+                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1 (Battle Theme)</div>
+                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2 (Chill Theme)</div>
+                <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
+            </div>
+            
+            <div class="setting-item">
+                <label>🔊 Music Volume</label>
+                <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
+            </div>
+            
+            <div class="setting-item">
+                <label>📢 Sound Effects</label>
+                <select id="soundToggle" onchange="toggleSoundEffects()">
+                    <option value="on">ON</option>
+                    <option value="off">OFF</option>
+                </select>
+            </div>
+            
+            <div class="setting-item">
+                <label>🎚️ Click Volume</label>
+                <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
+            </div>
+            
+            <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
+                SAVE & CLOSE
+            </button>
         </div>
     </div>
     
@@ -422,7 +571,12 @@
                     </div>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="settings-btn" onclick="openSettings()" title="Settings">
+                    <span>⚙️</span>
+                </button>
+                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+            </div>
         </div>
         
         <!-- Lobby Content -->
@@ -472,6 +626,189 @@
     </div>
     
     <script>
+        // ==================== AUDIO MANAGEMENT ====================
+        let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2
+        let musicEnabled = true;
+        let soundEffectsEnabled = true;
+        let clickVolume = 0.7;
+        let musicVolume = 0.5;
+        
+        function playClickSound() {
+            if (!soundEffectsEnabled) return;
+            
+            const clickSound = document.getElementById('clickSound');
+            if (clickSound) {
+                clickSound.volume = clickVolume;
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("Click sound error:", e));
+            }
+        }
+        
+        function playRandomMusic() {
+            if (!musicEnabled) return;
+            
+            // Hentikan semua musik dulu
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            music1.pause();
+            music2.pause();
+            
+            if (currentMusic === 0) return;
+            
+            // Pilih musik secara random antara 1 dan 2
+            const randomMusic = Math.random() > 0.5 ? 1 : 2;
+            currentMusic = randomMusic;
+            
+            const selectedMusic = randomMusic === 1 ? music1 : music2;
+            selectedMusic.volume = musicVolume;
+            selectedMusic.currentTime = 0;
+            
+            selectedMusic.play().catch(e => {
+                console.log("Auto-play blocked, waiting for user interaction");
+                // Tunda pemutaran sampai user interaksi
+                document.addEventListener('click', function startMusicOnClick() {
+                    selectedMusic.play().catch(e => console.log("Music play error:", e));
+                    document.removeEventListener('click', startMusicOnClick);
+                }, { once: true });
+            });
+            
+            // Saat musik selesai, putar lagu berikutnya
+            selectedMusic.onended = function() {
+                playRandomMusic();
+            };
+        }
+        
+        function changeMusic(musicNumber) {
+            currentMusic = musicNumber;
+            
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            music1.pause();
+            music2.pause();
+            
+            // Update UI active class
+            document.querySelectorAll('.music-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            if (musicNumber === 1) {
+                document.querySelectorAll('.music-option')[0].classList.add('active');
+                music1.volume = musicVolume;
+                music1.currentTime = 0;
+                music1.play().catch(e => console.log("Music 1 error:", e));
+                music1.onended = function() {
+                    if (currentMusic === 1) playRandomMusic();
+                };
+            } else if (musicNumber === 2) {
+                document.querySelectorAll('.music-option')[1].classList.add('active');
+                music2.volume = musicVolume;
+                music2.currentTime = 0;
+                music2.play().catch(e => console.log("Music 2 error:", e));
+                music2.onended = function() {
+                    if (currentMusic === 2) playRandomMusic();
+                };
+            } else {
+                document.querySelectorAll('.music-option')[2].classList.add('active');
+            }
+            
+            // Simpan preferensi
+            localStorage.setItem('musicPreference', musicNumber);
+        }
+        
+        function updateVolume() {
+            const volumeSlider = document.getElementById('musicVolume');
+            musicVolume = volumeSlider.value / 100;
+            
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            if (music1) music1.volume = musicVolume;
+            if (music2) music2.volume = musicVolume;
+            
+            localStorage.setItem('musicVolume', musicVolume);
+        }
+        
+        function updateClickVolume() {
+            const volumeSlider = document.getElementById('clickVolume');
+            clickVolume = volumeSlider.value / 100;
+            localStorage.setItem('clickVolume', clickVolume);
+        }
+        
+        function toggleSoundEffects() {
+            const toggle = document.getElementById('soundToggle');
+            soundEffectsEnabled = toggle.value === 'on';
+            localStorage.setItem('soundEffects', soundEffectsEnabled);
+        }
+        
+        function openSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').classList.add('active');
+            
+            // Load settings
+            const savedMusic = localStorage.getItem('musicPreference');
+            if (savedMusic !== null) {
+                currentMusic = parseInt(savedMusic);
+                const options = document.querySelectorAll('.music-option');
+                options.forEach(opt => opt.classList.remove('active'));
+                if (currentMusic === 1) options[0].classList.add('active');
+                else if (currentMusic === 2) options[1].classList.add('active');
+                else options[2].classList.add('active');
+            }
+            
+            const savedMusicVol = localStorage.getItem('musicVolume');
+            if (savedMusicVol) {
+                musicVolume = parseFloat(savedMusicVol);
+                document.getElementById('musicVolume').value = musicVolume * 100;
+            }
+            
+            const savedClickVol = localStorage.getItem('clickVolume');
+            if (savedClickVol) {
+                clickVolume = parseFloat(savedClickVol);
+                document.getElementById('clickVolume').value = clickVolume * 100;
+            }
+            
+            const savedSoundEffects = localStorage.getItem('soundEffects');
+            if (savedSoundEffects !== null) {
+                soundEffectsEnabled = savedSoundEffects === 'true';
+                document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
+            }
+        }
+        
+        function closeSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        // ==================== UPDATE EVENT LISTENERS UNTUK CLICK SOUND ====================
+        function addClickSoundToElements() {
+            // Tombol dan elemen yang bisa diklik
+            const clickableElements = document.querySelectorAll(
+                'button, .game-card, .feature-card, .toggle-btn, .settings-btn, .switch-form span, .close-modal, .logout-btn'
+            );
+            
+            clickableElements.forEach(element => {
+                // Hapus event listener sebelumnya jika ada
+                element.removeEventListener('click', playClickSound);
+                // Tambahkan event listener baru
+                element.addEventListener('click', playClickSound);
+            });
+            
+            // Input fields saat enter
+            const inputFields = document.querySelectorAll('input[type="text"]');
+            inputFields.forEach(input => {
+                input.removeEventListener('keypress', handleEnterWithSound);
+                input.addEventListener('keypress', handleEnterWithSound);
+            });
+        }
+        
+        function handleEnterWithSound(e) {
+            if (e.key === 'Enter') {
+                playClickSound();
+            }
+        }
+        
         // ==================== FIREBASE CONFIG ====================
         let currentUser = null;
         let banListener = null;
@@ -598,11 +935,13 @@
             }
             
             // Redirect to login page with ban parameter
-            window.location.href = 'index.html?banned=true';
+            window.location.href = 'login.html?banned=true';
         }
         
         // ==================== LOGOUT FUNCTION - PERBAIKAN ====================
         function logout() {
+            playClickSound();
+            
             // Tampilkan konfirmasi
             const confirmLogout = confirm("Yakin ingin logout?");
             if (!confirmLogout) return;
@@ -617,21 +956,28 @@
                 }).catch((error) => {
                     console.error('Failed to update user status:', error);
                 }).finally(() => {
+                    // Hentikan musik
+                    const music1 = document.getElementById('bgMusic1');
+                    const music2 = document.getElementById('bgMusic2');
+                    music1.pause();
+                    music2.pause();
+                    
                     // Hapus data dari localStorage
                     localStorage.removeItem('currentUser');
                     
                     // Redirect ke halaman index (login)
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                 });
             } else {
                 // Jika tidak ada user data, langsung redirect
                 localStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }
         }
         
         // ==================== GAME FUNCTIONS ====================
         function toggleFriendForm() {
+            playClickSound();
             const form = document.getElementById('addFriendForm');
             form.classList.toggle('active');
         }
@@ -648,6 +994,8 @@
         }
         
         function playGame(gameType) {
+            playClickSound();
+            
             localStorage.setItem('selectedGame', gameType);
             
             // Update status sedang main game
@@ -762,6 +1110,8 @@
         }
         
         async function addFriend() {
+            playClickSound();
+            
             if (!currentUser) return;
             
             const friendUsername = document.getElementById('friendUsername').value.trim();
@@ -815,7 +1165,7 @@
         async function initLobby() {
             const savedUser = localStorage.getItem('currentUser');
             if (!savedUser) {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
                 return;
             }
             
@@ -829,7 +1179,7 @@
                 
                 if (!userData) {
                     localStorage.removeItem('currentUser');
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                     return;
                 }
                 
@@ -841,7 +1191,7 @@
                           `Username: ${userData.username}\n` +
                           `Anda tidak bisa mengakses akun ini lagi.`);
                     
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                     return;
                 }
                 
@@ -875,6 +1225,40 @@
                 updateUserDisplay();
                 loadFriends(user.uid);
                 
+                // ===== INITIALIZE AUDIO SYSTEM =====
+                addClickSoundToElements();
+                
+                // Load saved audio settings
+                const savedMusic = localStorage.getItem('musicPreference');
+                if (savedMusic !== null) {
+                    currentMusic = parseInt(savedMusic);
+                } else {
+                    // Default: putar musik random saat pertama kali
+                    currentMusic = Math.random() > 0.5 ? 1 : 2;
+                }
+                
+                const savedMusicVol = localStorage.getItem('musicVolume');
+                if (savedMusicVol) {
+                    musicVolume = parseFloat(savedMusicVol);
+                }
+                
+                const savedClickVol = localStorage.getItem('clickVolume');
+                if (savedClickVol) {
+                    clickVolume = parseFloat(savedClickVol);
+                }
+                
+                const savedSoundEffects = localStorage.getItem('soundEffects');
+                if (savedSoundEffects !== null) {
+                    soundEffectsEnabled = savedSoundEffects === 'true';
+                }
+                
+                // Mulai musik setelah sedikit delay
+                setTimeout(() => {
+                    if (currentMusic > 0) {
+                        playRandomMusic();
+                    }
+                }, 1000);
+                
                 // FIX: Real-time update untuk data user
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
@@ -902,12 +1286,27 @@
         
         // ==================== EVENT LISTENERS ====================
         document.getElementById('friendUsername')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addFriend();
+            if (e.key === 'Enter') {
+                playClickSound();
+                setTimeout(() => addFriend(), 100);
+            }
+        });
+        
+        document.getElementById('settingsModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
         });
         
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
                 detectDevice();
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSettings();
             }
         });
         

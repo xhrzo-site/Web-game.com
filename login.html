@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Game | © by Zoo x taher</title>
+
+<!-- OPEN SOURCE CODE CUKUP BAWA DANA 5K UDAH FULL HTML + DB +ASET 🗿 -->
+<!-- ENJOY TO MY PROJECT BROW👍🏻😉 -->
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;min-height:100vh;overflow-x:hidden}
+        /* WELCOME, ENJOY TO MY WEB GAME 👍🏻👍🏻*/
+
+
+        .faq-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #ff3333;
+            border-radius: 12px;
+            padding: 10px 15px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            font-weight: bold;
+            color: #ff3333;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .faq-btn:hover {
+            background: rgba(255,51,51,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,0,0,0.4);
+        }
+        
+        .admin-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #ffd700;
+            border-radius: 50%;
+            padding: 12px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            font-weight: bold;
+            color: #ffd700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+        }
+        .admin-btn:hover {
+            background: rgba(255,215,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+        }
+        
+        /* Tombol Settings */
+        .settings-btn {
+            position: fixed;
+            top: 15px;
+            right: 60px;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #00aaff;
+            border-radius: 50%;
+            padding: 12px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,170,255,0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            font-weight: bold;
+            color: #00aaff;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+        }
+        .settings-btn:hover {
+            background: rgba(0,170,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,170,255,0.4);
+        }
+        
+        /* Settings Modal */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .settings-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .settings-box {
+            background: rgba(30,30,46,0.95);
+            border: 2px solid #00aaff;
+            border-radius: 18px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,170,255,0.3);
+        }
+        .settings-box h3 {
+            color: #00aaff;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #88ffcc;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .setting-item select, .setting-item input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .setting-item select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .music-option {
+            background: rgba(0,170,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .music-option:hover {
+            background: rgba(0,170,255,0.2);
+        }
+        .music-option.active {
+            background: rgba(0,170,255,0.3);
+            border: 1px solid #00aaff;
+        }
+        
+        /* Notice Box Modal */
+        .notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .notice-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .notice-box {
+            background: rgba(30,30,46,0.95);
+            border: 2px solid #ff3333;
+            border-radius: 18px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 35px rgba(255,0,0,0.3);
+        }
+        .notice-box h3 {
+            color: #ff3333;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .notice-box p {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            color: #ddd;
+        }
+        .notice-box strong {
+            color: #00ff88;
+        }
+        .notice-box .disclaimer {
+            background: rgba(255,51,51,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #ff3333;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .close-modal:hover {
+            background: #ff6666;
+            transform: rotate(90deg);
+        }
+        
+        /* Login/Register Container */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px 20px;
+            position: relative;
+        }
+        
+        .auth-wrapper {
+            background: rgba(30,30,46,0.95);
+            border-radius: 20px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            border: 2px solid rgba(0,255,136,0.3);
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+        
+        .auth-form {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .auth-form.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0,255,136,0.7);
+            font-size: 2.5em;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #88ffcc;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+            border-color: #00ff88;
+            transform: translateY(-2px);
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #1a1a2e;
+            font-size: 17px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            width: 100%;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,255,136,0.5);
+        }
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        .switch-form {
+            text-align: center;
+            margin-top: 25px;
+            color: #88ffcc;
+            font-size: 15px;
+        }
+        .switch-form span {
+            color: #00ff88;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        .switch-form span:hover {
+            background: rgba(0,255,136,0.1);
+            text-decoration: none;
+        }
+        
+        /* Animasi background */
+        .bg-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .bg-effects::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(0,255,136,0.1);
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+            filter: blur(60px);
+        }
+        .bg-effects::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,51,51,0.1);
+            border-radius: 50%;
+            bottom: 10%;
+            right: 10%;
+            filter: blur(80px);
+        }
+        
+        .message {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .message.success {
+            background: linear-gradient(135deg,#00ff88,#00cc6a);
+        }
+        .message.error {
+            background: linear-gradient(135deg,#ff3333,#cc0000);
+        }
+        
+        /* Ban Message Modal */
+        .ban-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .ban-modal.active {
+            display: flex;
+            animation: shake 0.5s ease;
+        }
+        .ban-content {
+            background: #1a1a2e;
+            border: 4px solid #ff3333;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255,51,51,0.5);
+        }
+        .ban-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: #ff3333;
+            animation: pulse 1.5s infinite;
+        }
+        .ban-title {
+            font-size: 2em;
+            color: #ff3333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .ban-details {
+            background: rgba(255,51,51,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .ban-info {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .ban-contact {
+            color: #00ff88;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @media (max-width: 768px) {
+            .auth-wrapper {
+                padding: 30px 20px;
+                margin-top: 60px;
+            }
+            .faq-btn, .admin-btn, .settings-btn {
+                top: 10px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            .admin-btn, .settings-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            .settings-btn {
+                right: 50px;
+            }
+            .ban-content {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Elements -->
+    <audio id="bgMusic1" preload="auto">
+        <source src="https://e.top4top.io/m_3673yeacl2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic2" preload="auto">
+        <source src="https://d.top4top.io/m_36735qanc1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound" preload="auto">
+        <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Tombol FAQ -->
+    <div class="faq-btn" onclick="openFAQ()">
+        <span>📌</span>
+        <span>FAQ</span>
+    </div>
+    
+    <!-- ONLY PREMIUM USER -->
+    <div class="admin-btn" onclick="goToAdmin()" title="Admin Panel">
+        <span>👑</span>
+    </div>
+    
+    
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="notice-modal">
+        <div class="notice-box">
+            <button class="close-modal" onclick="closeFAQ()">×</button>
+            <h3>📌 FAQ & PANDUAN</h3>
+            <p><strong>Awal:</strong> Daftar/Login dulu, klo udah pasword dan username jangan sampai lupa ya!😉</p>
+            <p><strong>Rank:</strong> Kumpulkan bintang untuk naik rank. Semakin tinggi rank, semakin keren!</p>
+            <p><strong>Cara Mabar:</strong> Tambah teman untuk lihat apakah teman mu online.</p>
+            <p><strong>Fitur Lain:</strong> Coba Spin, Events, Shop dan untuk hadiah tambahan.</p>
+            
+            <div class="disclaimer">
+                <p><strong>⚠️ DISCLAIMER:</strong></p>
+                <p>Game ini dibuat oleh <strong>Taher Atau Xhrzo</strong> untuk hiburan semata.</p>
+                <p>Jika terdapat kata yang tidak pantas, mohon maaf.</p>
+                <p>Jika ada fitur yang tidak nyaman, mohon dimaafkan.</p>
+                <p>Selamat bermain! 🎮</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-box">
+            <button class="close-modal" onclick="closeSettings()">×</button>
+            <h3>⚙️ SETTINGS</h3>
+            
+            <div class="setting-item">
+                <label>🎵 Background Music</label>
+                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1 (Battle Theme)</div>
+                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2 (Chill Theme)</div>
+                <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
+            </div>
+            
+            <div class="setting-item">
+                <label>🔊 Music Volume</label>
+                <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
+            </div>
+            
+            <div class="setting-item">
+                <label>📢 Sound Effects</label>
+                <select id="soundToggle" onchange="toggleSoundEffects()">
+                    <option value="on">ON</option>
+                    <option value="off">OFF</option>
+                </select>
+            </div>
+            
+            <div class="setting-item">
+                <label>🎚️ Click Volume</label>
+                <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
+            </div>
+            
+            <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
+                SAVE & CLOSE
+            </button>
+        </div>
+    </div>
+    
+    <!-- Ban Modal -->
+    <div id="banModal" class="ban-modal">
+        <div class="ban-content">
+            <div class="ban-icon">🚫</div>
+            <div class="ban-title">AKUN DI BAN!</div>
+            
+            <div class="ban-details" id="banDetails">
+            </div>
+            
+            <p style="color:#aaa;font-size:14px;margin-top:20px;">
+                Akun ini telah dinonaktifkan karena alasan tertentu.<br>
+                Anda tidak dapat mengakses Akun ini lagi.
+            </p>
+            
+            <div class="ban-contact">
+                Hubungi Admin jika menurut Anda ini kesalahan. 083117480106
+            </div>
+            
+            <button onclick="closeBanModal()" style="
+                margin-top: 25px;
+                padding: 12px 30px;
+                background: #ff3333;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            ">
+                TUTUP
+            </button>
+        </div>
+    </div>
+    
+   <!-- TIDAK BOLEH DI UBAH/RENAME HANYA UNTUK CSS -->
+    <div class="auth-container">
+        
+        <div class="bg-effects"></div>
+        
+        <div class="auth-wrapper">
+            <h1>🎮 FUN GAME</h1>
+            
+       
+            <div id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">👤 Username</label>
+                    <input type="text" id="loginUsername" placeholder="Masukkan username" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">🔑 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Masukkan password" required>
+                </div>
+                <button id="loginBtn">🎮 LOGIN</button>
+                <div class="switch-form">
+                    Belum punya akun? <span onclick="switchToRegister()">Buat Akun</span>
+                </div>
+            </div>
+            
+            <div id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="regUsername">👤 Username</label>
+                    <input type="text" id="regUsername" placeholder="Buat username anda" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">🔑 Password</label>
+                    <input type="password" id="regPassword" placeholder="Minimal 4 karakter" required>
+                </div>
+                <button id="registerBtn">🚀 BUAT AKUN</button>
+                <div class="switch-form">
+                    Sudah punya akun? <span onclick="switchToLogin()">Login</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ASET PENTING GAME 
+        // Firebase sudah diinisialisasi di firebase-config.js
+        
+        // ==================== AUDIO MANAGEMENT ====================
+        let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2
+        let musicEnabled = true;
+        let soundEffectsEnabled = true;
+        let clickVolume = 0.7;
+        let musicVolume = 0.5;
+        
+        function playClickSound() {
+            if (!soundEffectsEnabled) return;
+            
+            const clickSound = document.getElementById('clickSound');
+            if (clickSound) {
+                clickSound.volume = clickVolume;
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("Click sound error:", e));
+            }
+        }
+        
+        function playRandomMusic() {
+            if (!musicEnabled) return;
+            
+            // Hentikan semua musik dulu
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            music1.pause();
+            music2.pause();
+            
+            if (currentMusic === 0) return;
+            
+            // Pilih musik secara random antara 1 dan 2
+            const randomMusic = Math.random() > 0.5 ? 1 : 2;
+            currentMusic = randomMusic;
+            
+            const selectedMusic = randomMusic === 1 ? music1 : music2;
+            selectedMusic.volume = musicVolume;
+            selectedMusic.currentTime = 0;
+            
+            selectedMusic.play().catch(e => {
+                console.log("Auto-play blocked, waiting for user interaction");
+                // Tunda pemutaran sampai user interaksi
+                document.addEventListener('click', function startMusicOnClick() {
+                    selectedMusic.play().catch(e => console.log("Music play error:", e));
+                    document.removeEventListener('click', startMusicOnClick);
+                }, { once: true });
+            });
+            
+            // Saat musik selesai, putar lagu berikutnya
+            selectedMusic.onended = function() {
+                playRandomMusic();
+            };
+        }
+        
+        function changeMusic(musicNumber) {
+            currentMusic = musicNumber;
+            
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            music1.pause();
+            music2.pause();
+            
+            // Update UI active class
+            document.querySelectorAll('.music-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            if (musicNumber === 1) {
+                document.querySelectorAll('.music-option')[0].classList.add('active');
+                music1.volume = musicVolume;
+                music1.currentTime = 0;
+                music1.play().catch(e => console.log("Music 1 error:", e));
+                music1.onended = function() {
+                    if (currentMusic === 1) playRandomMusic();
+                };
+            } else if (musicNumber === 2) {
+                document.querySelectorAll('.music-option')[1].classList.add('active');
+                music2.volume = musicVolume;
+                music2.currentTime = 0;
+                music2.play().catch(e => console.log("Music 2 error:", e));
+                music2.onended = function() {
+                    if (currentMusic === 2) playRandomMusic();
+                };
+            } else {
+                document.querySelectorAll('.music-option')[2].classList.add('active');
+            }
+            
+            // Simpan preferensi
+            localStorage.setItem('musicPreference', musicNumber);
+        }
+        
+        function updateVolume() {
+            const volumeSlider = document.getElementById('musicVolume');
+            musicVolume = volumeSlider.value / 100;
+            
+            const music1 = document.getElementById('bgMusic1');
+            const music2 = document.getElementById('bgMusic2');
+            
+            if (music1) music1.volume = musicVolume;
+            if (music2) music2.volume = musicVolume;
+            
+            localStorage.setItem('musicVolume', musicVolume);
+        }
+        
+        function updateClickVolume() {
+            const volumeSlider = document.getElementById('clickVolume');
+            clickVolume = volumeSlider.value / 100;
+            localStorage.setItem('clickVolume', clickVolume);
+        }
+        
+        function toggleSoundEffects() {
+            const toggle = document.getElementById('soundToggle');
+            soundEffectsEnabled = toggle.value === 'on';
+            localStorage.setItem('soundEffects', soundEffectsEnabled);
+        }
+        
+        function openSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').classList.add('active');
+            
+            // Load settings
+            const savedMusic = localStorage.getItem('musicPreference');
+            if (savedMusic !== null) {
+                currentMusic = parseInt(savedMusic);
+                const options = document.querySelectorAll('.music-option');
+                options.forEach(opt => opt.classList.remove('active'));
+                if (currentMusic === 1) options[0].classList.add('active');
+                else if (currentMusic === 2) options[1].classList.add('active');
+                else options[2].classList.add('active');
+            }
+            
+            const savedMusicVol = localStorage.getItem('musicVolume');
+            if (savedMusicVol) {
+                musicVolume = parseFloat(savedMusicVol);
+                document.getElementById('musicVolume').value = musicVolume * 100;
+            }
+            
+            const savedClickVol = localStorage.getItem('clickVolume');
+            if (savedClickVol) {
+                clickVolume = parseFloat(savedClickVol);
+                document.getElementById('clickVolume').value = clickVolume * 100;
+            }
+            
+            const savedSoundEffects = localStorage.getItem('soundEffects');
+            if (savedSoundEffects !== null) {
+                soundEffectsEnabled = savedSoundEffects === 'true';
+                document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
+            }
+        }
+        
+        function closeSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        // ==================== UPDATE EVENT LISTENERS UNTUK CLICK SOUND ====================
+        function addClickSoundToElements() {
+            // Tombol dan elemen yang bisa diklik
+            const clickableElements = document.querySelectorAll(
+                'button, .game-card, .feature-card, .toggle-btn, .faq-btn, .admin-btn, .settings-btn, .switch-form span, .close-modal'
+            );
+            
+            clickableElements.forEach(element => {
+                // Hapus event listener sebelumnya jika ada
+                element.removeEventListener('click', playClickSound);
+                // Tambahkan event listener baru
+                element.addEventListener('click', playClickSound);
+            });
+            
+            // Input fields saat enter
+            const inputFields = document.querySelectorAll('input[type="text"], input[type="password"]');
+            inputFields.forEach(input => {
+                input.removeEventListener('keypress', handleEnterWithSound);
+                input.addEventListener('keypress', handleEnterWithSound);
+            });
+        }
+        
+        function handleEnterWithSound(e) {
+            if (e.key === 'Enter') {
+                playClickSound();
+            }
+        }
+        
+        function openFAQ() {
+            playClickSound();
+            document.getElementById('faqModal').classList.add('active');
+        }
+        
+        function closeFAQ() {
+            playClickSound();
+            document.getElementById('faqModal').classList.remove('active');
+        }
+        
+        function goToAdmin() {
+            playClickSound();
+            window.location.href = 'admin.html';
+        }
+        
+        function switchToLogin() {
+            playClickSound();
+            document.getElementById('registerForm').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('loginForm').classList.add('active');
+            }, 50);
+        }
+        
+        function switchToRegister() {
+            playClickSound();
+            document.getElementById('loginForm').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('registerForm').classList.add('active');
+            }, 50);
+        }
+        
+        function showMessage(text, type = 'success') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        function showBanModal(userData) {
+            const banDetails = document.getElementById('banDetails');
+            
+            // Format ban date
+            let banDate = 'Unknown';
+            if (userData.banDate) {
+                banDate = new Date(userData.banDate).toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            
+            let banReason = 'Tidak disebutkan';
+            if (userData.banHistory) {
+                const historyKeys = Object.keys(userData.banHistory);
+                if (historyKeys.length > 0) {
+                    const lastBan = userData.banHistory[historyKeys[historyKeys.length - 1]];
+                    if (lastBan.reason) {
+                        banReason = lastBan.reason;
+                    }
+                }
+            }
+            
+            banDetails.innerHTML = `
+                <div class="ban-info"><strong>Username:</strong> ${userData.username || 'Unknown'}</div>
+                <div class="ban-info"><strong>Status:</strong> <span style="color:#ff3333">BANNED PERMANEN</span></div>
+                <div class="ban-info"><strong>Tanggal Ban:</strong> ${banDate}</div>
+                <div class="ban-info"><strong>Alasan Ban:</strong> ${banReason}</div>
+                <div class="ban-info"><strong>Admin:</strong> Taher (Owner)</div>
+            `;
+            
+            document.getElementById('banModal').classList.add('active');
+        }
+        
+        function closeBanModal() {
+            playClickSound();
+            document.getElementById('banModal').classList.remove('active');
+            
+            localStorage.removeItem('currentUser');
+        }
+        
+        // Event listeners untuk modal
+        document.getElementById('faqModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFAQ();
+            }
+        });
+        
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
+        
+        // Event listeners untuk input
+        document.getElementById('regPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                playClickSound();
+                setTimeout(() => document.getElementById('registerBtn').click(), 100);
+            }
+        });
+        
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                playClickSound();
+                setTimeout(() => document.getElementById('loginBtn').click(), 100);
+            }
+        });
+        
+        // Event listener untuk escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFAQ();
+                closeSettings();
+                closeBanModal();
+            }
+        });
+        
+        // Initialize audio system
+        document.addEventListener('DOMContentLoaded', function() {
+            addClickSoundToElements();
+            
+            // Load saved settings
+            const savedMusic = localStorage.getItem('musicPreference');
+            if (savedMusic !== null) {
+                currentMusic = parseInt(savedMusic);
+            } else {
+                // Default: putar musik random saat pertama kali
+                currentMusic = Math.random() > 0.5 ? 1 : 2;
+            }
+            
+            const savedMusicVol = localStorage.getItem('musicVolume');
+            if (savedMusicVol) {
+                musicVolume = parseFloat(savedMusicVol);
+            } else {
+                document.getElementById('musicVolume').value = 50;
+            }
+            
+            const savedClickVol = localStorage.getItem('clickVolume');
+            if (savedClickVol) {
+                clickVolume = parseFloat(savedClickVol);
+            } else {
+                document.getElementById('clickVolume').value = 70;
+            }
+            
+            const savedSoundEffects = localStorage.getItem('soundEffects');
+            if (savedSoundEffects !== null) {
+                soundEffectsEnabled = savedSoundEffects === 'true';
+                document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
+            }
+            
+            // Mulai musik setelah sedikit delay
+            setTimeout(() => {
+                if (currentMusic > 0) {
+                    playRandomMusic();
+                }
+            }, 1000);
+        });
+        
+        // ==================== REGISTER FUNCTION ====================
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            playClickSound();
+            
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            
+            if (username.length < 3) {
+                showMessage('Username minimal 3 karakter!', 'error');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showMessage('Password minimal 4 karakter!', 'error');
+                return;
+            }
+            
+            // Check if username contains inappropriate words
+            const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
+            if (badWords.some(word => username.toLowerCase().includes(word))) {
+                showMessage('Username tidak diperbolehkan!', 'error');
+                return;
+            }
+            
+            try {
+                // Check if username already exists
+                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                
+                if (snapshot.exists()) {
+                    showMessage('Username udah Ada yang pakai bro!', 'error');
+                    return;
+                }
+                
+                // Create new user ID
+                const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Save to database with initial rank
+                await database.ref('users/' + userId).set({
+                    uid: userId,
+                    username: username,
+                    password: password,
+                    money: 1000,
+                    diamond: 10,
+                    rank: 0,
+                    stars: 0,
+                    credit: 0,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    lastPlayed: Date.now(),
+                    status: 'online',
+                    gamesPlayed: 0,
+                    banned: false,
+                    registeredIP: 'unknown'
+                });
+                
+                // Create empty friends list
+                await database.ref('friends/' + userId).set({});
+                
+                // Save user data and redirect to lobby
+                const userData = {
+                    uid: userId,
+                    username: username,
+                    money: 1000,
+                    diamond: 10,
+                    rank: 0,
+                    stars: 0,
+                    banned: false
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                showMessage('Akun berhasil dibuat! ✅', 'success');
+                setTimeout(() => {
+                    window.location.href = 'lobby.html';
+                }, 1000);
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        // ==================== LOGIN FUNCTION WITH BAN CHECK ====================
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            playClickSound();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showMessage('Isi username dan password!', 'error');
+                return;
+            }
+            
+            try {
+                // Find user
+                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                
+                if (!snapshot.exists()) {
+                    showMessage('Username tidak ditemukan!', 'error');
+                    return;
+                }
+                
+                const userData = snapshot.val();
+                const userId = Object.keys(userData)[0];
+                const user = userData[userId];
+                
+                // ===== CHECK IF USER IS BANNED =====
+                if (user.banned) {
+                    // Show ban message
+                    showMessage('❌ AKUN ANDA TELAH DI BAN!', 'error');
+                    
+                    // Show detailed ban modal after short delay
+                    setTimeout(() => {
+                        showBanModal(user);
+                    }, 500);
+                    
+                    return;
+                }
+                
+                // Check password
+                if (user.password !== password) {
+                    showMessage('Password salah!', 'error');
+                    return;
+                }
+                
+                // Update status
+                await database.ref('users/' + userId).update({
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'online',
+                    loginCount: (user.loginCount || 0) + 1
+                });
+                
+                // Save user data and redirect to lobby
+                const currentUser = {
+                    uid: userId,
+                    username: user.username,
+                    money: user.money,
+                    diamond: user.diamond,
+                    rank: user.rank || 0,
+                    stars: user.stars || 0,
+                    banned: false
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                showMessage('Login berhasil✅!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'lobby.html';
+                }, 1000);
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        // ==================== INITIALIZATION ====================
+        window.onload = () => {
+            // Auto focus to login form
+            document.getElementById('loginUsername').focus();
+            
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                
+                // Check ban status even if already logged in
+                checkBanStatus(user.uid).then(isBanned => {
+                    if (isBanned) {
+                        // Clear localStorage if banned
+                        localStorage.removeItem('currentUser');
+                        // Don't redirect, stay on login page
+                    } else {
+                        // Redirect to lobby if not banned
+                        window.location.href = 'lobby.html';
+                    }
+                });
+            }
+        };
+        
+        async function checkBanStatus(userId) {
+            try {
+                const snapshot = await database.ref('users/' + userId).once('value');
+                const user = snapshot.val();
+                
+                if (user && user.banned) {
+                    // User is banned, show ban modal
+                    setTimeout(() => {
+                        showBanModal(user);
+                    }, 100);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Error checking ban status:', error);
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
