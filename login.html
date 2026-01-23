@@ -530,13 +530,7 @@
     </style>
 </head>
 <body>
-    <!-- Audio Elements -->
-    <audio id="bgMusic1" preload="auto">
-        <source src="https://e.top4top.io/m_3673yeacl2.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="bgMusic2" preload="auto">
-        <source src="https://d.top4top.io/m_36735qanc1.mp3" type="audio/mpeg">
-    </audio>
+
     <audio id="clickSound" preload="auto">
         <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
     </audio>
@@ -548,7 +542,7 @@
     </div>
     
     <!-- ONLY PREMIUM USER -->
-    <div class="admin-btn" onclick="goToAdmin()" title="Admin Panel">
+    <div class="admin-btn" onclick="goToAdmin()" title="Premium feature">
         <span>👑</span>
     </div>
     
@@ -558,16 +552,15 @@
         <div class="notice-box">
             <button class="close-modal" onclick="closeFAQ()">×</button>
             <h3>📌 FAQ & PANDUAN</h3>
-            <p><strong>Awal:</strong> Daftar/Login dulu, klo udah pasword dan username jangan sampai lupa ya!😉</p>
-            <p><strong>Rank:</strong> Kumpulkan bintang untuk naik rank. Semakin tinggi rank, semakin keren!</p>
-            <p><strong>Cara Mabar:</strong> Tambah teman untuk lihat apakah teman mu online.</p>
-            <p><strong>Fitur Lain:</strong> Coba Spin, Events, Shop dan untuk hadiah tambahan.</p>
+            <p><strong>📢Awal:</strong> Daftar dulu tombolnya ada di bawah Login, klo udah pasword dan username jangan sampai lupa ya!😉</p>
+            <p><strong>🎮Game:</strong> Ada beberapa game seru yang harus kamu mainkan!</p>
+            <p><strong>👥Berteman:</strong> Tambah teman untuk lihat apakah teman mu online dengan cara cari username teman mu!</p>
             
             <div class="disclaimer">
                 <p><strong>⚠️ DISCLAIMER:</strong></p>
                 <p>Game ini dibuat oleh <strong>Taher Atau Xhrzo</strong> untuk hiburan semata.</p>
                 <p>Jika terdapat kata yang tidak pantas, mohon maaf.</p>
-                <p>Jika ada fitur yang tidak nyaman, mohon dimaafkan.</p>
+                <p>Jika ada fitur yang kurang, mohon berikan ulasan anda ke nomor: 083117480106.</p>
                 <p>Selamat bermain! 🎮</p>
             </div>
         </div>
@@ -576,13 +569,13 @@
     <!-- Settings Modal -->
     <div id="settingsModal" class="settings-modal">
         <div class="settings-box">
-            <button class="close-modal" onclick="closeSettings()">×</button>
+            <button class="close-modal" onclick="closeSettings()">❌</button>
             <h3>⚙️ SETTINGS</h3>
             
             <div class="setting-item">
                 <label>🎵 Background Music</label>
-                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1 (Battle Theme)</div>
-                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2 (Chill Theme)</div>
+                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1</div>
+                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2</div>
                 <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
             </div>
             
@@ -591,18 +584,6 @@
                 <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
             </div>
             
-            <div class="setting-item">
-                <label>📢 Sound Effects</label>
-                <select id="soundToggle" onchange="toggleSoundEffects()">
-                    <option value="on">ON</option>
-                    <option value="off">OFF</option>
-                </select>
-            </div>
-            
-            <div class="setting-item">
-                <label>🎚️ Click Volume</label>
-                <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
-            </div>
             
             <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
                 SAVE & CLOSE

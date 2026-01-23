@@ -477,11 +477,17 @@
     </style>
 </head>
 <body>
-    <!-- Audio Elements -->
+    <!-- Audio Elements - 4 MUSIK DITAMBAHKAN -->
     <audio id="bgMusic1" preload="auto">
-        <source src="https://e.top4top.io/m_3673yeacl2.mp3" type="audio/mpeg">
+        <source src="https://e.top4top.io/m_3674v14i19.mp3" type="audio/mpeg">
     </audio>
     <audio id="bgMusic2" preload="auto">
+        <source src="https://d.top4top.io/m_36746vfto7.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic3" preload="auto">
+        <source src="https://e.top4top.io/m_3673yeacl2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic4" preload="auto">
         <source src="https://d.top4top.io/m_36735qanc1.mp3" type="audio/mpeg">
     </audio>
     <audio id="clickSound" preload="auto">
@@ -502,13 +508,15 @@
     <!-- Settings Modal -->
     <div id="settingsModal" class="settings-modal">
         <div class="settings-box">
-            <button class="close-modal" onclick="closeSettings()">×</button>
+            <button class="close-modal" onclick="closeSettings()">❌</button>
             <h3>⚙️ SETTINGS</h3>
             
             <div class="setting-item">
-                <label>🎵 Background Music</label>
-                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1 (Battle Theme)</div>
-                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2 (Chill Theme)</div>
+                <label>🎵 Setting Music</label>
+                <div class="music-option" onclick="changeMusic(1)">🎶 Music 1</div>
+                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2</div>
+                <div class="music-option" onclick="changeMusic(3)">🎵 Music 3</div>
+                <div class="music-option" onclick="changeMusic(4)">🎵 Music 4</div>
                 <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
             </div>
             
@@ -517,26 +525,12 @@
                 <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
             </div>
             
-            <div class="setting-item">
-                <label>📢 Sound Effects</label>
-                <select id="soundToggle" onchange="toggleSoundEffects()">
-                    <option value="on">ON</option>
-                    <option value="off">OFF</option>
-                </select>
-            </div>
-            
-            <div class="setting-item">
-                <label>🎚️ Click Volume</label>
-                <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
-            </div>
-            
             <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
                 SAVE & CLOSE
             </button>
         </div>
     </div>
     
-    <!-- Lobby Container -->
     <div id="lobbyContainer">
         <!-- Header dengan user info dan logout -->
         <div class="header">
@@ -544,7 +538,7 @@
                 <!-- Nama User -->
                 <div class="user-display">
                     <div class="user-display-box">
-                        <span id="usernameDisplay">Username</span>
+                        <span id="usernameDisplay">user</span>
                     </div>
                 </div>
                 
@@ -591,11 +585,13 @@
     <div class="game-desc">Tes Kecepatan tangan mu!</div>
 </div>
 
-<div class="game-card" onclick="window.location.href='battle.html'">
+<div class="game-card" onclick="window.location.href='game.html'">
     <div class="game-icon">⚔️</div>
-    <div class="game-title">Battle Tapz</div>
-    <div class="game-desc">Tes Kecepatan tangan bersama teman!</div>
+    <div class="game-title"></div>
+    <div class="game-desc">Game seru!</div>
 </div>
+                </div>
+            </div>
 
             <!-- Friends Section -->
             <div class="friends-section">
@@ -627,7 +623,7 @@
     
     <script>
         // ==================== AUDIO MANAGEMENT ====================
-        let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2
+        let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2, 3 = music3, 4 = music4
         let musicEnabled = true;
         let soundEffectsEnabled = true;
         let clickVolume = 0.7;
@@ -650,17 +646,29 @@
             // Hentikan semua musik dulu
             const music1 = document.getElementById('bgMusic1');
             const music2 = document.getElementById('bgMusic2');
+            const music3 = document.getElementById('bgMusic3');
+            const music4 = document.getElementById('bgMusic4');
             
             music1.pause();
             music2.pause();
+            music3.pause();
+            music4.pause();
             
             if (currentMusic === 0) return;
             
-            // Pilih musik secara random antara 1 dan 2
-            const randomMusic = Math.random() > 0.5 ? 1 : 2;
+            // Pilih musik secara random antara 1, 2, 3, dan 4
+            const randomMusic = Math.floor(Math.random() * 4) + 1;
             currentMusic = randomMusic;
             
-            const selectedMusic = randomMusic === 1 ? music1 : music2;
+            let selectedMusic;
+            switch(randomMusic) {
+                case 1: selectedMusic = music1; break;
+                case 2: selectedMusic = music2; break;
+                case 3: selectedMusic = music3; break;
+                case 4: selectedMusic = music4; break;
+                default: selectedMusic = music1;
+            }
+            
             selectedMusic.volume = musicVolume;
             selectedMusic.currentTime = 0;
             
@@ -684,9 +692,13 @@
             
             const music1 = document.getElementById('bgMusic1');
             const music2 = document.getElementById('bgMusic2');
+            const music3 = document.getElementById('bgMusic3');
+            const music4 = document.getElementById('bgMusic4');
             
             music1.pause();
             music2.pause();
+            music3.pause();
+            music4.pause();
             
             // Update UI active class
             document.querySelectorAll('.music-option').forEach(option => {
@@ -709,8 +721,24 @@
                 music2.onended = function() {
                     if (currentMusic === 2) playRandomMusic();
                 };
-            } else {
+            } else if (musicNumber === 3) {
                 document.querySelectorAll('.music-option')[2].classList.add('active');
+                music3.volume = musicVolume;
+                music3.currentTime = 0;
+                music3.play().catch(e => console.log("Music 3 error:", e));
+                music3.onended = function() {
+                    if (currentMusic === 3) playRandomMusic();
+                };
+            } else if (musicNumber === 4) {
+                document.querySelectorAll('.music-option')[3].classList.add('active');
+                music4.volume = musicVolume;
+                music4.currentTime = 0;
+                music4.play().catch(e => console.log("Music 4 error:", e));
+                music4.onended = function() {
+                    if (currentMusic === 4) playRandomMusic();
+                };
+            } else {
+                document.querySelectorAll('.music-option')[4].classList.add('active');
             }
             
             // Simpan preferensi
@@ -723,9 +751,13 @@
             
             const music1 = document.getElementById('bgMusic1');
             const music2 = document.getElementById('bgMusic2');
+            const music3 = document.getElementById('bgMusic3');
+            const music4 = document.getElementById('bgMusic4');
             
             if (music1) music1.volume = musicVolume;
             if (music2) music2.volume = musicVolume;
+            if (music3) music3.volume = musicVolume;
+            if (music4) music4.volume = musicVolume;
             
             localStorage.setItem('musicVolume', musicVolume);
         }
@@ -752,9 +784,12 @@
                 currentMusic = parseInt(savedMusic);
                 const options = document.querySelectorAll('.music-option');
                 options.forEach(opt => opt.classList.remove('active'));
+                
                 if (currentMusic === 1) options[0].classList.add('active');
                 else if (currentMusic === 2) options[1].classList.add('active');
-                else options[2].classList.add('active');
+                else if (currentMusic === 3) options[2].classList.add('active');
+                else if (currentMusic === 4) options[3].classList.add('active');
+                else options[4].classList.add('active');
             }
             
             const savedMusicVol = localStorage.getItem('musicVolume');
@@ -959,8 +994,12 @@
                     // Hentikan musik
                     const music1 = document.getElementById('bgMusic1');
                     const music2 = document.getElementById('bgMusic2');
+                    const music3 = document.getElementById('bgMusic3');
+                    const music4 = document.getElementById('bgMusic4');
                     music1.pause();
                     music2.pause();
+                    music3.pause();
+                    music4.pause();
                     
                     // Hapus data dari localStorage
                     localStorage.removeItem('currentUser');
@@ -1234,7 +1273,7 @@
                     currentMusic = parseInt(savedMusic);
                 } else {
                     // Default: putar musik random saat pertama kali
-                    currentMusic = Math.random() > 0.5 ? 1 : 2;
+                    currentMusic = Math.floor(Math.random() * 4) + 1;
                 }
                 
                 const savedMusicVol = localStorage.getItem('musicVolume');
