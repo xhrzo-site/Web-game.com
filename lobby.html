@@ -52,12 +52,15 @@
             to { transform: translateY(0); }
         }
         
-        /* Tombol Settings */
-        .settings-btn {
+        /* Hamburger Menu */
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
             background: rgba(0,0,0,0.4);
             border: 2px solid #00aaff;
-            border-radius: 50%;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 10px;
             cursor: pointer;
             font-weight: bold;
             color: #00aaff;
@@ -65,14 +68,73 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            z-index: 1001;
+            flex-direction: column;
+            gap: 5px;
         }
-        .settings-btn:hover {
+        .hamburger-btn span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: #00aaff;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+        .hamburger-btn:hover {
             background: rgba(0,170,255,0.2);
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,170,255,0.3);
+        }
+        .hamburger-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+        
+        /* Hamburger Dropdown Menu */
+        .hamburger-dropdown {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(30,30,46,0.95);
+            border: 2px solid #00aaff;
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0,170,255,0.3);
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+        .hamburger-dropdown.active {
+            display: block;
+        }
+        .hamburger-dropdown button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: rgba(0,170,255,0.1);
+            border: 1px solid rgba(0,170,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hamburger-dropdown button:hover {
+            background: rgba(0,170,255,0.3);
+            transform: translateX(-5px);
         }
         
         /* Settings Modal */
@@ -157,6 +219,7 @@
         #lobbyContainer {
             min-height: 100vh;
             padding: 20px;
+            padding-top: 80px;
             transition: opacity 0.3s;
         }
         #lobbyContainer.blur {
@@ -165,93 +228,140 @@
             pointer-events: none;
         }
         
-        /* Header dengan user info dan logout */
+        /* Header dengan user info */
         .header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             background: rgba(0,0,0,0.4);
-            padding: 14px 18px;
-            border-radius: 14px;
+            padding: 18px;
+            border-radius: 18px;
             margin-bottom: 25px;
             border: 1px solid rgba(0,255,136,0.25);
-        }
-        .user-info {
-            display: flex;
             flex-direction: column;
-            gap: 8px;
+            position: relative;
         }
-        .user-display {
+        
+        /* Profile Image Section */
+        .profile-image-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #00ff88;
+            object-fit: cover;
+            cursor: pointer;
+            transition: 0.3s;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            font-size: 40px;
+            color: #00ff88;
         }
-        .user-display-box {
+        .profile-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+        }
+        .profile-image-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #00aaff;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+            font-size: 18px;
+        }
+        #profileImageInput {
+            display: none;
+        }
+        
+        /* User Info Box - Support long text */
+        .user-info-box {
             background: rgba(255,255,255,0.08);
-            padding: 9px 18px;
-            border-radius: 9px;
-            font-size: 16px;
+            border-radius: 12px;
+            padding: 15px;
+            border: 2px solid #00ff88;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .username-display {
+            font-size: 20px;
             font-weight: bold;
             color: #00ff88;
-            border: 2px solid #00ff88;
-        }
-        .rank-display-box {
-            background: rgba(255,215,0,0.08);
-            padding: 9px 18px;
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            border: 2px solid #ffd700;
-        }
-        .stars-display-box {
-            background: rgba(255,255,255,0.08);
-            padding: 9px 18px;
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            border: 2px solid #ffd700;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            padding: 0 10px;
+            margin-bottom: 10px;
+            line-height: 1.3;
         }
         .rank-stars-container {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
         }
+        .rank-display-box, .stars-display-box {
+            background: rgba(255,255,255,0.08);
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 2px solid #ffd700;
+            min-height: 50px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            text-align: center;
+        }
+        .rank-display-box {
+            border-color: #00ff88;
+        }
+        .rank-display-content, .stars-display-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: 100%;
+        }
+        
         .user-stats {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-            margin-top: 8px;
+            margin-top: 15px;
+            justify-content: center;
         }
         .stat {
             background: rgba(0,0,0,0.4);
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px 15px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             border: 1px solid rgba(255,255,255,0.08);
+            min-width: 100px;
+            justify-content: center;
         }
         
-        .logout-btn {
-            background: linear-gradient(135deg,#ff3333,#cc0000);
-            color: #fff;
-            padding: 9px 18px;
-            border-radius: 9px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.25s;
-            height: fit-content;
-        }
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(255,51,51,0.4);
+        /* Remove old logout button from header */
+        .header .logout-btn {
+            display: none;
         }
         
         .lobby-container {
@@ -454,24 +564,50 @@
                 grid-template-columns: 1fr 1fr;
             }
             .header {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
+                padding: 15px;
             }
-            .rank-stars-container {
-                flex-direction: column;
-                width: 100%;
+            .profile-image {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
             }
-            .user-display-box, .rank-display-box, .stars-display-box {
-                width: 100%;
-                justify-content: center;
+            .username-display {
+                font-size: 18px;
             }
-            .logout-btn {
-                align-self: flex-end;
-                margin-top: 12px;
+            .user-info-box {
+                max-width: 100%;
             }
             .features-section {
                 grid-template-columns: 1fr 1fr;
+            }
+            .hamburger-btn {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+            .hamburger-dropdown {
+                top: 70px;
+                right: 15px;
+                min-width: 180px;
+            }
+            #lobbyContainer {
+                padding-top: 70px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .features-section {
+                grid-template-columns: 1fr;
+            }
+            .profile-image {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            .stat {
+                min-width: 80px;
+                padding: 8px 12px;
             }
         }
     </style>
@@ -494,6 +630,23 @@
         <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
     </audio>
     
+    <!-- Hamburger Menu Button -->
+    <div class="hamburger-btn" id="hamburgerBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <!-- Hamburger Dropdown Menu -->
+    <div class="hamburger-dropdown" id="hamburgerDropdown">
+        <button onclick="openSettings()">
+            <span>🎵</span> Music
+        </button>
+        <button onclick="logout()">
+            <span>🚪</span> Logout
+        </button>
+    </div>
+    
     <!-- Ban Alert (akan muncul jika user di-ban saat online) -->
     <div id="banAlert" class="ban-alert">
         <div class="ban-alert-content">
@@ -508,15 +661,15 @@
     <!-- Settings Modal -->
     <div id="settingsModal" class="settings-modal">
         <div class="settings-box">
-            <button class="close-modal" onclick="closeSettings()">❌</button>
+            <button class="close-modal" onclick="closeSettings()" style="background:none;border:none;color:#fff;font-size:20px;position:absolute;right:20px;top:20px;cursor:pointer;">❌</button>
             <h3>⚙️ SETTINGS</h3>
             
             <div class="setting-item">
                 <label>🎵 Setting Music</label>
-                <div class="music-option" onclick="changeMusic(1)">🎶 Music 1</div>
-                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2</div>
-                <div class="music-option" onclick="changeMusic(3)">🎵 Music 3</div>
-                <div class="music-option" onclick="changeMusic(4)">🎵 Music 4</div>
+                <div class="music-option" onclick="changeMusic(1)"> Music 1</div>
+                <div class="music-option" onclick="changeMusic(2)"> Music 2</div>
+                <div class="music-option" onclick="changeMusic(3)"> Music 3</div>
+                <div class="music-option" onclick="changeMusic(4)"> Music 4</div>
                 <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
             </div>
             
@@ -525,51 +678,63 @@
                 <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
             </div>
             
-            <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
+            <div class="setting-item">
+                <label>🔊 Click Volume</label>
+                <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
+            </div>
+            
+            <button onclick="closeSettings()" style="margin-top: 20px; width: 100%; padding: 12px; background: linear-gradient(135deg, #00aaff, #0088cc); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
                 SAVE & CLOSE
             </button>
         </div>
     </div>
     
+    <!-- Hidden file input for profile image -->
+    <input type="file" id="profileImageInput" accept="image/*">
+    
     <div id="lobbyContainer">
-        <!-- Header dengan user info dan logout -->
+        <!-- Header dengan user info -->
         <div class="header">
-            <div class="user-info">
-                <!-- Nama User -->
-                <div class="user-display">
-                    <div class="user-display-box">
-                        <span id="usernameDisplay">user</span>
-                    </div>
+            <!-- Profile Image -->
+            <div class="profile-image-container">
+                <div class="profile-image" id="profileImage" onclick="document.getElementById('profileImageInput').click()">
+                    👤
                 </div>
+                <div class="profile-image-upload" onclick="document.getElementById('profileImageInput').click()">
+                    📷
+                </div>
+            </div>
+            
+            <!-- User Info Box -->
+            <div class="user-info-box">
+                <div class="username-display" id="usernameDisplay">user</div>
                 
                 <!-- Rank dan Bintang -->
                 <div class="rank-stars-container">
                     <div class="rank-display-box">
-                        <span id="rankDisplay">🥉 Newbie</span>
+                        <div class="rank-display-content">
+                            <span id="rankDisplay">🥉 Newbie</span>
+                        </div>
                     </div>
                     <div class="stars-display-box">
-                        <span>⭐</span>
-                        <span id="starsDisplay">0</span>
-                    </div>
-                </div>
-                
-                <!-- Statistik lainnya -->
-                <div class="user-stats">
-                    <div class="stat">
-                        <span>💵</span>
-                        <span id="moneyDisplay">1000</span>
-                    </div>
-                    <div class="stat">
-                        <span>💎</span>
-                        <span id="diamondDisplay">0</span>
+                        <div class="stars-display-content">
+                            <span>⭐</span>
+                            <span id="starsDisplay">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="settings-btn" onclick="openSettings()" title="Settings">
-                    <span>⚙️</span>
-                </button>
-                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+            
+            <!-- Statistik lainnya -->
+            <div class="user-stats">
+                <div class="stat">
+                    <span>💵</span>
+                    <span id="moneyDisplay">1000</span>
+                </div>
+                <div class="stat">
+                    <span>💎</span>
+                    <span id="diamondDisplay">0</span>
+                </div>
             </div>
         </div>
         
@@ -580,16 +745,16 @@
                 <h2>🎮 PILIHAN PERMAINAN</h2>
                 <div class="games-grid">
                     <div class="game-card" onclick="window.location.href='taptap.html'">
-    <div class="game-icon">⚡</div>
-    <div class="game-title">TAPz TAPz </div>
-    <div class="game-desc">Tes Kecepatan tangan mu!</div>
-</div>
-
-<div class="game-card" onclick="window.location.href='game.html'">
-    <div class="game-icon">⚔️</div>
-    <div class="game-title"></div>
-    <div class="game-desc">Game seru!</div>
-</div>
+                        <div class="game-icon">⚡</div>
+                        <div class="game-title">TAPz TAPz</div>
+                        <div class="game-desc">Tes Kecepatan tangan mu!</div>
+                    </div>
+                    
+                    <div class="game-card" onclick="window.location.href='game.html'">
+                        <div class="game-icon">⚔️</div>
+                        <div class="game-title">Game Seru</div>
+                        <div class="game-desc">Game seru!</div>
+                    </div>
                 </div>
             </div>
 
@@ -622,6 +787,100 @@
     </div>
     
     <script>
+        // ==================== HAMBURGER MENU FUNCTIONS ====================
+        function toggleHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const dropdown = document.getElementById('hamburgerDropdown');
+            
+            hamburgerBtn.classList.toggle('active');
+            dropdown.classList.toggle('active');
+            
+            // Close dropdown when clicking outside
+            if (dropdown.classList.contains('active')) {
+                document.addEventListener('click', closeHamburgerOnClickOutside);
+            } else {
+                document.removeEventListener('click', closeHamburgerOnClickOutside);
+            }
+        }
+        
+        function closeHamburgerOnClickOutside(event) {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const dropdown = document.getElementById('hamburgerDropdown');
+            
+            if (!hamburgerBtn.contains(event.target) && !dropdown.contains(event.target)) {
+                hamburgerBtn.classList.remove('active');
+                dropdown.classList.remove('active');
+                document.removeEventListener('click', closeHamburgerOnClickOutside);
+            }
+        }
+        
+        function closeHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const dropdown = document.getElementById('hamburgerDropdown');
+            
+            hamburgerBtn.classList.remove('active');
+            dropdown.classList.remove('active');
+            document.removeEventListener('click', closeHamburgerOnClickOutside);
+        }
+        
+        // ==================== PROFILE IMAGE FUNCTIONS ====================
+        function loadProfileImage() {
+            const savedImage = localStorage.getItem('profileImage');
+            const profileImageElement = document.getElementById('profileImage');
+            
+            if (savedImage) {
+                // Check if it's a data URL or emoji
+                if (savedImage.startsWith('data:image')) {
+                    profileImageElement.innerHTML = '';
+                    profileImageElement.style.backgroundImage = `url(${savedImage})`;
+                    profileImageElement.style.backgroundSize = 'cover';
+                    profileImageElement.style.backgroundPosition = 'center';
+                } else {
+                    profileImageElement.innerHTML = savedImage;
+                    profileImageElement.style.backgroundImage = 'none';
+                }
+            } else {
+                profileImageElement.innerHTML = '👤';
+                profileImageElement.style.backgroundImage = 'none';
+            }
+        }
+        
+        function handleProfileImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showMessage('Hanya file gambar yang diizinkan!', 'error');
+                return;
+            }
+            
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showMessage('Ukuran gambar maksimal 2MB!', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                // Save to localStorage
+                localStorage.setItem('profileImage', imageData);
+                
+                // Update profile image display
+                const profileImageElement = document.getElementById('profileImage');
+                profileImageElement.innerHTML = '';
+                profileImageElement.style.backgroundImage = `url(${imageData})`;
+                profileImageElement.style.backgroundSize = 'cover';
+                profileImageElement.style.backgroundPosition = 'center';
+                
+                showMessage('Foto profil berhasil diubah!', 'success');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
         // ==================== AUDIO MANAGEMENT ====================
         let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2, 3 = music3, 4 = music4
         let musicEnabled = true;
@@ -776,6 +1035,7 @@
         
         function openSettings() {
             playClickSound();
+            closeHamburgerMenu();
             document.getElementById('settingsModal').classList.add('active');
             
             // Load settings
@@ -820,7 +1080,7 @@
         function addClickSoundToElements() {
             // Tombol dan elemen yang bisa diklik
             const clickableElements = document.querySelectorAll(
-                'button, .game-card, .feature-card, .toggle-btn, .settings-btn, .switch-form span, .close-modal, .logout-btn'
+                'button, .game-card, .feature-card, .toggle-btn, .hamburger-btn, .profile-image, .profile-image-upload, .close-modal, .music-option'
             );
             
             clickableElements.forEach(element => {
@@ -976,6 +1236,7 @@
         // ==================== LOGOUT FUNCTION - PERBAIKAN ====================
         function logout() {
             playClickSound();
+            closeHamburgerMenu();
             
             // Tampilkan konfirmasi
             const confirmLogout = confirm("Yakin ingin logout?");
@@ -1264,6 +1525,9 @@
                 updateUserDisplay();
                 loadFriends(user.uid);
                 
+                // ===== LOAD PROFILE IMAGE =====
+                loadProfileImage();
+                
                 // ===== INITIALIZE AUDIO SYSTEM =====
                 addClickSoundToElements();
                 
@@ -1337,6 +1601,13 @@
             }
         });
         
+        document.getElementById('hamburgerBtn')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleHamburgerMenu();
+        });
+        
+        document.getElementById('profileImageInput')?.addEventListener('change', handleProfileImageUpload);
+        
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
                 detectDevice();
@@ -1345,6 +1616,16 @@
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                closeSettings();
+                closeHamburgerMenu();
+            }
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            // Settings modal
+            const settingsModal = document.getElementById('settingsModal');
+            if (settingsModal.classList.contains('active') && event.target === settingsModal) {
                 closeSettings();
             }
         });
