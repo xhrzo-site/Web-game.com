@@ -72,18 +72,18 @@
             to { transform: translateY(0); }
         }
         
-        /* ===== SETTINGS BUTTON (DI KIRI) ===== */
+        /* ===== SETTINGS BUTTON (DI KIRI) - HIJAU ===== */
         .settings-btn {
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(0, 170, 255, 0.2);
-            border: 2px solid #00aaff;
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
             border-radius: 10px;
             padding: 12px;
             cursor: pointer;
             font-weight: bold;
-            color: #00aaff;
+            color: #00ff88;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -92,13 +92,13 @@
             height: 50px;
             font-size: 24px;
             z-index: 1001;
-            box-shadow: 0 4px 12px rgba(0, 170, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
         }
         
         .settings-btn:hover {
-            background: rgba(0, 170, 255, 0.3);
+            background: rgba(0, 255, 136, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3);
         }
         
         /* ===== SETTINGS DROPDOWN MENU ===== */
@@ -107,11 +107,11 @@
             top: 80px;
             left: 20px;
             background: rgba(30, 30, 46, 0.95);
-            border: 2px solid #00aaff;
+            border: 2px solid #00ff88;
             border-radius: 12px;
             padding: 15px;
             min-width: 200px;
-            box-shadow: 0 10px 30px rgba(0, 170, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
             z-index: 1000;
             display: none;
             backdrop-filter: blur(10px);
@@ -126,8 +126,8 @@
             width: 100%;
             padding: 12px;
             margin: 5px 0;
-            background: rgba(0, 170, 255, 0.1);
-            border: 1px solid rgba(0, 170, 255, 0.3);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
             border-radius: 8px;
             color: white;
             font-size: 16px;
@@ -139,7 +139,7 @@
         }
         
         .settings-dropdown button:hover {
-            background: rgba(0, 170, 255, 0.3);
+            background: rgba(0, 255, 136, 0.3);
             transform: translateX(5px);
         }
         
@@ -166,17 +166,17 @@
         
         .settings-box {
             background: rgba(30, 30, 46, 0.95);
-            border: 2px solid #00aaff;
+            border: 2px solid #00ff88;
             border-radius: 18px;
             padding: 30px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 15px 35px rgba(0, 170, 255, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.3);
             position: relative;
         }
         
         .settings-box h3 {
-            color: #00aaff;
+            color: #00ff88;
             margin-bottom: 25px;
             font-size: 22px;
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
@@ -229,7 +229,7 @@
         
         .setting-item select:focus,
         .setting-item input[type="range"]:focus {
-            border-color: #00aaff;
+            border-color: #00ff88;
             outline: none;
         }
         
@@ -239,7 +239,7 @@
         }
         
         .music-option {
-            background: rgba(0, 170, 255, 0.1);
+            background: rgba(0, 255, 136, 0.1);
             padding: 12px 15px;
             border-radius: 8px;
             margin-top: 8px;
@@ -249,13 +249,13 @@
         }
         
         .music-option:hover {
-            background: rgba(0, 170, 255, 0.2);
+            background: rgba(0, 255, 136, 0.2);
             transform: translateX(5px);
         }
         
         .music-option.active {
-            background: rgba(0, 170, 255, 0.3);
-            border-color: #00aaff;
+            background: rgba(0, 255, 136, 0.3);
+            border-color: #00ff88;
         }
         
         /* ===== MAIN LOBBY CONTENT ===== */
@@ -681,6 +681,21 @@
             line-height: 1.5;
         }
         
+        /* ===== SHOP CARD (kuning/emas) ===== */
+        .shop-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+        }
+        
+        .shop-card:hover {
+            border-color: #ffd700;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25);
+        }
+        
+        .shop-card .feature-title {
+            color: #ffd700;
+        }
+        
         /* ===== RANK COLORS ===== */
         .rank-newbie{color:#cd7f32}.rank-junior{color:#c0c0c0}.rank-senior{color:#ffd700}
         .rank-great{color:#32cd32}.rank-super-great{color:#00ff00}.rank-legend{color:#ff4500}
@@ -858,7 +873,7 @@
         <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
     </audio>
     
-    <!-- Settings Button (kiri) -->
+    <!-- Settings Button (Hijau) -->
     <div class="settings-btn" id="settingsBtn" title="Pengaturan">
         ⚙️
     </div>
@@ -909,7 +924,7 @@
                 <input type="range" id="clickVolume" min="0" max="100" value="70" onchange="updateClickVolume()">
             </div>
             
-            <button onclick="closeSettingsModal()" style="margin-top: 20px; width: 100%; padding: 14px; background: linear-gradient(135deg, #00aaff, #0088cc); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: all 0.3s;">
+            <button onclick="closeSettingsModal()" style="margin-top: 20px; width: 100%; padding: 14px; background: linear-gradient(135deg, #00ff88, #00cc6a); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: all 0.3s;">
                 SIMPAN & TUTUP
             </button>
         </div>
@@ -924,20 +939,20 @@
             <!-- Profile Image dengan area upload tersembunyi -->
             <div class="profile-image-container">
                 <div class="profile-image" id="profileImage">
-                    👤
+                    👩🏻‍💻
                 </div>
                 <div class="profile-image-upload-area" onclick="document.getElementById('profileImageInput').click()"></div>
             </div>
             
             <!-- User Info Box -->
             <div class="user-info-box">
-                <div class="username-display" id="usernameDisplay">user</div>
+                <div class="username-display" id="usernameDisplay">username</div>
                 
                 <!-- Rank dan Bintang -->
                 <div class="rank-stars-container">
                     <div class="rank-display-box">
                         <div class="rank-display-content">
-                            <span id="rankDisplay">🥉 Newbie</span>
+                            <span id="rankDisplay">🥉 Newbie (🐔)</span>
                         </div>
                     </div>
                     <div class="stars-display-box">
@@ -952,7 +967,7 @@
             <!-- Statistik lainnya -->
             <div class="user-stats">
                 <div class="stat">
-                    <span>💵</span>
+                    <span>💰</span>
                     <span id="moneyDisplay">1000</span>
                 </div>
                 <div class="stat">
@@ -966,7 +981,7 @@
         <div class="lobby-container">
             <!-- Games Section -->
             <div class="games-section">
-                <h2>🎮 GAME</h2>
+                <h2>🎮 Game</h2>
                 <div class="games-grid">
                     <div class="game-card" onclick="window.location.href='taptap.html'">
                         <div class="game-icon">⚡</div>
@@ -979,13 +994,20 @@
                         <div class="game-title">Game Seru</div>
                         <div class="game-desc">Game seru!</div>
                     </div>
+                    
+                    <!-- Game Boboiboy 7 Elemental -->
+                    <div class="game-card" onclick="window.location.href='boboiboy-3d.html'">
+                        <div class="game-icon">⚡🔥💧</div>
+                        <div class="game-title">BoBoiBoy 7 Elemental</div>
+                        <div class="game-desc">Game 3D Petualangan BoBoiBoy!</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Friends Section -->
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 TEMAN</h2>
+                    <h2>👥 Friend</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+ Tambah Teman</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -999,7 +1021,7 @@
             </div>
         </div>
         
-        <!-- Features Section -->
+        <!-- Features Section (SHOP ADA DI SINI, DI BAWAH SPIN) -->
         <div class="features-section">
             <!-- Spin Button -->
             <div class="feature-card" onclick="window.location.href='spin.html'">
@@ -1007,10 +1029,23 @@
                 <div class="feature-title">LUCKY SPIN</div>
                 <p>Spin dan dapatkan hadiah menarik!</p>
             </div>
+            
+            <!-- Shop Button (di bawah spin, warna emas) -->
+            <div class="feature-card shop-card" onclick="goToShop()">
+                <div class="feature-icon">🛒</div>
+                <div class="feature-title">SHOP</div>
+                <p>Tukar coin ke diamond, beli rank, dan top up!</p>
+            </div>
         </div>
     </div>
     
     <script>
+        // ==================== SHOP FUNCTION ====================
+        function goToShop() {
+            playClickSound();
+            window.location.href = 'shop.html';
+        }
+        
         // ==================== SETTINGS MENU FUNCTIONS ====================
         function toggleSettingsMenu() {
             const settingsBtn = document.getElementById('settingsBtn');
@@ -1090,7 +1125,6 @@
             const profileImageElement = document.getElementById('profileImage');
             
             if (savedImage) {
-                // Check if it's a data URL or emoji
                 if (savedImage.startsWith('data:image')) {
                     profileImageElement.innerHTML = '';
                     profileImageElement.style.backgroundImage = `url(${savedImage})`;
@@ -1110,13 +1144,11 @@
             const file = event.target.files[0];
             if (!file) return;
             
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 showMessage('Hanya file gambar yang diizinkan!', 'error');
                 return;
             }
             
-            // Validate file size (max 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 showMessage('Ukuran gambar maksimal 2MB!', 'error');
                 return;
@@ -1125,11 +1157,8 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const imageData = e.target.result;
-                
-                // Save to localStorage
                 localStorage.setItem('profileImage', imageData);
                 
-                // Update profile image display
                 const profileImageElement = document.getElementById('profileImage');
                 profileImageElement.innerHTML = '';
                 profileImageElement.style.backgroundImage = `url(${imageData})`;
@@ -1159,7 +1188,6 @@
         function playRandomMusic() {
             if (currentMusic === 0) return;
             
-            // Hentikan semua musik dulu
             const music1 = document.getElementById('bgMusic1');
             const music2 = document.getElementById('bgMusic2');
             const music3 = document.getElementById('bgMusic3');
@@ -1170,7 +1198,6 @@
             music3.pause();
             music4.pause();
             
-            // Pilih musik secara random
             const randomMusic = Math.floor(Math.random() * 4) + 1;
             currentMusic = randomMusic;
             
@@ -1212,7 +1239,6 @@
             music3.pause();
             music4.pause();
             
-            // Update UI active class
             document.querySelectorAll('.music-option').forEach(option => {
                 option.classList.remove('active');
             });
@@ -1253,7 +1279,6 @@
                 document.querySelectorAll('.music-option')[4].classList.add('active');
             }
             
-            // Simpan preferensi
             localStorage.setItem('musicPreference', musicNumber);
         }
         
@@ -1280,7 +1305,6 @@
             localStorage.setItem('clickVolume', clickVolume);
         }
         
-        // ==================== CLICK SOUND TO ELEMENTS ====================
         function addClickSoundToElements() {
             const clickableElements = document.querySelectorAll(
                 'button, .game-card, .feature-card, .toggle-btn, .settings-btn, .profile-image, .close-modal, .music-option'
@@ -1304,7 +1328,7 @@
             }
         }
         
-        // ==================== FIREBASE CONFIG ====================
+        // ==================== FIREBASE ====================
         let currentUser = null;
         let banListener = null;
         
@@ -1324,7 +1348,7 @@
             { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000, color: "rank-impossible" }
         ];
         
-        // ==================== BAN MONITORING SYSTEM ====================
+        // ==================== BAN MONITORING ====================
         function startBanMonitoring(uid) {
             if (banListener) {
                 banListener.off();
@@ -1360,7 +1384,7 @@
             window.location.href = 'login.html?banned=true';
         }
         
-        // ==================== LOGOUT FUNCTION ====================
+        // ==================== LOGOUT ====================
         function logout() {
             playClickSound();
             closeSettingsMenu();
@@ -1391,7 +1415,7 @@
             }
         }
         
-        // ==================== GAME FUNCTIONS ====================
+        // ==================== FRIEND FUNCTIONS ====================
         function toggleFriendForm() {
             playClickSound();
             const form = document.getElementById('addFriendForm');
@@ -1575,7 +1599,6 @@
                     return;
                 }
                 
-                // Cek BAN STATUS
                 if (userData.banned) {
                     localStorage.removeItem('currentUser');
                     
@@ -1604,20 +1627,12 @@
                     lastOnline: firebase.database.ServerValue.TIMESTAMP
                 });
                 
-                // START BAN MONITORING
                 startBanMonitoring(user.uid);
-                
-                // UPDATE UI
                 updateUserDisplay();
                 loadFriends(user.uid);
-                
-                // LOAD PROFILE IMAGE
                 loadProfileImage();
-                
-                // INITIALIZE AUDIO SYSTEM
                 addClickSoundToElements();
                 
-                // Load saved audio settings
                 const savedMusic = localStorage.getItem('musicPreference');
                 if (savedMusic !== null) {
                     currentMusic = parseInt(savedMusic);
@@ -1635,14 +1650,12 @@
                     clickVolume = parseFloat(savedClickVol);
                 }
                 
-                // Mulai musik
                 setTimeout(() => {
                     if (currentMusic > 0) {
                         playRandomMusic();
                     }
                 }, 1000);
                 
-                // Real-time update untuk data user
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && currentUser) {
@@ -1692,7 +1705,6 @@
             }
         });
         
-        // Close settings when clicking outside
         document.addEventListener('click', function(event) {
             const settingsModal = document.getElementById('settingsModal');
             if (settingsModal.classList.contains('active') && event.target === settingsModal) {
@@ -1700,10 +1712,7 @@
             }
         });
         
-        // ==================== INITIALIZE ON LOAD ====================
-        window.onload = () => {
-            initLobby();
-        };
+        window.onload = initLobby;
     </script>
 </body>
 </html>

@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - FUN GAME</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            backdrop-filter: blur(10px);
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .back-btn {
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .header-title h1 {
+            font-size: 28px;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        
+        .header-title p {
+            color: #88ffcc;
+            font-size: 14px;
+        }
+        
+        .user-balance {
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 1px solid #00ff88;
+        }
+        
+        .balance-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+        
+        .balance-item span:first-child {
+            font-size: 24px;
+        }
+        
+        .balance-item .value {
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        /* ===== CONTAINER ===== */
+        .shop-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        /* ===== SECTION STYLES ===== */
+        .section {
+            background: rgba(20, 20, 30, 0.7);
+            border-radius: 25px;
+            padding: 30px;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #00ff88;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+            padding-bottom: 15px;
+        }
+        
+        .section-title span {
+            font-size: 32px;
+        }
+        
+        /* ===== RATE CARD ===== */
+        .rate-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 106, 0.05));
+            border-radius: 18px;
+            padding: 25px;
+            border: 2px solid #00ff88;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .rate-title {
+            font-size: 20px;
+            color: #88ffcc;
+            margin-bottom: 15px;
+        }
+        
+        .rate-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        .rate-value small {
+            font-size: 16px;
+            color: #88ffcc;
+        }
+        
+        /* ===== PRODUCT GRID ===== */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .product-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-card:hover {
+            border-color: #00ff88;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.2);
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+        
+        .product-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-desc {
+            color: #88ffcc;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            min-height: 42px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .product-price small {
+            font-size: 14px;
+            color: #88ffcc;
+        }
+        
+        .buy-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .buy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .buy-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #666, #444);
+        }
+        
+        /* ===== TOP UP SECTION ===== */
+        .topup-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .topup-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+        }
+        
+        .topup-box h3 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #88ffcc;
+            font-size: 14px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .code-display {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px dashed #00ff88;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .code-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ff88;
+            letter-spacing: 5px;
+            font-family: monospace;
+            margin-bottom: 5px;
+        }
+        
+        .code-note {
+            color: #88ffcc;
+            font-size: 12px;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            color: #00ff88;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+        
+        .generate-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+        }
+        
+        .redeem-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .redeem-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        /* ===== MESSAGE ===== */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ff88;
+            font-size: 18px;
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .topup-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .user-balance {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .section { padding: 20px; }
+            .products-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 480px) {
+            .user-balance {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .product-price { font-size: 20px; }
+            .code-text { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <a href="lobby.html" class="back-btn" onclick="playClickSound()">←</a>
+            <div class="header-title">
+                <h1>🛒 SHOP</h1>
+                <p>Belanja kebutuhan game mu disini!</p>
+            </div>
+        </div>
+        <div class="user-balance" id="userBalance">
+            <div class="balance-item">
+                <span>💰</span>
+                <span class="value" id="moneyDisplay">0</span>
+            </div>
+            <div class="balance-item">
+                <span>💎</span>
+                <span class="value" id="diamondDisplay">0</span>
+            </div>
+        </div>
+    </div>
+    
+        
+        <!-- Coin to Diamond -->
+        <div class="section">
+            <div class="section-title">
+                <span>💱</span> Tukar Coin ke Diamond
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-icon">💎</div>
+                    <div class="product-name">10 Diamond</div>
+                    <div class="product-desc">Tukarkan 1.000 coin mu menjadi 10 diamond</div>
+                    <div class="product-price">
+                        1.000 💰 <small>=</small> 10 💎
+                    </div>
+                    <button class="buy-btn" onclick="exchangeCoinToDiamond()" id="exchangeBtn">TUKAR</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rank Upgrade -->
+        <div class="section">
+            <div class="section-title">
+                <span>🆙</span> Upgrade Rank
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-icon">👑</div>
+                    <div class="product-name">Rank Up 1 Level</div>
+                    <div class="product-desc">Naikkan rank mu 1 level lebih tinggi!</div>
+                    <div class="product-price">
+                        10 💎
+                    </div>
+                    <button class="buy-btn" onclick="upgradeRank()" id="rankUpBtn">BELI RANK</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Up Section -->
+        <div class="section">
+            <div class="section-title">
+                <span>📲</span> CODE OTP
+            </div>
+            <div class="topup-container">
+                <!-- Generate Code -->
+                <div class="topup-box">
+                    <h3><span>🎫</span> Generate Code</h3>
+                    <div class="code-display" id="codeDisplay">
+                        <div class="code-text" id="generatedCode">XXX-XXX</div>
+                        <div class="code-note">Generate code untuk TOPUP free di bawah</div>
+                    </div>
+                    <button class="generate-btn" onclick="generateCode()" id="generateBtn">
+                        🔄 GENERATE CODE
+                    </button>
+                    <p style="color: #88ffcc; font-size: 12px; text-align: center; margin-top: 10px;">
+                        Kode akan expired dalam 5 menit
+                    </p>
+                </div>
+                
+                <!-- Redeem Code -->
+                <div class="topup-box">
+                    <h3><span>📥</span> TOP UP FREE</h3>
+                    <div class="input-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="emailInput" placeholder="Masukkan email kamu">
+                    </div>
+                    <div class="input-group">
+                        <label>🔑 Code</label>
+                        <input type="text" id="codeInput" placeholder="Masukkan kode">
+                    </div>
+                    <button class="redeem-btn" onclick="redeemCode()" id="redeemBtn">
+                        ✔️ TOPUP
+                    </button>
+                    <p style="color: #ff8888; font-size: 12px; text-align: center; margin-top: 15px;">
+                        *Setiap email hanya bisa redeem 1x
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        
+    <!-- Audio -->
+    <audio id="clickSound" preload="auto">
+        <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // ==================== AUDIO ====================
+        let clickVolume = 0.7;
+        
+        function playClickSound() {
+            const clickSound = document.getElementById('clickSound');
+            if (clickSound) {
+                clickSound.volume = clickVolume;
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("Click sound error:", e));
+            }
+        }
+        
+        // Load saved volume
+        const savedClickVol = localStorage.getItem('clickVolume');
+        if (savedClickVol) {
+            clickVolume = parseFloat(savedClickVol);
+        }
+        
+        // ==================== FIREBASE ====================
+        let currentUser = null;
+        
+        const ranks = [
+            { id: 0, name: "🥉 Newbie", starsNeeded: 1 },
+            { id: 1, name: "🥈 Junior", starsNeeded: 1 },
+            { id: 2, name: "🥇 Senior", starsNeeded: 1 },
+            { id: 3, name: "🏅 Great", starsNeeded: 1 },
+            { id: 4, name: "🎖️ Super Great", starsNeeded: 1 },
+            { id: 5, name: "🏆 Legend", starsNeeded: 1 },
+            { id: 6, name: "👑 Kings", starsNeeded: 10 },
+            { id: 7, name: "☢️ Greatest", starsNeeded: 25 },
+            { id: 8, name: "☣️ Mad Kings", starsNeeded: 50 },
+            { id: 9, name: "🔱 Greatness", starsNeeded: 80 },
+            { id: 10, name: "⚜️ Unbeatable", starsNeeded: 100 },
+            { id: 11, name: "🏴‍☠️ Monster Kings", starsNeeded: 200 },
+            { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000 }
+        ];
+        
+        // ==================== MESSAGE ====================
+        function showMessage(text, type = 'success') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        // ==================== UPDATE DISPLAY ====================
+        function updateDisplay() {
+            if (!currentUser) return;
+            
+            document.getElementById('moneyDisplay').textContent = currentUser.money || 0;
+            document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
+        }
+        
+        // ==================== EXCHANGE COIN TO DIAMOND ====================
+        async function exchangeCoinToDiamond() {
+            playClickSound();
+            
+            if (!currentUser) {
+                showMessage('Silahkan login terlebih dahulu!', 'error');
+                return;
+            }
+            
+            const coinCost = 1000;
+            const diamondReward = 10;
+            
+            if (currentUser.money < coinCost) {
+                showMessage(`Coin tidak cukup! Butuh ${coinCost} coin`, 'error');
+                return;
+            }
+            
+            try {
+                // Update di Firebase
+                await database.ref('users/' + currentUser.uid).update({
+                    money: currentUser.money - coinCost,
+                    diamond: currentUser.diamond + diamondReward
+                });
+                
+                // Update local
+                currentUser.money -= coinCost;
+                currentUser.diamond += diamondReward;
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateDisplay();
+                
+                showMessage(`Berhasil menukar ${coinCost} coin menjadi ${diamondReward} diamond!`, 'success');
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== UPGRADE RANK ====================
+        async function upgradeRank() {
+            playClickSound();
+            
+            if (!currentUser) {
+                showMessage('Silahkan login terlebih dahulu!', 'error');
+                return;
+            }
+            
+            const diamondCost = 10;
+            const currentRank = currentUser.rank || 0;
+            const maxRank = ranks.length - 1;
+            
+            if (currentRank >= maxRank) {
+                showMessage('Kamu sudah mencapai rank tertinggi!', 'error');
+                return;
+            }
+            
+            if (currentUser.diamond < diamondCost) {
+                showMessage(`Diamond tidak cukup! Butuh ${diamondCost} diamond`, 'error');
+                return;
+            }
+            
+            try {
+                const newRank = currentRank + 1;
+                const rankName = ranks[newRank].name;
+                
+                // Update di Firebase
+                await database.ref('users/' + currentUser.uid).update({
+                    diamond: currentUser.diamond - diamondCost,
+                    rank: newRank
+                });
+                
+                // Update local
+                currentUser.diamond -= diamondCost;
+                currentUser.rank = newRank;
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateDisplay();
+                
+                showMessage(`Selamat! Rank kamu naik menjadi ${rankName}!`, 'success');
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== GENERATE CODE ====================
+        let currentCode = null;
+        let codeTimer = null;
+        
+        function generateCode() {
+            playClickSound();
+            
+            if (!currentUser) {
+                showMessage('Silahkan login terlebih dahulu!', 'error');
+                return;
+            }
+            
+            // Generate random 6 digit code
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            
+            currentCode = code;
+            
+            // Display code
+            document.getElementById('generatedCode').textContent = code;
+            
+            showMessage(`Kode berhasil digenerate! Gunakan dalam 5 menit`, 'success');
+            
+            // Set timer untuk expired
+            if (codeTimer) clearTimeout(codeTimer);
+            codeTimer = setTimeout(() => {
+                if (currentCode === code) {
+                    currentCode = null;
+                    document.getElementById('generatedCode').textContent = 'XXXXXX';
+                    showMessage('Kode expired! Generate kode baru', 'error');
+                }
+            }, 5 * 60 * 1000); // 5 menit
+        }
+        
+        // ==================== REDEEM CODE ====================
+        async function redeemCode() {
+            playClickSound();
+            
+            if (!currentUser) {
+                showMessage('Silahkan login terlebih dahulu!', 'error');
+                return;
+            }
+            
+            const email = document.getElementById('emailInput').value.trim();
+            const code = document.getElementById('codeInput').value.trim().toUpperCase();
+            
+            if (!email) {
+                showMessage('Masukkan email kamu!', 'error');
+                return;
+            }
+            
+            if (!code) {
+                showMessage('Masukkan kode!', 'error');
+                return;
+            }
+            
+            // Validasi email sederhana
+            if (!email.includes('@') || !email.includes('.')) {
+                showMessage('Email tidak valid!', 'error');
+                return;
+            }
+            
+            // Cek apakah kode valid
+            if (!currentCode || currentCode !== code) {
+                showMessage('Kode tidak valid atau sudah expired!', 'error');
+                return;
+            }
+            
+            try {
+                // Cek apakah email sudah pernah redeem
+                const redeemSnapshot = await database.ref('redeemCodes/' + email.replace(/\./g, ',')).once('value');
+                
+                if (redeemSnapshot.exists()) {
+                    showMessage('Email ini sudah pernah redeem kode!', 'error');
+                    return;
+                }
+                
+                // Simpan data redeem
+                await database.ref('redeemCodes/' + email.replace(/\./g, ',')).set({
+                    code: code,
+                    uid: currentUser.uid,
+                    username: currentUser.username,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Beri reward 20 diamond
+                await database.ref('users/' + currentUser.uid).update({
+                    diamond: currentUser.diamond + 20
+                });
+                
+                // Update local
+                currentUser.diamond += 20;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateDisplay();
+                
+                // Reset code
+                currentCode = null;
+                document.getElementById('generatedCode').textContent = 'XXXXXX';
+                document.getElementById('emailInput').value = '';
+                document.getElementById('codeInput').value = '';
+                
+                showMessage('✅ Berhasil! Kamu mendapatkan 20 diamond!', 'success');
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== INITIALIZE ====================
+        async function initShop() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (!savedUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(savedUser);
+                
+                const snapshot = await database.ref('users/' + user.uid).once('value');
+                const userData = snapshot.val();
+                
+                if (!userData || userData.banned) {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                currentUser = {
+                    uid: user.uid,
+                    username: userData.username,
+                    money: userData.money || 0,
+                    diamond: userData.diamond || 0,
+                    rank: userData.rank || 0,
+                    stars: userData.stars || 0
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                updateDisplay();
+                
+                // Real-time update
+                database.ref('users/' + user.uid).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && currentUser) {
+                        currentUser.money = data.money || 0;
+                        currentUser.diamond = data.diamond || 0;
+                        currentUser.rank = data.rank || 0;
+                        currentUser.stars = data.stars || 0;
+                        
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateDisplay();
+                    }
+                });
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                console.error('Error initializing shop:', error);
+            }
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.location.href = 'lobby.html';
+            }
+        });
+        
+        // Add click sound to all buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('back-btn')) {
+                playClickSound();
+            }
+        });
+        
+        // ==================== INIT ====================
+        window.onload = initShop;
+    </script>
+</body>
+</html>
