@@ -1061,6 +1061,23 @@
             settingsBtn.classList.toggle('active');
             dropdown.classList.toggle('active');
             
+// Di bagian settings dropdown menu, tambahkan:
+<button onclick="openDevChat()" style="display: none;" id="devChatBtn">
+    <span>💬</span> Dev Chat
+</button>
+
+// Tambahkan fungsi:
+function openDevChat() {
+    playClickSound();
+    window.location.href = 'dev-chat.html';
+}
+
+// Di initLobby, setelah currentUser di-set:
+// Tampilkan tombol Dev Chat hanya untuk Taher
+if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username === "Taher")) {
+    document.getElementById('devChatBtn').style.display = 'flex';
+}
+
             // Close dropdown when clicking outside
             if (dropdown.classList.contains('active')) {
                 document.addEventListener('click', closeSettingsMenuOnClickOutside);
