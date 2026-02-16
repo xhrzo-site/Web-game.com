@@ -952,7 +952,7 @@
                 <div class="rank-stars-container">
                     <div class="rank-display-box">
                         <div class="rank-display-content">
-                            <span id="rankDisplay">🥉 Newbie (🐔)</span>
+                            <span id="rankDisplay">🥉 Newbie</span>
                         </div>
                     </div>
                     <div class="stars-display-box">
@@ -997,9 +997,9 @@
                     
                     <!-- Game Boboiboy 7 Elemental -->
                     <div class="game-card" onclick="window.location.href='boboiboy-3d.html'">
-                        <div class="game-icon">⚡🔥💧</div>
-                        <div class="game-title">BoBoiBoy 7 Elemental</div>
-                        <div class="game-desc">Game 3D Petualangan BoBoiBoy!</div>
+                        <div class="game-icon"></div>
+                        <div class="game-title">Coming Soon</div>
+                        <div class="game-desc">Game belum tersedia!</div>
                     </div>
                 </div>
             </div>
@@ -1030,14 +1030,21 @@
                 <p>Spin dan dapatkan hadiah menarik!</p>
             </div>
             
-            <!-- Shop Button (di bawah spin, warna emas) -->
-            <div class="feature-card shop-card" onclick="goToShop()">
+        <div class="features-section">
+            <!-- Hubungi admin -->
+            <div class="feature-card" onclick="window.location.href='contact.html'">
+                <div class="feature-icon">💬</div>
+                <div class="feature-title">HUBUNGI DEV</div>
+                <p>chat dengan developer secara langsung dan berikan ulasan anda!</p>
+            </div>
+
+                    <div class="features-section">
+            <!-- Spin Button -->
+            <div class="feature-card" onclick="window.location.href='shop.html'">
                 <div class="feature-icon">🛒</div>
                 <div class="feature-title">SHOP</div>
-                <p>Tukar coin ke diamond, beli rank, dan top up!</p>
+                <p>Toko belaja murah!</p>
             </div>
-        </div>
-    </div>
     
     <script>
         // ==================== SHOP FUNCTION ====================
@@ -1135,7 +1142,7 @@
                     profileImageElement.style.backgroundImage = 'none';
                 }
             } else {
-                profileImageElement.innerHTML = '👤';
+                profileImageElement.innerHTML = '👩🏻‍💻';
                 profileImageElement.style.backgroundImage = 'none';
             }
         }
