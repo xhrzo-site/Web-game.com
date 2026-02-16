@@ -734,6 +734,34 @@
             background: linear-gradient(135deg, #ff3333, #cc0000);
         }
         
+        /* ===== NOTIFICATION BADGE UNTUK CHAT ===== */
+        .chat-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 1500;
+            animation: bounce 1s ease infinite;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chat-notification.active {
+            display: flex;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
         /* ===== ANIMATIONS ===== */
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -813,6 +841,15 @@
             .friends-section {
                 padding: 20px;
             }
+            
+            .chat-notification {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                width: auto;
+                justify-content: center;
+            }
         }
         
         @media (max-width: 480px) {
@@ -878,14 +915,23 @@
         ⚙️
     </div>
     
-    <!-- Settings Dropdown Menu -->
+    <!-- Settings Dropdown Menu - DENGAN TOMBOL DEV CHAT UNTUK SEMUA USER -->
     <div class="settings-dropdown" id="settingsDropdown">
         <button onclick="openSettingsModal()">
             <span>🎵</span> Music Settings
         </button>
+        <button onclick="openDevChat()" id="devChatBtn">
+            <span>💬</span> Chat Developer
+        </button>
         <button onclick="logout()">
             <span>🚪</span> Logout
         </button>
+    </div>
+    
+    <!-- Notification untuk pesan baru dari user (khusus developer/Taher) -->
+    <div class="chat-notification" id="chatNotification" onclick="openDevChat()">
+        <span>💬</span>
+        <span id="notificationText">Pesan baru dari user</span>
     </div>
     
     <!-- Ban Alert -->
@@ -997,17 +1043,17 @@
                     
                     <!-- Game Boboiboy 7 Elemental -->
                     <div class="game-card" onclick="window.location.href='boboiboy-3d.html'">
-                        <div class="game-icon"></div>
+                        <div class="game-icon">🔮</div>
                         <div class="game-title">Coming Soon</div>
                         <div class="game-desc">Game belum tersedia!</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Friends Section -->
+            <!-- Friends Section - Online Users -->
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 Friend</h2>
+                    <h2>👥 Online Users</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+ Tambah Teman</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -1015,13 +1061,13 @@
                     <button onclick="addFriend()">Tambah</button>
                 </div>
                 <div class="friends-list" id="friendsList">
-                    <!-- Friends will be loaded here -->
-                    <div class="loading">Memuat daftar teman...</div>
+                    <!-- Online users will be loaded here -->
+                    <div class="loading">Memuat pengguna online...</div>
                 </div>
             </div>
         </div>
         
-        <!-- Features Section (SHOP ADA DI SINI, DI BAWAH SPIN) -->
+        <!-- Features Section -->
         <div class="features-section">
             <!-- Spin Button -->
             <div class="feature-card" onclick="window.location.href='spin.html'">
@@ -1030,27 +1076,33 @@
                 <p>Spin dan dapatkan hadiah menarik!</p>
             </div>
             
-        <div class="features-section">
-            <!-- Hubungi admin -->
-            <div class="feature-card" onclick="window.location.href='contact.html'">
+            <!-- Hubungi admin / Dev Chat (FEATURE CARD LANGSUNG) -->
+            <div class="feature-card" onclick="openDevChat()">
                 <div class="feature-icon">💬</div>
-                <div class="feature-title">HUBUNGI DEV</div>
-                <p>chat dengan developer secara langsung dan berikan ulasan anda!</p>
+                <div class="feature-title">CHAT DEVELOPER</div>
+                <p>Chat dengan developer secara langsung!</p>
             </div>
 
-                    <div class="features-section">
-            <!-- Spin Button -->
+            <!-- Shop Button -->
             <div class="feature-card" onclick="window.location.href='shop.html'">
                 <div class="feature-icon">🛒</div>
                 <div class="feature-title">SHOP</div>
-                <p>Toko belaja murah!</p>
+                <p>Toko belanja murah!</p>
             </div>
+        </div>
+    </div>
     
     <script>
         // ==================== SHOP FUNCTION ====================
         function goToShop() {
             playClickSound();
             window.location.href = 'shop.html';
+        }
+        
+        // ==================== DEV CHAT FUNCTION ====================
+        function openDevChat() {
+            playClickSound();
+            window.location.href = 'dev-chat.html';
         }
         
         // ==================== SETTINGS MENU FUNCTIONS ====================
@@ -1060,23 +1112,6 @@
             
             settingsBtn.classList.toggle('active');
             dropdown.classList.toggle('active');
-            
-// Di bagian settings dropdown menu, tambahkan:
-<button onclick="openDevChat()" style="display: none;" id="devChatBtn">
-    <span>💬</span> Dev Chat
-</button>
-
-// Tambahkan fungsi:
-function openDevChat() {
-    playClickSound();
-    window.location.href = 'dev-chat.html';
-}
-
-// Di initLobby, setelah currentUser di-set:
-// Tampilkan tombol Dev Chat hanya untuk Taher
-if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username === "Taher")) {
-    document.getElementById('devChatBtn').style.display = 'flex';
-}
 
             // Close dropdown when clicking outside
             if (dropdown.classList.contains('active')) {
@@ -1355,6 +1390,7 @@ if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username
         // ==================== FIREBASE ====================
         let currentUser = null;
         let banListener = null;
+        const DEV_UID = "taher_dev_2024";
         
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
@@ -1375,7 +1411,7 @@ if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username
         // ==================== BAN MONITORING ====================
         function startBanMonitoring(uid) {
             if (banListener) {
-                banListener.off();
+                database.ref('users/' + uid).off('value', banListener);
             }
             
             banListener = database.ref('users/' + uid).on('value', (snapshot) => {
@@ -1504,51 +1540,57 @@ if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username
             return backgrounds[rankId] || backgrounds[0];
         }
         
-        async function loadFriends(uid) {
-            try {
-                const friendsList = document.getElementById('friendsList');
-                friendsList.innerHTML = '<div class="loading">Memuat teman...</div>';
+        // ==================== ONLINE USERS FUNCTIONS ====================
+        function loadOnlineUsers() {
+            if (!currentUser) return;
+            
+            const friendsList = document.getElementById('friendsList');
+            
+            // Listen for changes in users status
+            database.ref('users').on('value', (snapshot) => {
+                const users = snapshot.val();
+                let onlineUsersHTML = '';
                 
-                const friendsSnapshot = await database.ref('friends/' + uid).once('value');
-                const friends = friendsSnapshot.val() || {};
-                
-                if (Object.keys(friends).length === 0) {
-                    friendsList.innerHTML = '<div class="friend-item">Belum ada teman</div>';
-                    return;
-                }
-                
-                let friendsHTML = '';
-                
-                for (const friendUid in friends) {
-                    const friendSnapshot = await database.ref('users/' + friendUid).once('value');
-                    const friendData = friendSnapshot.val();
+                Object.keys(users).forEach(uid => {
+                    const user = users[uid];
                     
-                    if (friendData) {
-                        const rankInfo = ranks[friendData.rank || 0];
-                        const status = friendData.status === 'online' ? 
-                            '<span style="color: #00ff88;">●</span>' :
-                            '<span style="color: #ff3333;">●</span>';
+                    // Don't show current user and banned users
+                    if (uid !== currentUser.uid && !user.banned && user.status === 'online') {
+                        const rankInfo = ranks[user.rank || 0];
                         
-                        friendsHTML += `
-                            <div class="friend-item">
+                        onlineUsersHTML += `
+                            <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username}')">
                                 <div class="friend-info">
-                                    <div class="friend-name">${status} ${friendData.username}</div>
-                                    <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${friendData.stars || 0}</div>
+                                    <div class="friend-name">
+                                        <span style="color: #00ff88;">●</span> ${user.username}
+                                    </div>
+                                    <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${user.stars || 0}</div>
                                 </div>
                                 <div class="friend-stats">
-                                    💵${friendData.money}<br>
-                                    💎${friendData.diamond}
+                                    💵${user.money || 0}<br>
+                                    💎${user.diamond || 0}
                                 </div>
                             </div>
                         `;
                     }
-                }
+                });
                 
-                friendsList.innerHTML = friendsHTML || '<div class="friend-item">Belum ada teman</div>';
-                
-            } catch (error) {
-                friendsList.innerHTML = '<div class="friend-item">Error loading friends</div>';
-            }
+                friendsList.innerHTML = onlineUsersHTML || '<div class="friend-item">Tidak ada user online</div>';
+            });
+        }
+        
+        // ==================== CHAT WITH USER ====================
+        function startChatWithUser(uid, username) {
+            playClickSound();
+            
+            // Simpan target user untuk chat
+            localStorage.setItem('devChatUser', JSON.stringify({
+                uid: uid,
+                username: username
+            }));
+            
+            // Langsung buka chat detail
+            window.location.href = 'dev-chat-detail.html';
         }
         
         async function addFriend() {
@@ -1595,11 +1637,41 @@ if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username
                 
                 showMessage('Teman berhasil ditambahkan!', 'success');
                 document.getElementById('friendUsername').value = '';
-                loadFriends(currentUser.uid);
                 
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
             }
+        }
+        
+        // ==================== CHAT NOTIFICATION UNTUK DEVELOPER ====================
+        function setupChatNotification() {
+            if (!currentUser) return;
+            
+            // Hanya untuk developer (Taher)
+            if (currentUser.uid !== DEV_UID && currentUser.username !== "Taher") {
+                return;
+            }
+            
+            const notification = document.getElementById('chatNotification');
+            
+            database.ref('private_chats').on('value', (snapshot) => {
+                const chats = snapshot.val();
+                if (!chats) return;
+                
+                let hasUnread = false;
+                
+                Object.keys(chats).forEach(chatId => {
+                    if (chatId.startsWith('user_') && chats[chatId].info?.unread) {
+                        hasUnread = true;
+                    }
+                });
+                
+                if (hasUnread) {
+                    notification.classList.add('active');
+                } else {
+                    notification.classList.remove('active');
+                }
+            });
         }
         
         // ==================== INITIALIZE LOBBY ====================
@@ -1653,9 +1725,10 @@ if (currentUser && (currentUser.uid === "taher_dev_2024" || currentUser.username
                 
                 startBanMonitoring(user.uid);
                 updateUserDisplay();
-                loadFriends(user.uid);
+                loadOnlineUsers(); // Load online users
                 loadProfileImage();
                 addClickSoundToElements();
+                setupChatNotification(); // Setup notification untuk developer
                 
                 const savedMusic = localStorage.getItem('musicPreference');
                 if (savedMusic !== null) {
