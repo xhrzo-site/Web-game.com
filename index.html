@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loading | FUN GAME</title>
     <style>
-        /* RESET & BASE STYLES */
+        /* RESET & BASE STYLES - TIDAK DIUBAH */
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +23,6 @@
             align-items: center;
         }
         
-        /* LOADING CONTAINER */
         .loading-container {
             text-align: center;
             max-width: 600px;
@@ -197,7 +196,6 @@
     <div class="loading-container">
         <div class="game-logo">🎮</div>
         <h1>FUN GAME</h1>
-        <p class="subtitle">Loading game, please wait...</p>
         
         <div class="loading-bar-container">
             <div class="loading-bar" id="loadingBar"></div>
@@ -205,7 +203,6 @@
         
         <div class="loading-info">
             <span id="progressPercent">0%</span>
-            <span id="statusText">Initializing...</span>
         </div>
         
         <div class="progress-text" id="progressText">
@@ -213,24 +210,23 @@
         </div>
         
         <div class="footer">
-            © by Zoo x taher | Loading Screen
+            © by Zoo x taher
         </div>
     </div>
     
     <script>
-        // Status loading yang akan ditampilkan
-        const loadingStatuses = [
-            "Loading.",
-            "⏳Loading..",
-            "Memproses...",
-            "SELESAI✅",
-        ];
-        
         // Elemen DOM
         const loadingBar = document.getElementById('loadingBar');
         const progressPercent = document.getElementById('progressPercent');
-        const statusText = document.getElementById('statusText');
         const progressText = document.getElementById('progressText');
+        
+        // Array status loading
+        const loadingStatuses = [
+            "Memuat sumber daya...",
+            "Menyiapkan game...",
+            "Hampir selesai...",
+            "Memulai game..."
+        ];
         
         // Variabel loading
         let progress = 0;
@@ -238,7 +234,7 @@
         
         // Fungsi untuk update loading bar
         function updateLoadingBar() {
-            // Simulasi loading dengan kecepatan acak (seperti asli)
+            // Simulasi loading dengan kecepatan acak
             let increment = Math.random() * 8 + 2; // 2-10%
             
             // Pastikan tidak melebihi 100%
@@ -255,35 +251,64 @@
             // Update status text setiap 25% progress
             if (progress >= (statusIndex + 1) * 25 && statusIndex < loadingStatuses.length) {
                 progressText.textContent = loadingStatuses[statusIndex];
-                statusText.textContent = loadingStatuses[statusIndex];
                 statusIndex++;
             }
             
             // Jika loading selesai
             if (progress >= 100) {
-                progressText.textContent = "Siap! Mengarahkan ke login...";
-                statusText.textContent = "Loading selesai";
+                progressText.textContent = "Loading selesai!";
                 
-                // Tunggu sebentar lalu redirect
+                // Set flag bahwa loading sudah pernah ditampilkan
+                localStorage.setItem('loadingShown', 'true');
+                
+                // Redirect ke lobby
                 setTimeout(() => {
-                    window.location.href = "login.html";
-                }, 800);
+                    window.location.href = "lobby.html";
+                }, 500);
                 
-                return; // Stop the interval
+                return;
             }
             
-            // Lanjutkan loading dengan interval acak (seperti asli)
+            // Lanjutkan loading dengan interval acak
             let nextDelay = Math.random() * 300 + 100; // 100-400ms
             setTimeout(updateLoadingBar, nextDelay);
         }
         
+        // Cek apakah loading sudah pernah ditampilkan
+        function checkLoadingHistory() {
+            const loadingShown = localStorage.getItem('loadingShown');
+            
+            if (loadingShown === 'true') {
+                // Jika sudah pernah, langsung redirect ke lobby tanpa menampilkan loading
+                window.location.href = "lobby.html";
+                return true;
+            }
+            
+            return false;
+        }
+        
         // Mulai loading saat halaman dimuat
         window.onload = function() {
+            // Cek dulu apakah sudah pernah loading
+            if (checkLoadingHistory()) {
+                return; // Stop eksekusi jika langsung redirect
+            }
+            
             // Mulai dengan sedikit delay
             setTimeout(() => {
                 updateLoadingBar();
             }, 500);
         };
+        
+        // Fallback jika user kembali ke halaman ini dengan back button
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                // Jika halaman di-load dari cache (back button)
+                if (checkLoadingHistory()) {
+                    return;
+                }
+            }
+        });
     </script>
 </body>
 </html>

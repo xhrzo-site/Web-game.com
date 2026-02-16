@@ -612,11 +612,11 @@
         // Prize Configuration
         const prizes = [
             { value: 0, name: "Zonk", color: "#FF6B6B", chance: 20 },
-            { value: 50, name: "50 Diamond", color: "#4ECDC4", chance: 25 },
-            { value: 100, name: "100 Diamond", color: "#FFD166", chance: 20 },
-            { value: 250, name: "250 Diamond", color: "#06D6A0", chance: 15 },
-            { value: 500, name: "500 Diamond", color: "#118AB2", chance: 10 },
-            { value: 1000, name: "1000 Diamond", color: "#EF476F", chance: 7 },
+            { value: 50, name: "50 Diamond", color: "#4ECDC4", chance: 15 },
+            { value: 100, name: "100 Diamond", color: "#FFD166", chance: 10 },
+            { value: 250, name: "250 Diamond", color: "#06D6A0", chance: 5 },
+            { value: 500, name: "500 Diamond", color: "#118AB2", chance: 5 },
+            { value: 1000, name: "1000 Diamond", color: "#EF476F", chance: 3 },
             { value: 2000, name: "JACKPOT", color: "#FF3366", chance: 3 }
         ];
         
@@ -667,7 +667,7 @@
                 checkDiamondBalance();
             } else {
                 showToast('Please login first!', 'error');
-                setTimeout(() => window.location.href = 'index.html', 1500);
+                setTimeout(() => window.location.href = 'login.html', 1500);
             }
         }
         
