@@ -575,7 +575,7 @@
         }
         
         .friends-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -608,11 +608,16 @@
             align-items: center;
             border-left: 5px solid #00ff88;
             transition: all 0.3s;
+            cursor: pointer;
         }
         
         .friend-item:hover {
             transform: translateX(5px);
             background: rgba(0, 0, 0, 0.45);
+        }
+        
+        .friend-item.friend-only {
+            border-left: 5px solid #ffd700;
         }
         
         .friend-info {
@@ -632,6 +637,15 @@
         .friend-rank {
             font-size: 12px;
             opacity: 0.9;
+        }
+        
+        .friend-badge {
+            font-size: 10px;
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #ffd700;
         }
         
         /* ===== FEATURES SECTION ===== */
@@ -915,23 +929,23 @@
         ⚙️
     </div>
     
-    <!-- Settings Dropdown Menu - DENGAN TOMBOL DEV CHAT UNTUK SEMUA USER -->
+    <!-- Settings Dropdown Menu - CHAT HANYA UNTUK TAHER & XHRZO -->
     <div class="settings-dropdown" id="settingsDropdown">
         <button onclick="openSettingsModal()">
             <span>🎵</span> Music Settings
         </button>
-        <button onclick="openDevChat()" id="devChatBtn">
-            <span>💬</span> Chat Developer
+        <button onclick="openDevChat()" id="devChatBtn" style="display: none;">
+            <span>💬</span> CHAT
         </button>
         <button onclick="logout()">
             <span>🚪</span> Logout
         </button>
     </div>
     
-    <!-- Notification untuk pesan baru dari user (khusus developer/Taher) -->
+    <!-- Notification untuk pesan baru dari user (khusus developer/Taher & Xhrzo) -->
     <div class="chat-notification" id="chatNotification" onclick="openDevChat()">
         <span>💬</span>
-        <span id="notificationText">Pesan baru dari user</span>
+        <span id="notificationText">Pesan baru</span>
     </div>
     
     <!-- Ban Alert -->
@@ -1050,10 +1064,10 @@
                 </div>
             </div>
 
-            <!-- Friends Section - Online Users -->
+            <!-- Friends Section - Online Users + Friends -->
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 Online Users</h2>
+                    <h2>👥 Teman & Online</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+ Tambah Teman</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -1061,8 +1075,8 @@
                     <button onclick="addFriend()">Tambah</button>
                 </div>
                 <div class="friends-list" id="friendsList">
-                    <!-- Online users will be loaded here -->
-                    <div class="loading">Memuat pengguna online...</div>
+                    <!-- Friends and online users will be loaded here -->
+                    <div class="loading">Memuat daftar teman...</div>
                 </div>
             </div>
         </div>
@@ -1077,7 +1091,7 @@
             </div>
             
             <!-- Hubungi admin / Dev Chat (FEATURE CARD LANGSUNG) -->
-            <div class="feature-card" onclick="openDevChat()">
+            <div class="feature-card" onclick="window.location.href='contact.html'">
                 <div class="feature-icon">💬</div>
                 <div class="feature-title">CHAT DEVELOPER</div>
                 <p>Chat dengan developer secara langsung!</p>
@@ -1390,7 +1404,8 @@
         // ==================== FIREBASE ====================
         let currentUser = null;
         let banListener = null;
-        const DEV_UID = "taher_dev_2024";
+        const DEV_UIDS = ["taher_dev_2024", "xhrzo_dev_2024"]; // UID untuk Taher dan Xhrzo
+        const DEV_USERNAMES = ["Taher", "Xhrzo"]; // Username untuk Taher dan Xhrzo
         
         const ranks = [
             { id: 0, name: "🥉 Newbie", starsNeeded: 1, color: "rank-newbie" },
@@ -1540,42 +1555,75 @@
             return backgrounds[rankId] || backgrounds[0];
         }
         
-        // ==================== ONLINE USERS FUNCTIONS ====================
-        function loadOnlineUsers() {
+        // ==================== LOAD FRIENDS & ONLINE USERS ====================
+        function loadFriendsAndOnline() {
             if (!currentUser) return;
             
             const friendsList = document.getElementById('friendsList');
             
-            // Listen for changes in users status
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val();
-                let onlineUsersHTML = '';
+            // Load friends list
+            database.ref('friends/' + currentUser.uid).once('value', (friendsSnapshot) => {
+                const friends = friendsSnapshot.val() || {};
+                const friendUids = Object.keys(friends);
                 
-                Object.keys(users).forEach(uid => {
-                    const user = users[uid];
+                // Listen for changes in users status
+                database.ref('users').on('value', (usersSnapshot) => {
+                    const users = usersSnapshot.val();
+                    let combinedHTML = '';
                     
-                    // Don't show current user and banned users
-                    if (uid !== currentUser.uid && !user.banned && user.status === 'online') {
-                        const rankInfo = ranks[user.rank || 0];
-                        
-                        onlineUsersHTML += `
-                            <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username}')">
-                                <div class="friend-info">
-                                    <div class="friend-name">
-                                        <span style="color: #00ff88;">●</span> ${user.username}
+                    // First, show friends (even if offline)
+                    friendUids.forEach(uid => {
+                        const user = users[uid];
+                        if (user && !user.banned) {
+                            const rankInfo = ranks[user.rank || 0];
+                            const isOnline = user.status === 'online';
+                            
+                            combinedHTML += `
+                                <div class="friend-item friend-only" onclick="startChatWithUser('${uid}', '${user.username}')">
+                                    <div class="friend-info">
+                                        <div class="friend-name">
+                                            <span style="color: ${isOnline ? '#00ff88' : '#ff3333'};">●</span> 
+                                            ${user.username}
+                                            <span class="friend-badge">Teman</span>
+                                        </div>
+                                        <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${user.stars || 0}</div>
                                     </div>
-                                    <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${user.stars || 0}</div>
+                                    <div class="friend-stats">
+                                        💵${user.money || 0}<br>
+                                        💎${user.diamond || 0}
+                                    </div>
                                 </div>
-                                <div class="friend-stats">
-                                    💵${user.money || 0}<br>
-                                    💎${user.diamond || 0}
+                            `;
+                        }
+                    });
+                    
+                    // Then, show other online users (not friends)
+                    Object.keys(users).forEach(uid => {
+                        const user = users[uid];
+                        
+                        // Skip if current user, banned, or already a friend
+                        if (uid !== currentUser.uid && !user.banned && !friendUids.includes(uid) && user.status === 'online') {
+                            const rankInfo = ranks[user.rank || 0];
+                            
+                            combinedHTML += `
+                                <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username}')">
+                                    <div class="friend-info">
+                                        <div class="friend-name">
+                                            <span style="color: #00ff88;">●</span> ${user.username}
+                                        </div>
+                                        <div class="friend-rank ${rankInfo.color}">${rankInfo.name} ⭐${user.stars || 0}</div>
+                                    </div>
+                                    <div class="friend-stats">
+                                        💵${user.money || 0}<br>
+                                        💎${user.diamond || 0}
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    }
+                            `;
+                        }
+                    });
+                    
+                    friendsList.innerHTML = combinedHTML || '<div class="friend-item">Tidak ada teman atau user online</div>';
                 });
-                
-                friendsList.innerHTML = onlineUsersHTML || '<div class="friend-item">Tidak ada user online</div>';
             });
         }
         
@@ -1638,6 +1686,9 @@
                 showMessage('Teman berhasil ditambahkan!', 'success');
                 document.getElementById('friendUsername').value = '';
                 
+                // Reload friends list
+                loadFriendsAndOnline();
+                
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
             }
@@ -1647,8 +1698,9 @@
         function setupChatNotification() {
             if (!currentUser) return;
             
-            // Hanya untuk developer (Taher)
-            if (currentUser.uid !== DEV_UID && currentUser.username !== "Taher") {
+            // Hanya untuk developer (Taher & Xhrzo)
+            const isDev = DEV_UIDS.includes(currentUser.uid) || DEV_USERNAMES.includes(currentUser.username);
+            if (!isDev) {
                 return;
             }
             
@@ -1672,6 +1724,16 @@
                     notification.classList.remove('active');
                 }
             });
+        }
+        
+        // ==================== SHOW DEV CHAT BUTTON ====================
+        function showDevChatButton() {
+            if (!currentUser) return;
+            
+            const isDev = DEV_UIDS.includes(currentUser.uid) || DEV_USERNAMES.includes(currentUser.username);
+            if (isDev) {
+                document.getElementById('devChatBtn').style.display = 'flex';
+            }
         }
         
         // ==================== INITIALIZE LOBBY ====================
@@ -1725,10 +1787,11 @@
                 
                 startBanMonitoring(user.uid);
                 updateUserDisplay();
-                loadOnlineUsers(); // Load online users
+                loadFriendsAndOnline(); // Load friends and online users
                 loadProfileImage();
                 addClickSoundToElements();
                 setupChatNotification(); // Setup notification untuk developer
+                showDevChatButton(); // Tampilkan tombol chat hanya untuk Taher & Xhrzo
                 
                 const savedMusic = localStorage.getItem('musicPreference');
                 if (savedMusic !== null) {
