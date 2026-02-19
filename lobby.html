@@ -610,7 +610,7 @@
     <div id="settingsModal" class="settings-modal">
         <div class="settings-box">
             <button class="close-modal" onclick="closeSettingsModal()">❌</button>
-            <h3>⚙️ SETTINGS</h3>
+            <h3>SETTINGS</h3>
             <div class="setting-item">
                 <label>🎵 Musik</label>
                 <div class="music-option" onclick="changeMusic(1)">Music 1</div>
@@ -620,12 +620,11 @@
                 <div class="music-option" onclick="changeMusic(0)">🔇 Off</div>
             </div>
             <div class="setting-item">
-                <label>🔊 Volume Musik</label>
+                <label>🔊 Volume</label>
                 <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
             </div>
             <div class="setting-item">
-                <label>🔊 Volume Klik</label>
-                <input type="range" id="clickVolume" min="0" max="100" value="80" onchange="updateClickVolume()">
+                <input type="range" id="clickVolume" min="0" max="100" value="100" onchange="updateClickVolume()">
             </div>
             <button onclick="closeSettingsModal()" style="margin-top:20px; width:100%; padding:14px; background:#00ff88; color:#1a1a2e; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">SIMPAN</button>
         </div>
@@ -663,12 +662,12 @@
                         <div class="game-title">TAPz TAPz</div>
                         <div class="game-desc">Tes Kecepatan!</div>
                     </div>
-                    <div class="game-card" onclick="window.location.href='game.html'">
+                    <div class="game-card" onclick="window.location.href='boboiboy.html'">
                         <div class="game-icon">⚔️</div>
-                        <div class="game-title">Game Seru</div>
-                        <div class="game-desc">Game seru!</div>
+                        <div class="game-title">Boboiboy</div>
+                        <div class="game-desc">game Elemental 3d lite!</div>
                     </div>
-                    <div class="game-card" onclick="window.location.href='boboiboy-3d.html'">
+                    <div class="game-card" onclick="window.location.href=''lobby.html">
                         <div class="game-icon">❔</div>
                         <div class="game-title">Coming Soon</div>
                         <div class="game-desc">Game belum tersedia!</div>

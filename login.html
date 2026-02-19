@@ -42,33 +42,6 @@
             box-shadow: 0 6px 20px rgba(255,0,0,0.4);
         }
         
-        .admin-btn {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.85);
-            border: 2px solid #ffd700;
-            border-radius: 50%;
-            padding: 12px;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
-            backdrop-filter: blur(5px);
-            cursor: pointer;
-            font-weight: bold;
-            color: #ffd700;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 45px;
-            height: 45px;
-            font-size: 20px;
-        }
-        .admin-btn:hover {
-            background: rgba(255,215,0,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,215,0,0.4);
-        }
         
         /* Tombol Settings */
         .settings-btn {
@@ -534,13 +507,20 @@
     <audio id="clickSound" preload="auto">
         <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
     </audio>
+    <!-- Tambahkan audio untuk musik background -->
+    <audio id="bgMusic1" preload="auto" loop>
+        <source src="https://e.top4top.io/m_3674v14i19.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bgMusic2" preload="auto" loop>
+        <source src="https://d.top4top.io/m_36746vfto7.mp3" type="audio/mpeg">
+    </audio>
     
     <!-- Tombol FAQ -->
     <div class="faq-btn" onclick="openFAQ()">
         <span>📌</span>
         <span>FAQ</span>
     </div>
-    
+
     
     <!-- FAQ Modal -->
     <div id="faqModal" class="notice-modal">
@@ -640,9 +620,70 @@
         // ASET PENTING GAME 
         // Firebase sudah diinisialisasi di firebase-config.js
         
+        // ==================== DETEKSI DEVICE ====================
+        async function detectDevice() {
+            const info = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Deteksi Android
+            if(/android/i.test(navigator.userAgent)) {
+                const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
+                info.androidVersion = match ? match[1] : 'unknown';
+            }
+            
+            // Deteksi iOS
+            if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                const match = navigator.userAgent.match(/OS\s([0-9_]+)/);
+                info.iosVersion = match ? match[1].replace(/_/g, '.') : 'iOS device';
+            }
+            
+            // Deteksi device name dari user agent
+            if(/Windows/.test(navigator.userAgent)) {
+                info.deviceType = 'Windows PC';
+            } else if(/Mac/.test(navigator.userAgent)) {
+                info.deviceType = 'Mac';
+            } else if(/Linux/.test(navigator.userAgent)) {
+                info.deviceType = 'Linux';
+            } else if(/Android/.test(navigator.userAgent)) {
+                info.deviceType = 'Android';
+            } else if(/iPhone/.test(navigator.userAgent)) {
+                info.deviceType = 'iPhone';
+            } else if(/iPad/.test(navigator.userAgent)) {
+                info.deviceType = 'iPad';
+            }
+            
+            // Dapatkan IP via API
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                info.ip = data.ip;
+            } catch(e) {
+                info.ip = 'unknown';
+            }
+            
+            // Test koneksi untuk kecepatan
+            const startTime = Date.now();
+            try {
+                await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+                const endTime = Date.now();
+                info.latency = endTime - startTime;
+                info.connectionType = navigator.connection?.effectiveType || 'unknown';
+            } catch(e) {
+                info.latency = -1;
+            }
+            
+            return info;
+        }
+        
         // ==================== AUDIO MANAGEMENT ====================
         let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2
-        let musicEnabled = true;
+        let musicEnabled = false;
         let soundEffectsEnabled = true;
         let clickVolume = 0.7;
         let musicVolume = 0.5;
@@ -661,7 +702,6 @@
         function playRandomMusic() {
             if (!musicEnabled) return;
             
-            // Hentikan semua musik dulu
             const music1 = document.getElementById('bgMusic1');
             const music2 = document.getElementById('bgMusic2');
             
@@ -670,27 +710,17 @@
             
             if (currentMusic === 0) return;
             
-            // Pilih musik secara random antara 1 dan 2
-            const randomMusic = Math.random() > 0.5 ? 1 : 2;
-            currentMusic = randomMusic;
-            
-            const selectedMusic = randomMusic === 1 ? music1 : music2;
+            const selectedMusic = currentMusic === 1 ? music1 : music2;
             selectedMusic.volume = musicVolume;
             selectedMusic.currentTime = 0;
             
             selectedMusic.play().catch(e => {
                 console.log("Auto-play blocked, waiting for user interaction");
-                // Tunda pemutaran sampai user interaksi
                 document.addEventListener('click', function startMusicOnClick() {
                     selectedMusic.play().catch(e => console.log("Music play error:", e));
                     document.removeEventListener('click', startMusicOnClick);
                 }, { once: true });
             });
-            
-            // Saat musik selesai, putar lagu berikutnya
-            selectedMusic.onended = function() {
-                playRandomMusic();
-            };
         }
         
         function changeMusic(musicNumber) {
@@ -702,7 +732,6 @@
             music1.pause();
             music2.pause();
             
-            // Update UI active class
             document.querySelectorAll('.music-option').forEach(option => {
                 option.classList.remove('active');
             });
@@ -712,22 +741,15 @@
                 music1.volume = musicVolume;
                 music1.currentTime = 0;
                 music1.play().catch(e => console.log("Music 1 error:", e));
-                music1.onended = function() {
-                    if (currentMusic === 1) playRandomMusic();
-                };
             } else if (musicNumber === 2) {
                 document.querySelectorAll('.music-option')[1].classList.add('active');
                 music2.volume = musicVolume;
                 music2.currentTime = 0;
                 music2.play().catch(e => console.log("Music 2 error:", e));
-                music2.onended = function() {
-                    if (currentMusic === 2) playRandomMusic();
-                };
             } else {
                 document.querySelectorAll('.music-option')[2].classList.add('active');
             }
             
-            // Simpan preferensi
             localStorage.setItem('musicPreference', musicNumber);
         }
         
@@ -760,7 +782,6 @@
             playClickSound();
             document.getElementById('settingsModal').classList.add('active');
             
-            // Load settings
             const savedMusic = localStorage.getItem('musicPreference');
             if (savedMusic !== null) {
                 currentMusic = parseInt(savedMusic);
@@ -795,21 +816,16 @@
             document.getElementById('settingsModal').classList.remove('active');
         }
         
-        // ==================== UPDATE EVENT LISTENERS UNTUK CLICK SOUND ====================
         function addClickSoundToElements() {
-            // Tombol dan elemen yang bisa diklik
             const clickableElements = document.querySelectorAll(
                 'button, .game-card, .feature-card, .toggle-btn, .faq-btn, .admin-btn, .settings-btn, .switch-form span, .close-modal'
             );
             
             clickableElements.forEach(element => {
-                // Hapus event listener sebelumnya jika ada
                 element.removeEventListener('click', playClickSound);
-                // Tambahkan event listener baru
                 element.addEventListener('click', playClickSound);
             });
             
-            // Input fields saat enter
             const inputFields = document.querySelectorAll('input[type="text"], input[type="password"]');
             inputFields.forEach(input => {
                 input.removeEventListener('keypress', handleEnterWithSound);
@@ -868,10 +884,9 @@
         function showBanModal(userData) {
             const banDetails = document.getElementById('banDetails');
             
-            // Format ban date
             let banDate = 'Unknown';
-            if (userData.banDate) {
-                banDate = new Date(userData.banDate).toLocaleDateString('id-ID', {
+            if (userData.bannedAt) {
+                banDate = new Date(userData.bannedAt).toLocaleDateString('id-ID', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -881,23 +896,14 @@
                 });
             }
             
-            let banReason = 'Tidak disebutkan';
-            if (userData.banHistory) {
-                const historyKeys = Object.keys(userData.banHistory);
-                if (historyKeys.length > 0) {
-                    const lastBan = userData.banHistory[historyKeys[historyKeys.length - 1]];
-                    if (lastBan.reason) {
-                        banReason = lastBan.reason;
-                    }
-                }
-            }
+            let banReason = userData.banReason || 'Tidak disebutkan';
             
             banDetails.innerHTML = `
                 <div class="ban-info"><strong>Username:</strong> ${userData.username || 'Unknown'}</div>
                 <div class="ban-info"><strong>Status:</strong> <span style="color:#ff3333">BANNED PERMANEN</span></div>
                 <div class="ban-info"><strong>Tanggal Ban:</strong> ${banDate}</div>
                 <div class="ban-info"><strong>Alasan Ban:</strong> ${banReason}</div>
-                <div class="ban-info"><strong>Admin:</strong> Taher (Owner)</div>
+                <div class="ban-info"><strong>Admin:</strong> ${userData.bannedBy || 'System'}</div>
             `;
             
             document.getElementById('banModal').classList.add('active');
@@ -906,11 +912,9 @@
         function closeBanModal() {
             playClickSound();
             document.getElementById('banModal').classList.remove('active');
-            
             localStorage.removeItem('currentUser');
         }
         
-        // Event listeners untuk modal
         document.getElementById('faqModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeFAQ();
@@ -923,7 +927,6 @@
             }
         });
         
-        // Event listeners untuk input
         document.getElementById('regPassword').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 playClickSound();
@@ -938,7 +941,6 @@
             }
         });
         
-        // Event listener untuk escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeFAQ();
@@ -947,31 +949,24 @@
             }
         });
         
-        // Initialize audio system
         document.addEventListener('DOMContentLoaded', function() {
             addClickSoundToElements();
             
-            // Load saved settings
             const savedMusic = localStorage.getItem('musicPreference');
             if (savedMusic !== null) {
                 currentMusic = parseInt(savedMusic);
             } else {
-                // Default: putar musik random saat pertama kali
                 currentMusic = Math.random() > 0.5 ? 1 : 2;
             }
             
             const savedMusicVol = localStorage.getItem('musicVolume');
             if (savedMusicVol) {
                 musicVolume = parseFloat(savedMusicVol);
-            } else {
-                document.getElementById('musicVolume').value = 50;
             }
             
             const savedClickVol = localStorage.getItem('clickVolume');
             if (savedClickVol) {
                 clickVolume = parseFloat(savedClickVol);
-            } else {
-                document.getElementById('clickVolume').value = 70;
             }
             
             const savedSoundEffects = localStorage.getItem('soundEffects');
@@ -980,7 +975,6 @@
                 document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
             }
             
-            // Mulai musik setelah sedikit delay
             setTimeout(() => {
                 if (currentMusic > 0) {
                     playRandomMusic();
@@ -988,7 +982,7 @@
             }, 1000);
         });
         
-        // ==================== REGISTER FUNCTION ====================
+        // ==================== REGISTER FUNCTION WITH DEVICE DETECTION ====================
         document.getElementById('registerBtn').addEventListener('click', async () => {
             playClickSound();
             
@@ -1005,7 +999,6 @@
                 return;
             }
             
-            // Check if username contains inappropriate words
             const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
             if (badWords.some(word => username.toLowerCase().includes(word))) {
                 showMessage('Username tidak diperbolehkan!', 'error');
@@ -1013,7 +1006,6 @@
             }
             
             try {
-                // Check if username already exists
                 const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
                 
                 if (snapshot.exists()) {
@@ -1021,10 +1013,11 @@
                     return;
                 }
                 
-                // Create new user ID
+                // Deteksi device sebelum register
+                const deviceInfo = await detectDevice();
+                
                 const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
-                // Save to database with initial rank
                 await database.ref('users/' + userId).set({
                     uid: userId,
                     username: username,
@@ -1036,17 +1029,20 @@
                     credit: 0,
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
                     lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    lastPlayed: Date.now(),
                     status: 'online',
                     gamesPlayed: 0,
                     banned: false,
-                    registeredIP: 'unknown'
+                    device: deviceInfo,
+                    registeredIP: deviceInfo.ip,
+                    registeredDevice: deviceInfo.deviceType || 'Unknown'
                 });
                 
-                // Create empty friends list
                 await database.ref('friends/' + userId).set({});
                 
-                // Save user data and redirect to lobby
+                // Setup disconnect handler
+                database.ref('users/' + userId + '/status').onDisconnect().set('offline');
+                database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                
                 const userData = {
                     uid: userId,
                     username: username,
@@ -1069,7 +1065,7 @@
             }
         });
         
-        // ==================== LOGIN FUNCTION WITH BAN CHECK ====================
+        // ==================== LOGIN FUNCTION WITH DEVICE UPDATE ====================
         document.getElementById('loginBtn').addEventListener('click', async () => {
             playClickSound();
             
@@ -1082,7 +1078,6 @@
             }
             
             try {
-                // Find user
                 const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
                 
                 if (!snapshot.exists()) {
@@ -1094,33 +1089,34 @@
                 const userId = Object.keys(userData)[0];
                 const user = userData[userId];
                 
-                // ===== CHECK IF USER IS BANNED =====
                 if (user.banned) {
-                    // Show ban message
                     showMessage('❌ AKUN ANDA TELAH DI BAN!', 'error');
-                    
-                    // Show detailed ban modal after short delay
                     setTimeout(() => {
                         showBanModal(user);
                     }, 500);
-                    
                     return;
                 }
                 
-                // Check password
                 if (user.password !== password) {
                     showMessage('Password salah!', 'error');
                     return;
                 }
                 
-                // Update status
+                // Update device info saat login
+                const deviceInfo = await detectDevice();
+                
                 await database.ref('users/' + userId).update({
                     lastOnline: firebase.database.ServerValue.TIMESTAMP,
                     status: 'online',
-                    loginCount: (user.loginCount || 0) + 1
+                    loginCount: (user.loginCount || 0) + 1,
+                    lastDevice: deviceInfo,
+                    lastLogin: new Date().toISOString()
                 });
                 
-                // Save user data and redirect to lobby
+                // Setup disconnect handler
+                database.ref('users/' + userId + '/status').onDisconnect().set('offline');
+                database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                
                 const currentUser = {
                     uid: userId,
                     username: user.username,
@@ -1145,22 +1141,16 @@
         
         // ==================== INITIALIZATION ====================
         window.onload = () => {
-            // Auto focus to login form
             document.getElementById('loginUsername').focus();
             
-            // Check if user is already logged in
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 const user = JSON.parse(savedUser);
                 
-                // Check ban status even if already logged in
                 checkBanStatus(user.uid).then(isBanned => {
                     if (isBanned) {
-                        // Clear localStorage if banned
                         localStorage.removeItem('currentUser');
-                        // Don't redirect, stay on login page
                     } else {
-                        // Redirect to lobby if not banned
                         window.location.href = 'lobby.html';
                     }
                 });
@@ -1173,7 +1163,6 @@
                 const user = snapshot.val();
                 
                 if (user && user.banned) {
-                    // User is banned, show ban modal
                     setTimeout(() => {
                         showBanModal(user);
                     }, 100);

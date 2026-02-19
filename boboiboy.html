@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BoboiBoy Galaxy 3D - Mabar Realms</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+            background: #000;
+        }
+        
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 8px solid rgba(255,255,255,0.1);
+            border-top: 8px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,255,136,0.5);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Main Menu */
+        #main-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            z-index: 900;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .menu-container {
+            background: rgba(0,0,0,0.8);
+            border: 3px solid #00ff88;
+            border-radius: 30px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0,255,136,0.3);
+        }
+        
+        .menu-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .menu-title h1 {
+            color: #00ff88;
+            font-size: 48px;
+            text-shadow: 0 0 20px rgba(0,255,136,0.7);
+        }
+        
+        .menu-title p {
+            color: #88ffcc;
+            font-size: 16px;
+        }
+        
+        .menu-players {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        
+        .player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 5px 0;
+            background: rgba(0,255,136,0.1);
+            border: 1px solid #00ff88;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .player-item:hover {
+            background: rgba(0,255,136,0.2);
+            transform: translateX(5px);
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .player-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .player-rank {
+            font-size: 12px;
+            color: #88ffcc;
+        }
+        
+        .player-hp {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .menu-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,255,136,0.3);
+        }
+        
+        .menu-btn.secondary {
+            background: transparent;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        /* Game UI */
+        #game-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 2px solid #00ff88;
+            display: flex;
+            gap: 30px;
+            pointer-events: none;
+        }
+        
+        .hp-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .hp-icon {
+            font-size: 24px;
+            color: #ff4444;
+        }
+        
+        .hp-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .hp-text span {
+            color: #ff4444;
+        }
+        
+        .rank-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rank-icon {
+            font-size: 24px;
+            color: #ffd700;
+        }
+        
+        .rank-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .rank-text span {
+            color: #ffd700;
+        }
+        
+        #enemy-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 2px solid #ff4444;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .enemy-hp {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .enemy-hp span {
+            color: #ff4444;
+        }
+        
+        /* Joystick */
+        #joystick-container {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 70px;
+            pointer-events: auto;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        #joystick-thumb {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 30px;
+            top: 40px;
+            left: 40px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+            z-index: 200;
+        }
+        
+        .action-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a1a2e;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .action-btn.skill-btn {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            font-size: 24px;
+        }
+        
+        /* Skill Menu */
+        #skill-menu {
+            position: absolute;
+            bottom: 140px;
+            right: 40px;
+            width: 300px;
+            height: 300px;
+            pointer-events: auto;
+            z-index: 250;
+            display: none;
+        }
+        
+        .skill-item {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            border: 2px solid #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(0,255,136,0.3);
+        }
+        
+        .skill-item:hover {
+            transform: scale(1.1);
+            border-color: #ffd700;
+        }
+        
+        .skill-item.cooldown {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.8);
+        }
+        
+        .skill-cooldown {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #00ff88;
+            white-space: nowrap;
+        }
+        
+        /* Damage Numbers */
+        .damage-number {
+            position: absolute;
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px black;
+            pointer-events: none;
+            z-index: 300;
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+        
+        /* Room Info */
+        #room-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 2px solid #00ff88;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            pointer-events: auto;
+            z-index: 200;
+        }
+        
+        .room-players {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .room-player {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: rgba(0,255,136,0.2);
+            border: 2px solid #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .room-player.host {
+            border-color: #ffd700;
+        }
+        
+        #exit-room {
+            background: #ff4444;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #joystick-container {
+                width: 120px;
+                height: 120px;
+                left: 20px;
+                bottom: 20px;
+            }
+            
+            #joystick-thumb {
+                width: 50px;
+                height: 50px;
+                top: 35px;
+                left: 35px;
+            }
+            
+            .action-buttons {
+                bottom: 20px;
+                right: 20px;
+                gap: 15px;
+            }
+            
+            .action-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            
+            #skill-menu {
+                bottom: 110px;
+                right: 20px;
+                width: 250px;
+                height: 250px;
+            }
+            
+            .skill-item {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+            
+            #info-panel {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">Loading Boboiboy Galaxy...</div>
+    </div>
+    
+    <!-- Main Menu -->
+    <div id="main-menu">
+        <div class="menu-container">
+            <div class="menu-title">
+                <h1>⚡BOBOIBOY⚡</h1>
+                <p>7 Element Galaxy</p>
+            </div>
+            
+            <div class="menu-players" id="online-players">
+                <div class="loading-text">Mencari player online...</div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="createRoom()">🎮 BUAT ROOM BARU</button>
+                <button class="menu-btn secondary" onclick="showRanking()">🏆 RANKING</button>
+                <button class="menu-btn secondary" onclick="backToLobby()">⬅️ KEMBALI</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game UI -->
+    <div id="game-ui">
+        <!-- Info Panel -->
+        <div id="info-panel">
+            <div class="hp-bar">
+                <span class="hp-icon">❤️</span>
+                <span class="hp-text"><span id="player-hp">5000</span>/5000</span>
+            </div>
+            <div class="rank-info">
+                <span class="rank-icon">🏆</span>
+                <span class="rank-text">Rank <span id="player-rank">0</span></span>
+            </div>
+        </div>
+        
+        <!-- Enemy Info -->
+        <div id="enemy-info">
+            <span>👾 MUSUH</span>
+            <span class="enemy-hp"><span id="enemy-hp">6000</span> HP</span>
+        </div>
+        
+        <!-- Room Info -->
+        <div id="room-info" style="display: none;">
+            <div class="room-players" id="room-players"></div>
+            <button id="exit-room" onclick="exitRoom()">KELUAR</button>
+        </div>
+        
+        <!-- Joystick -->
+        <div id="joystick-container">
+            <div id="joystick-thumb"></div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div class="action-btn" onclick="toggleSkillMenu()">🆙</div>
+            <div class="action-btn skill-btn" onclick="basicAttack()" id="skill-btn">⚔️</div>
+        </div>
+        
+        <!-- Skill Menu -->
+        <div id="skill-menu"></div>
+    </div>
+    
+    <!-- Audio -->
+    <audio id="clickSound" preload="auto">
+        <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="hitSound" preload="auto">
+        <source src="https://f.top4top.io/m_36745wqti1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Load 3D Models -->
+    <script src="3d.js"></script>
+    
+    <script>
+        // ==================== FIREBASE CONFIG ====================
+        let currentUser = null;
+        let playerId = null;
+        let roomId = null;
+        let isHost = false;
+        let gameStarted = false;
+        
+        // Cek login
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            playerId = currentUser.uid;
+        } else {
+            alert('Silahkan login dulu!');
+            window.location.href = 'login.html';
+        }
+        
+        // ==================== GAME VARIABLES ====================
+        let scene, camera, renderer;
+        let player, enemy;
+        let playerHP = 5000, enemyHP = 6000, maxPlayerHP = 5000, maxEnemyHP = 6000;
+        let playerRank = currentUser?.rank || 0;
+        let playerName = currentUser?.username || 'Player';
+        
+        let moveState = { forward: 0, right: 0 };
+        let joystickActive = false;
+        let animationMixers = [];
+        
+        // Skill cooldowns
+        let cooldowns = {
+            petir: 0, tanah: 0, cahaya: 0, daun: 0, angin: 0, air: 0, api: 0,
+            basicAttack: 0
+        };
+        
+        // Status effects
+        let effects = {
+            stun: { active: false, until: 0 },
+            slow: { active: false, multiplier: 1, until: 0 },
+            burn: { damage: 0, interval: 0, until: 0 },
+            buffBasic: { active: false, until: 0, extraDamage: 0 }
+        };
+        
+        // Enemy AI
+        let enemyAI = {
+            lastAttack: 0,
+            lastSkill: 0,
+            targetPosition: new THREE.Vector3()
+        };
+        
+        // ==================== THREE.JS SETUP ====================
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue
+            scene.fog = new THREE.Fog(0x87CEEB, 20, 100);
+            
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 10);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.body.appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404060);
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            const d = 30;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.camera.near = 1;
+            dirLight.shadow.camera.far = 50;
+            scene.add(dirLight);
+            
+            const backLight = new THREE.PointLight(0x4466ff, 0.5);
+            backLight.position.set(-5, 5, -10);
+            scene.add(backLight);
+            
+            // Ground
+            createGround(scene);
+            
+            // Add some trees and rocks for decoration
+            addDecorations(scene);
+        }
+        
+        // ==================== CREATE PLAYER ====================
+        function createPlayer() {
+            player = createBoboiboyCharacter(
+                scene, 
+                0, 0, 
+                0xffcc99,  // skin
+                0x000000,  // jaket hitam
+                0xff6600,  // baju orange
+                0x000000,  // celana hitam
+                0x8b4513   // sepatu coklat
+            );
+            
+            // Add name tag
+            const nameTag = createNameTag(playerName, 2.5);
+            player.add(nameTag);
+            
+            return player;
+        }
+        
+        // ==================== CREATE ENEMY ====================
+        function createEnemyCharacter(posX = 5, posZ = 0) {
+            enemy = createEnemyModel(scene, posX, posZ);
+            
+            // Add enemy name tag
+            const enemyName = createNameTag('👾 MUSUH', 2.8, 0xff4444);
+            enemy.add(enemyName);
+            
+            return enemy;
+        }
+        
+        // ==================== CREATE NAME TAG ====================
+        function createNameTag(name, yOffset = 2.5, color = 0xffffff) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(2, 2, canvas.width-4, canvas.height-4);
+            
+            // Text
+            ctx.font = 'Bold 40px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, canvas.width/2, 80);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(2, 1, 1);
+            sprite.position.set(0, yOffset, 0);
+            
+            return sprite;
+        }
+        
+        // ==================== SKILL MENU ====================
+        function initSkillMenu() {
+            const skills = [
+                { icon: '⚡', name: 'petir', color: '#ffff00' },
+                { icon: '💨', name: 'angin', color: '#00ffff' },
+                { icon: '🔥', name: 'api', color: '#ff4400' },
+                { icon: '🪨', name: 'tanah', color: '#8b4513' },
+                { icon: '☘️', name: 'daun', color: '#00ff00' },
+                { icon: '💧', name: 'air', color: '#0088ff' },
+                { icon: '🔅', name: 'cahaya', color: '#ffff88' }
+            ];
+            
+            const menu = document.getElementById('skill-menu');
+            const radius = 120;
+            const centerX = 150, centerY = 150;
+            
+            skills.forEach((skill, i) => {
+                const angle = (i / skills.length) * Math.PI * 2 - Math.PI/2;
+                const x = centerX + radius * Math.cos(angle) - 25;
+                const y = centerY + radius * Math.sin(angle) - 25;
+                
+                const btn = document.createElement('div');
+                btn.className = 'skill-item';
+                btn.id = `skill-${skill.name}`;
+                btn.style.left = x + 'px';
+                btn.style.top = y + 'px';
+                btn.style.borderColor = skill.color;
+                btn.innerHTML = skill.icon;
+                btn.onclick = () => useSkill(skill.name);
+                menu.appendChild(btn);
+                
+                // Cooldown indicator
+                const cdText = document.createElement('div');
+                cdText.className = 'skill-cooldown';
+                cdText.id = `cd-${skill.name}`;
+                btn.appendChild(cdText);
+            });
+        }
+        
+        // ==================== USE SKILL ====================
+        function useSkill(skillName) {
+            if (effects.stun.active) {
+                showMessage('Terkena stun!', 'error');
+                return;
+            }
+            
+            const now = Date.now() / 1000;
+            if (cooldowns[skillName] > now) {
+                const remaining = Math.ceil(cooldowns[skillName] - now);
+                showMessage(`${skillName} cooldown ${remaining} detik`, 'error');
+                return;
+            }
+            
+            playClickSound();
+            
+            let damage = 0;
+            let cd = 0;
+            let effect = {};
+            
+            switch(skillName) {
+                case 'petir':
+                    damage = 0;
+                    cd = 10;
+                    effect = {
+                        buffBasic: { active: true, until: now + 5, extraDamage: 100 },
+                        stunBasic: true
+                    };
+                    showMessage('⚡ PETIR ACTIVE: Basic attack +100 & stun 1 detik!', 'success');
+                    createLightningEffect(player.position, enemy.position);
+                    break;
+                    
+                case 'tanah':
+                    damage = 550;
+                    cd = 5;
+                    effect = { stun: 3 };
+                    showMessage('🪨 TANAH: Stun 3 detik!', 'success');
+                    createEarthSpike(enemy.position);
+                    break;
+                    
+                case 'cahaya':
+                    damage = 1500;
+                    cd = 15;
+                    effect = { slow: 0.5, duration: 5 };
+                    showMessage('🔅 CAHAYA: Laser damage 1500!', 'success');
+                    createLaserEffect(player.position, enemy.position);
+                    break;
+                    
+                case 'daun':
+                    damage = 150;
+                    cd = 10;
+                    effect = { stun: 5 };
+                    showMessage('☘️ DAUN: Stun 5 detik!', 'success');
+                    createVineEffect(enemy.position);
+                    break;
+                    
+                case 'angin':
+                    damage = 300;
+                    cd = 15;
+                    effect = { slow: 0.4, duration: 5, knockback: 3 };
+                    showMessage('💨 ANGIN: Knockback & slow!', 'success');
+                    createWindEffect(player.position, enemy.position);
+                    break;
+                    
+                case 'air':
+                    damage = 150; // 3x50
+                    cd = 6;
+                    effect = { multiHit: 3, stunPerHit: 1 };
+                    showMessage('💧 AIR: 3 bola air masing2 stun 1 detik!', 'success');
+                    createWaterBalls(player.position, enemy.position);
+                    break;
+                    
+                case 'api':
+                    damage = 100; // per tick
+                    cd = 15;
+                    effect = { burn: { damage: 100, duration: 5, interval: 1, slow: 0.5 } };
+                    showMessage('🔥 API: Burning 5 detik + slow!', 'success');
+                    createFireRing(enemy.position);
+                    break;
+            }
+            
+            // Apply damage
+            if (damage > 0) {
+                enemyHP -= damage;
+                if (enemyHP < 0) enemyHP = 0;
+                updateUI();
+                showDamageNumber(damage, enemy.position, 0xff4444);
+                
+                // Check win
+                if (enemyHP <= 0) {
+                    playerRank++;
+                    showMessage('🎉 VICTORY! Rank +1', 'success');
+                    updateRank();
+                    resetBattle();
+                }
+            }
+            
+            // Apply effects
+            applyEffects(effect);
+            
+            // Set cooldown
+            cooldowns[skillName] = now + cd;
+            updateCooldownUI(skillName, cd);
+            
+            toggleSkillMenu();
+        }
+        
+        // ==================== BASIC ATTACK ====================
+        function basicAttack() {
+            const now = Date.now() / 1000;
+            
+            if (effects.stun.active) {
+                showMessage('Terkena stun!', 'error');
+                return;
+            }
+            
+            if (cooldowns.basicAttack > now) {
+                return;
+            }
+            
+            playHitSound();
+            
+            // Animasi tangan lurus
+            animatePunch();
+            
+            // Hit detection
+            const distance = player.position.distanceTo(enemy.position);
+            if (distance < 2.5) {
+                let damage = 100;
+                
+                // Check buff petir
+                if (effects.buffBasic.active) {
+                    damage += effects.buffBasic.extraDamage;
+                    
+                    // Stun effect
+                    if (effects.buffBasic.stunBasic) {
+                        applyEffects({ stun: 1 });
+                        showMessage('⚡ Stun!', 'success');
+                    }
+                }
+                
+                enemyHP -= damage;
+                if (enemyHP < 0) enemyHP = 0;
+                
+                showDamageNumber(damage, enemy.position, 0xffaa00);
+                updateUI();
+                
+                if (enemyHP <= 0) {
+                    playerRank++;
+                    showMessage('🎉 VICTORY! Rank +1', 'success');
+                    updateRank();
+                    resetBattle();
+                }
+            }
+            
+            cooldowns.basicAttack = now + 0.5; // 0.5 detik cooldown
+        }
+        
+        // ==================== ENEMY AI ====================
+        function updateEnemyAI() {
+            if (!enemy || !player || enemyHP <= 0) return;
+            
+            const now = Date.now() / 1000;
+            const distance = player.position.distanceTo(enemy.position);
+            
+            // Move towards player
+            if (distance > 2) {
+                const direction = new THREE.Vector3().subVectors(player.position, enemy.position).normalize();
+                enemy.position.x += direction.x * 0.03;
+                enemy.position.z += direction.z * 0.03;
+                
+                // Rotate enemy to face player
+                enemy.rotation.y = Math.atan2(direction.x, direction.z);
+            }
+            
+            // Attack if close enough
+            if (distance < 2.5) {
+                if (now - enemyAI.lastAttack > 1) { // Attack every 1 second
+                    enemyAI.lastAttack = now;
+                    
+                    // Random skill or basic attack
+                    if (Math.random() < 0.3 && now - enemyAI.lastSkill > 3) {
+                        enemyAI.lastSkill = now;
+                        useEnemySkill();
+                    } else {
+                        // Basic attack
+                        playerHP -= 100;
+                        if (playerHP < 0) playerHP = 0;
+                        showDamageNumber(100, player.position, 0xff4444);
+                        updateUI();
+                        
+                        if (playerHP <= 0) {
+                            playerRank = Math.max(0, playerRank - 1);
+                            showMessage('😵 KALAH! Rank -1', 'error');
+                            updateRank();
+                            resetBattle();
+                        }
+                    }
+                }
+            }
+        }
+        
+        function useEnemySkill() {
+            const skills = ['petir', 'tanah', 'cahaya', 'daun', 'angin', 'air', 'api'];
+            const skill = skills[Math.floor(Math.random() * skills.length)];
+            
+            let damage = 0;
+            switch(skill) {
+                case 'petir': damage = 150; break;
+                case 'tanah': damage = 200; break;
+                case 'cahaya': damage = 300; break;
+                case 'daun': damage = 100; break;
+                case 'angin': damage = 150; break;
+                case 'air': damage = 120; break;
+                case 'api': damage = 180; break;
+            }
+            
+            playerHP -= damage;
+            if (playerHP < 0) playerHP = 0;
+            showDamageNumber(damage, player.position, 0xff4444);
+            showMessage(`👾 Musuh menggunakan ${skill}!`, 'error');
+            updateUI();
+        }
+        
+        // ==================== JOYSTICK ====================
+        function initJoystick() {
+            const joystick = document.getElementById('joystick-thumb');
+            const container = document.getElementById('joystick-container');
+            
+            joystick.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                joystickActive = true;
+            });
+            
+            joystick.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                moveState.forward = 0;
+                moveState.right = 0;
+                joystick.style.top = '40px';
+                joystick.style.left = '40px';
+            });
+            
+            joystick.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!joystickActive) return;
+                
+                const touch = e.touches[0];
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const maxDist = 45;
+                
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+                
+                joystick.style.left = (40 + dx) + 'px';
+                joystick.style.top = (40 + dy) + 'px';
+                
+                // INVERTED: Atas = mundur (negative forward), Bawah = maju (positive forward)
+                moveState.forward = dy / maxDist;  // dy positif (bawah) = maju
+                moveState.right = dx / maxDist;
+            });
+        }
+        
+        // ==================== UPDATE PLAYER MOVEMENT ====================
+        function updateMovement() {
+            if (!player || effects.stun.active) return;
+            
+            const speed = 0.15;
+            let moveSpeed = speed;
+            
+            // Apply slow
+            if (effects.slow.active) {
+                moveSpeed *= effects.slow.multiplier;
+            }
+            
+            // Apply movement (INVERTED: forward positif = maju)
+            player.position.x += moveState.right * moveSpeed;
+            player.position.z += moveState.forward * moveSpeed;
+            
+            // Rotate player towards movement direction
+            if (Math.abs(moveState.forward) > 0.1 || Math.abs(moveState.right) > 0.1) {
+                const angle = Math.atan2(moveState.right, moveState.forward);
+                player.rotation.y = angle;
+                
+                // Walking animation
+                animateWalk();
+            }
+        }
+        
+        // ==================== ANIMATIONS ====================
+        function animateWalk() {
+            // Simple walking animation - rotate arms
+            if (player) {
+                const time = Date.now() * 0.01;
+                const armAngle = Math.sin(time) * 0.2;
+                
+                // This would need to reference actual arm bones
+                // For simplicity, we'll just do a general bounce
+                player.position.y = 0.1 + Math.abs(Math.sin(time * 5)) * 0.05;
+            }
+        }
+        
+        function animatePunch() {
+            // Extend arm forward animation
+            // This is simplified - would need proper bone structure
+        }
+        
+        // ==================== UI FUNCTIONS ====================
+        function updateUI() {
+            document.getElementById('player-hp').textContent = playerHP;
+            document.getElementById('enemy-hp').textContent = enemyHP;
+            document.getElementById('player-rank').textContent = playerRank;
+            
+            // Update HP bar colors
+            if (playerHP < maxPlayerHP * 0.3) {
+                document.getElementById('player-hp').style.color = '#ff4444';
+            } else {
+                document.getElementById('player-hp').style.color = 'white';
+            }
+        }
+        
+        function updateRank() {
+            // Update rank in Firebase
+            if (currentUser) {
+                database.ref('users/' + currentUser.uid).update({
+                    rank: playerRank
+                });
+            }
+        }
+        
+        function showMessage(text, type) {
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? 'rgba(0,255,136,0.9)' : 'rgba(255,68,68,0.9)'};
+                color: #1a1a2e;
+                padding: 10px 20px;
+                border-radius: 30px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: fadeInOut 2s ease;
+            `;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 2000);
+        }
+        
+        function showDamageNumber(amount, position, color) {
+            const div = document.createElement('div');
+            div.className = 'damage-number';
+            div.textContent = amount;
+            div.style.color = '#' + color.toString(16).padStart(6, '0');
+            
+            // Convert 3D position to screen position
+            const vector = position.clone().project(camera);
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+            
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+        }
+        
+        function toggleSkillMenu() {
+            const menu = document.getElementById('skill-menu');
+            const skillBtn = document.getElementById('skill-btn');
+            
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                skillBtn.style.display = 'flex';
+            } else {
+                menu.style.display = 'block';
+                skillBtn.style.display = 'none';
+            }
+        }
+        
+        function updateCooldownUI(skillName, duration) {
+            const btn = document.getElementById(`skill-${skillName}`);
+            const cdText = document.getElementById(`cd-${skillName}`);
+            const endTime = Date.now() / 1000 + duration;
+            
+            btn.classList.add('cooldown');
+            
+            const interval = setInterval(() => {
+                const remaining = Math.ceil(endTime - Date.now() / 1000);
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    btn.classList.remove('cooldown');
+                    cdText.textContent = '';
+                } else {
+                    cdText.textContent = remaining + 's';
+                }
+            }, 100);
+        }
+        
+        function applyEffects(effect) {
+            const now = Date.now() / 1000;
+            
+            if (effect.stun) {
+                effects.stun.active = true;
+                effects.stun.until = now + effect.stun;
+                
+                // Hide name tag, show STUN
+                const nameTag = player.children.find(c => c instanceof THREE.Sprite);
+                if (nameTag) {
+                    player.remove(nameTag);
+                    const stunTag = createNameTag('💫 STUNNED', 2.5, 0xff4444);
+                    player.add(stunTag);
+                }
+                
+                setTimeout(() => {
+                    effects.stun.active = false;
+                    // Restore name tag
+                    const oldTag = player.children.find(c => c instanceof THREE.Sprite);
+                    if (oldTag) player.remove(oldTag);
+                    const newTag = createNameTag(playerName, 2.5);
+                    player.add(newTag);
+                }, effect.stun * 1000);
+            }
+            
+            if (effect.slow) {
+                effects.slow.active = true;
+                effects.slow.multiplier = 1 - effect.slow;
+                effects.slow.until = now + (effect.duration || 5);
+                
+                setTimeout(() => {
+                    effects.slow.active = false;
+                    effects.slow.multiplier = 1;
+                }, (effect.duration || 5) * 1000);
+            }
+            
+            if (effect.buffBasic) {
+                effects.buffBasic = effect.buffBasic;
+                setTimeout(() => {
+                    effects.buffBasic.active = false;
+                }, 5000);
+            }
+        }
+        
+        function resetBattle() {
+            playerHP = maxPlayerHP;
+            enemyHP = maxEnemyHP;
+            player.position.set(0, 0, 0);
+            enemy.position.set(5, 0, 0);
+            updateUI();
+        }
+        
+        // ==================== ROOM FUNCTIONS ====================
+        function createRoom() {
+            roomId = 'room_' + Date.now();
+            isHost = true;
+            
+            database.ref('rooms/' + roomId).set({
+                host: playerId,
+                players: {
+                    [playerId]: {
+                        name: playerName,
+                        ready: true,
+                        position: { x: 0, z: 0 }
+                    }
+                },
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            startGame();
+        }
+        
+        function joinRoom(targetPlayerId) {
+            roomId = 'room_' + Date.now();
+            isHost = false;
+            
+            database.ref('rooms/' + roomId).set({
+                host: targetPlayerId,
+                players: {
+                    [playerId]: {
+                        name: playerName,
+                        ready: true,
+                        position: { x: -2, z: 0 }
+                    },
+                    [targetPlayerId]: {
+                        name: 'Enemy',
+                        ready: true,
+                        position: { x: 2, z: 0 }
+                    }
+                },
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            startGame();
+        }
+        
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('room-info').style.display = 'flex';
+            
+            gameStarted = true;
+            
+            // Update room info display
+            updateRoomDisplay();
+            
+            // Listen for room updates
+            database.ref('rooms/' + roomId).on('value', (snapshot) => {
+                const room = snapshot.val();
+                if (!room) return;
+                
+                // Update enemy position if not host
+                if (!isHost && enemy) {
+                    const enemyData = Object.values(room.players).find(p => p.name === 'Enemy');
+                    if (enemyData) {
+                        enemy.position.x = enemyData.position.x;
+                        enemy.position.z = enemyData.position.z;
+                    }
+                }
+            });
+        }
+        
+        function updateRoomDisplay() {
+            const container = document.getElementById('room-players');
+            container.innerHTML = '';
+            
+            // Show players in room
+            const players = ['👤 ' + playerName, '👾 Musuh'];
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'room-player';
+                div.textContent = p[0];
+                div.title = p;
+                container.appendChild(div);
+            });
+        }
+        
+        function exitRoom() {
+            if (roomId) {
+                database.ref('rooms/' + roomId).remove();
+            }
+            roomId = null;
+            gameStarted = false;
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        }
+        
+        function backToLobby() {
+            window.location.href = 'lobby.html';
+        }
+        
+        // ==================== LOAD ONLINE PLAYERS ====================
+        function loadOnlinePlayers() {
+            const container = document.getElementById('online-players');
+            
+            database.ref('users').orderByChild('status').equalTo('online').on('value', (snapshot) => {
+                const users = snapshot.val();
+                if (!users) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px;">Tidak ada player online</div>';
+                    return;
+                }
+                
+                let html = '';
+                Object.keys(users).forEach(uid => {
+                    if (uid !== currentUser.uid) {
+                        const user = users[uid];
+                        html += `
+                            <div class="player-item" onclick="joinRoom('${uid}')">
+                                <div class="player-info">
+                                    <div class="player-avatar">${user.username.charAt(0)}</div>
+                                    <div class="player-details">
+                                        <span class="player-name">${user.username}</span>
+                                        <span class="player-rank">Rank ${user.rank || 0}</span>
+                                    </div>
+                                </div>
+                                <div class="player-hp">❤️ ${user.money || 1000}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                container.innerHTML = html || '<div style="text-align:center; padding:20px;">Tidak ada player online</div>';
+            });
+        }
+        
+        function showRanking() {
+            // Show ranking modal
+            alert('Fitur ranking akan segera hadir!');
+        }
+        
+        // ==================== AUDIO ====================
+        function playClickSound() {
+            document.getElementById('clickSound')?.play().catch(e => {});
+        }
+        
+        function playHitSound() {
+            document.getElementById('hitSound')?.play().catch(e => {});
+        }
+        
+        // ==================== INIT GAME ====================
+        function initGame() {
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('main-menu').style.display = 'flex';
+                }, 500);
+            }, 2000);
+            
+            // Initialize Three.js
+            initThree();
+            
+            // Create player and enemy (hidden initially)
+            player = createPlayer();
+            enemy = createEnemyCharacter(5, 0);
+            
+            // Initialize UI
+            initJoystick();
+            initSkillMenu();
+            updateUI();
+            
+            // Load online players
+            loadOnlinePlayers();
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (gameStarted) {
+                    updateMovement();
+                    updateEnemyAI();
+                    
+                    // Update camera to follow player
+                    if (player) {
+                        camera.position.x = player.position.x + 5;
+                        camera.position.y = 5;
+                        camera.position.z = player.position.z + 10;
+                        camera.lookAt(player.position);
+                    }
+                    
+                    // Update animations
+                    animationMixers.forEach(mixer => mixer.update(0.016));
+                    
+                    // Send position to Firebase if host
+                    if (isHost && roomId && player) {
+                        database.ref(`rooms/${roomId}/players/${playerId}/position`).set({
+                            x: player.position.x,
+                            z: player.position.z
+                        });
+                    }
+                }
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        // Start game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
