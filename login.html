@@ -42,114 +42,6 @@
             box-shadow: 0 6px 20px rgba(255,0,0,0.4);
         }
         
-        
-        /* Tombol Settings */
-        .settings-btn {
-            position: fixed;
-            top: 15px;
-            right: 60px;
-            background: rgba(0,0,0,0.85);
-            border: 2px solid #00aaff;
-            border-radius: 50%;
-            padding: 12px;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,170,255,0.3);
-            backdrop-filter: blur(5px);
-            cursor: pointer;
-            font-weight: bold;
-            color: #00aaff;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 45px;
-            height: 45px;
-            font-size: 20px;
-        }
-        .settings-btn:hover {
-            background: rgba(0,170,255,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,170,255,0.4);
-        }
-        
-        /* Settings Modal */
-        .settings-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .settings-modal.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-        .settings-box {
-            background: rgba(30,30,46,0.95);
-            border: 2px solid #00aaff;
-            border-radius: 18px;
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 15px 35px rgba(0,170,255,0.3);
-        }
-        .settings-box h3 {
-            color: #00aaff;
-            margin-bottom: 20px;
-            font-size: 20px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .setting-item {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .setting-item label {
-            display: block;
-            margin-bottom: 8px;
-            color: #88ffcc;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .setting-item select, .setting-item input[type="range"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .setting-item select option {
-            background: #1a1a2e;
-            color: white;
-        }
-        .music-option {
-            background: rgba(0,170,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .music-option:hover {
-            background: rgba(0,170,255,0.2);
-        }
-        .music-option.active {
-            background: rgba(0,170,255,0.3);
-            border: 1px solid #00aaff;
-        }
-        
         /* Notice Box Modal */
         .notice-modal {
             position: fixed;
@@ -483,18 +375,10 @@
                 padding: 30px 20px;
                 margin-top: 60px;
             }
-            .faq-btn, .admin-btn, .settings-btn {
+            .faq-btn {
                 top: 10px;
                 padding: 8px 12px;
                 font-size: 14px;
-            }
-            .admin-btn, .settings-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-            .settings-btn {
-                right: 50px;
             }
             .ban-content {
                 padding: 25px;
@@ -507,20 +391,12 @@
     <audio id="clickSound" preload="auto">
         <source src="https://c.top4top.io/m_3673bf8xd0.mp3" type="audio/mpeg">
     </audio>
-    <!-- Tambahkan audio untuk musik background -->
-    <audio id="bgMusic1" preload="auto" loop>
-        <source src="https://e.top4top.io/m_3674v14i19.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="bgMusic2" preload="auto" loop>
-        <source src="https://d.top4top.io/m_36746vfto7.mp3" type="audio/mpeg">
-    </audio>
     
     <!-- Tombol FAQ -->
     <div class="faq-btn" onclick="openFAQ()">
         <span>📌</span>
         <span>FAQ</span>
     </div>
-
     
     <!-- FAQ Modal -->
     <div id="faqModal" class="notice-modal">
@@ -617,8 +493,25 @@
     </div>
     
     <script>
-        // ASET PENTING GAME 
         // Firebase sudah diinisialisasi di firebase-config.js
+        
+        // ==================== CLICK SOUND ONLY ====================
+        let clickVolume = 0.7;
+        
+        function playClickSound() {
+            const clickSound = document.getElementById('clickSound');
+            if (clickSound) {
+                clickSound.volume = clickVolume;
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("Click sound error:", e));
+            }
+        }
+        
+        // Load saved volume
+        const savedClickVol = localStorage.getItem('clickVolume');
+        if (savedClickVol) {
+            clickVolume = parseFloat(savedClickVol);
+        }
         
         // ==================== DETEKSI DEVICE ====================
         async function detectDevice() {
@@ -681,144 +574,9 @@
             return info;
         }
         
-        // ==================== AUDIO MANAGEMENT ====================
-        let currentMusic = 0; // 0 = off, 1 = music1, 2 = music2
-        let musicEnabled = false;
-        let soundEffectsEnabled = true;
-        let clickVolume = 0.7;
-        let musicVolume = 0.5;
-        
-        function playClickSound() {
-            if (!soundEffectsEnabled) return;
-            
-            const clickSound = document.getElementById('clickSound');
-            if (clickSound) {
-                clickSound.volume = clickVolume;
-                clickSound.currentTime = 0;
-                clickSound.play().catch(e => console.log("Click sound error:", e));
-            }
-        }
-        
-        function playRandomMusic() {
-            if (!musicEnabled) return;
-            
-            const music1 = document.getElementById('bgMusic1');
-            const music2 = document.getElementById('bgMusic2');
-            
-            music1.pause();
-            music2.pause();
-            
-            if (currentMusic === 0) return;
-            
-            const selectedMusic = currentMusic === 1 ? music1 : music2;
-            selectedMusic.volume = musicVolume;
-            selectedMusic.currentTime = 0;
-            
-            selectedMusic.play().catch(e => {
-                console.log("Auto-play blocked, waiting for user interaction");
-                document.addEventListener('click', function startMusicOnClick() {
-                    selectedMusic.play().catch(e => console.log("Music play error:", e));
-                    document.removeEventListener('click', startMusicOnClick);
-                }, { once: true });
-            });
-        }
-        
-        function changeMusic(musicNumber) {
-            currentMusic = musicNumber;
-            
-            const music1 = document.getElementById('bgMusic1');
-            const music2 = document.getElementById('bgMusic2');
-            
-            music1.pause();
-            music2.pause();
-            
-            document.querySelectorAll('.music-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            
-            if (musicNumber === 1) {
-                document.querySelectorAll('.music-option')[0].classList.add('active');
-                music1.volume = musicVolume;
-                music1.currentTime = 0;
-                music1.play().catch(e => console.log("Music 1 error:", e));
-            } else if (musicNumber === 2) {
-                document.querySelectorAll('.music-option')[1].classList.add('active');
-                music2.volume = musicVolume;
-                music2.currentTime = 0;
-                music2.play().catch(e => console.log("Music 2 error:", e));
-            } else {
-                document.querySelectorAll('.music-option')[2].classList.add('active');
-            }
-            
-            localStorage.setItem('musicPreference', musicNumber);
-        }
-        
-        function updateVolume() {
-            const volumeSlider = document.getElementById('musicVolume');
-            musicVolume = volumeSlider.value / 100;
-            
-            const music1 = document.getElementById('bgMusic1');
-            const music2 = document.getElementById('bgMusic2');
-            
-            if (music1) music1.volume = musicVolume;
-            if (music2) music2.volume = musicVolume;
-            
-            localStorage.setItem('musicVolume', musicVolume);
-        }
-        
-        function updateClickVolume() {
-            const volumeSlider = document.getElementById('clickVolume');
-            clickVolume = volumeSlider.value / 100;
-            localStorage.setItem('clickVolume', clickVolume);
-        }
-        
-        function toggleSoundEffects() {
-            const toggle = document.getElementById('soundToggle');
-            soundEffectsEnabled = toggle.value === 'on';
-            localStorage.setItem('soundEffects', soundEffectsEnabled);
-        }
-        
-        function openSettings() {
-            playClickSound();
-            document.getElementById('settingsModal').classList.add('active');
-            
-            const savedMusic = localStorage.getItem('musicPreference');
-            if (savedMusic !== null) {
-                currentMusic = parseInt(savedMusic);
-                const options = document.querySelectorAll('.music-option');
-                options.forEach(opt => opt.classList.remove('active'));
-                if (currentMusic === 1) options[0].classList.add('active');
-                else if (currentMusic === 2) options[1].classList.add('active');
-                else options[2].classList.add('active');
-            }
-            
-            const savedMusicVol = localStorage.getItem('musicVolume');
-            if (savedMusicVol) {
-                musicVolume = parseFloat(savedMusicVol);
-                document.getElementById('musicVolume').value = musicVolume * 100;
-            }
-            
-            const savedClickVol = localStorage.getItem('clickVolume');
-            if (savedClickVol) {
-                clickVolume = parseFloat(savedClickVol);
-                document.getElementById('clickVolume').value = clickVolume * 100;
-            }
-            
-            const savedSoundEffects = localStorage.getItem('soundEffects');
-            if (savedSoundEffects !== null) {
-                soundEffectsEnabled = savedSoundEffects === 'true';
-                document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
-            }
-        }
-        
-        function closeSettings() {
-            playClickSound();
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-        
         function addClickSoundToElements() {
             const clickableElements = document.querySelectorAll(
-                'button, .game-card, .feature-card, .toggle-btn, .faq-btn, .admin-btn, .settings-btn, .switch-form span, .close-modal'
+                'button, .faq-btn, .switch-form span, .close-modal'
             );
             
             clickableElements.forEach(element => {
@@ -847,11 +605,6 @@
         function closeFAQ() {
             playClickSound();
             document.getElementById('faqModal').classList.remove('active');
-        }
-        
-        function goToAdmin() {
-            playClickSound();
-            window.location.href = 'admin.html';
         }
         
         function switchToLogin() {
@@ -915,15 +668,10 @@
             localStorage.removeItem('currentUser');
         }
         
+        // Event listeners
         document.getElementById('faqModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeFAQ();
-            }
-        });
-        
-        document.getElementById('settingsModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeSettings();
             }
         });
         
@@ -944,42 +692,12 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeFAQ();
-                closeSettings();
                 closeBanModal();
             }
         });
         
         document.addEventListener('DOMContentLoaded', function() {
             addClickSoundToElements();
-            
-            const savedMusic = localStorage.getItem('musicPreference');
-            if (savedMusic !== null) {
-                currentMusic = parseInt(savedMusic);
-            } else {
-                currentMusic = Math.random() > 0.5 ? 1 : 2;
-            }
-            
-            const savedMusicVol = localStorage.getItem('musicVolume');
-            if (savedMusicVol) {
-                musicVolume = parseFloat(savedMusicVol);
-            }
-            
-            const savedClickVol = localStorage.getItem('clickVolume');
-            if (savedClickVol) {
-                clickVolume = parseFloat(savedClickVol);
-            }
-            
-            const savedSoundEffects = localStorage.getItem('soundEffects');
-            if (savedSoundEffects !== null) {
-                soundEffectsEnabled = savedSoundEffects === 'true';
-                document.getElementById('soundToggle').value = soundEffectsEnabled ? 'on' : 'off';
-            }
-            
-            setTimeout(() => {
-                if (currentMusic > 0) {
-                    playRandomMusic();
-                }
-            }, 1000);
         });
         
         // ==================== REGISTER FUNCTION WITH DEVICE DETECTION ====================
