@@ -3,1324 +3,738 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - The All Game</title>
+    <title>Admin Panel - Game</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
-        body{background:#1a1a2e;color:#fff;min-height:100vh;padding:15px}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        .admin-container{max-width:1400px;margin:auto}
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 20px;
+        }
         
-        /* Login Form */
-        .admin-login{
-            background:#1e1e2e;border-radius:12px;padding:25px;
-            max-width:380px;margin:40px auto;border:2px solid #00ff88;
-            box-shadow:0 5px 20px rgba(0,0,0,0.5)
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .admin-login h2{color:#00ff88;margin-bottom:15px;text-align:center}
-        .admin-login input{
-            width:100%;padding:12px;margin:8px 0;border-radius:8px;
-            background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
-            color:#fff;font-size:14px
-        }
-        .admin-login button{
-            width:100%;padding:12px;background:linear-gradient(135deg,#ff3333,#cc0000);
-            color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;
-            margin-top:10px;transition:0.2s
-        }
-        .admin-login button:hover{transform:translateY(-2px)}
         
-        /* Admin Panel */
-        #adminPanel{display:none}
-        .admin-header{
-            background:rgba(0,0,0,0.4);border-radius:12px;padding:20px;
-            margin-bottom:20px;border:2px solid #ff3333;text-align:center
+        /* Login Box */
+        .login-box {
+            max-width: 400px;
+            margin: 100px auto;
+            background: #16213e;
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
         }
-        .admin-header h1{color:#ff3333;font-size:1.8em;margin-bottom:5px}
         
-        /* Tombol Logout & Kembali */
-        .top-buttons{
-            position:fixed;top:15px;right:15px;display:flex;gap:10px;z-index:100
+        .login-box h2 {
+            color: #00ff88;
+            margin-bottom: 20px;
         }
-        .top-btn{
-            padding:8px 15px;border:none;border-radius:6px;
-            cursor:pointer;font-weight:bold;font-size:13px
-        }
-        .logout-btn{background:#ff3333;color:#fff}
-        .back-btn{background:#00ff88;color:#1a1a2e}
-        .refresh-btn{background:#2196F3;color:#fff}
         
-        /* Tab Navigation */
-        .tabs{
-            display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap;
-            background:rgba(0,0,0,0.3);padding:5px;border-radius:8px
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            color: white;
         }
-        .tab-btn{
-            padding:10px 20px;background:rgba(255,255,255,0.1);
-            border:none;border-radius:6px;color:#aaa;cursor:pointer;
-            font-weight:bold;transition:0.3s;flex:1;min-width:120px
-        }
-        .tab-btn.active{
-            background:#00ff88;color:#1a1a2e;box-shadow:0 0 10px rgba(0,255,136,0.3)
-        }
-        .tab-btn:hover:not(.active){background:rgba(255,255,255,0.2)}
         
-        /* Tab Content */
-        .tab-content{display:none}
-        .tab-content.active{display:block;animation:fadeIn 0.5s}
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #00ff88;
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
         
-        @keyframes fadeIn{from{opacity:0} to{opacity:1}}
+        .login-box button:hover {
+            background: #00cc6a;
+        }
         
-        /* Stats */
-        .stats-grid{
-            display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-            gap:15px;margin-bottom:20px
+        .error {
+            color: #ff4444;
+            margin-top: 10px;
         }
-        .stat-card{
-            background:rgba(0,0,0,0.3);padding:15px;border-radius:10px;
-            text-align:center;border:2px solid #00ff88
-        }
-        .stat-card h3{color:#00ff88;margin-bottom:8px;font-size:14px}
-        .stat-card .number{font-size:1.5em;font-weight:bold}
         
-        /* Search */
-        .search-box{margin:15px 0;display:flex;gap:8px}
-        .search-box input{
-            flex:1;padding:10px;background:rgba(255,255,255,0.1);
-            border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px
+        /* Header Admin */
+        .admin-header {
+            background: #16213e;
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .search-box button{
-            padding:10px 15px;background:#00ff88;color:#1a1a2e;
-            border:none;border-radius:6px;font-weight:bold;cursor:pointer
+        
+        .admin-header h1 {
+            color: #00ff88;
         }
-        .search-box .reset-btn{background:#666;color:#fff}
+        
+        .admin-header button {
+            padding: 10px 20px;
+            background: #ff4444;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .admin-header button:hover {
+            background: #cc0000;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #16213e;
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #88ffcc;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            color: #00ff88;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        /* Filter */
+        .filter-section {
+            background: #16213e;
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-section input, .filter-section select {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            color: white;
+        }
         
         /* Table */
-        .users-table-container{
-            background:#1e1e2e;border-radius:12px;padding:15px;
-            margin-top:15px;overflow-x:auto
+        .users-table {
+            background: #16213e;
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            overflow-x: auto;
         }
-        table{width:100%;border-collapse:collapse;font-size:13px}
-        th,td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1)}
-        th{background:rgba(0,0,0,0.3);color:#00ff88}
-        tr:hover{background:rgba(255,255,255,0.05)}
         
-        /* Status Badge */
-        .status-badge{
-            padding:4px 8px;border-radius:4px;font-size:11px;font-weight:bold
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .online-badge{background:rgba(0,255,136,0.2);color:#00ff88}
-        .offline-badge{background:rgba(255,51,51,0.2);color:#ff3333}
-        .banned-badge{background:rgba(255,0,0,0.2);color:#ff0000}
+        
+        th {
+            background: #1a1a2e;
+            color: #00ff88;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #00ff88;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        tr:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .status-online {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .status-offline {
+            color: #ff4444;
+        }
+        
+        .status-banned {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        
+        .device-info {
+            font-size: 11px;
+            color: #88ffcc;
+            max-width: 200px;
+        }
         
         /* Action Buttons */
-        .user-action-btn{
-            padding:5px 10px;border:none;border-radius:4px;cursor:pointer;
-            margin:2px;font-size:11px;font-weight:bold;transition:0.2s
-        }
-        .user-action-btn:hover{opacity:0.9;transform:translateY(-1px)}
-        .edit-btn{background:#4CAF50;color:#fff}
-        .ban-btn{background:#f44336;color:#fff}
-        .unban-btn{background:#2196F3;color:#fff}
-        .give-btn{background:#FF9800;color:#fff}
-        .delete-btn{background:#9C27B0;color:#fff}
-        .view-btn{background:#2196F3;color:#fff}
-        .kick-btn{background:#FF5722;color:#fff}
-        
-        /* Device Info Modal */
-        .device-modal{
-            position:fixed;top:0;left:0;width:100%;height:100%;
-            background:rgba(0,0,0,0.95);display:none;justify-content:center;
-            align-items:center;z-index:1000;padding:20px
-        }
-        .device-modal.active{display:flex}
-        .device-content{
-            background:#1e1e2e;border-radius:15px;padding:25px;
-            border:3px solid #00ff88;max-width:800px;width:100%;
-            max-height:90vh;overflow-y:auto
-        }
-        .device-header{
-            display:flex;justify-content:space-between;align-items:center;
-            margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid rgba(255,255,255,0.1)
-        }
-        .device-header h3{
-            color:#00ff88;font-size:1.5em;margin:0
-        }
-        .close-modal{
-            background:#ff3333;color:#fff;border:none;border-radius:50%;
-            width:35px;height:35px;font-size:20px;cursor:pointer;
-            display:flex;align-items:center;justify-content:center
+        .action-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
         }
         
-        /* Device Info Grid */
-        .device-grid{
-            display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-            gap:15px;margin-top:20px
-        }
-        .info-card{
-            background:rgba(0,0,0,0.3);border-radius:10px;padding:15px;
-            border-left:4px solid #00ff88
-        }
-        .info-card h4{
-            color:#00ff88;margin-bottom:10px;font-size:14px;
-            display:flex;align-items:center;gap:8px
-        }
-        .info-value{
-            font-size:16px;font-weight:bold;word-break:break-all
-        }
-        .info-detail{
-            font-size:12px;color:#aaa;margin-top:5px
+        .btn-edit { background: #ffd700; color: #1a1a2e; }
+        .btn-ban { background: #ff4444; color: white; }
+        .btn-unban { background: #00ff88; color: #1a1a2e; }
+        .btn-delete { background: #8b0000; color: white; }
+        
+        .rank-select {
+            background: #1a1a2e;
+            color: white;
+            border: 1px solid #00ff88;
+            padding: 4px;
+            border-radius: 4px;
         }
         
-        /* Modal untuk Edit User */
-        .action-modal{
-            position:fixed;top:0;left:0;width:100%;height:100%;
-            background:rgba(0,0,0,0.9);display:none;justify-content:center;
-            align-items:center;z-index:1000
-        }
-        .action-modal.active{display:flex}
-        .modal-content{
-            background:#1e1e2e;padding:20px;border-radius:12px;
-            border:2px solid #00ff88;max-width:450px;width:90%
-        }
-        .modal-content h3{color:#00ff88;margin-bottom:10px}
-        .modal-content input{
-            width:100%;padding:10px;margin:5px 0;background:rgba(255,255,255,0.1);
-            border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px
-        }
-        .modal-buttons{display:flex;gap:8px;margin-top:15px}
-        .modal-buttons button{flex:1;padding:10px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
-        .save-btn{background:#4CAF50;color:#fff}
-        .cancel-btn{background:#f44336;color:#fff}
-        .confirm-btn{background:#9C27B0;color:#fff}
-        
-        /* Messages */
-        .message{
-            position:fixed;top:15px;right:15px;padding:12px 18px;
-            border-radius:6px;color:#fff;font-weight:bold;z-index:1001;
-            animation:slideIn 0.3s ease
-        }
-        .success{background:linear-gradient(135deg,#00ff88,#00cc6a)}
-        .error{background:linear-gradient(135deg,#ff3333,#cc0000)}
-        .warning{background:linear-gradient(135deg,#FF9800,#F57C00)}
-        
-        @keyframes slideIn{
-            from{transform:translateX(100%);opacity:0}
-            to{transform:translateX(0);opacity:1}
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
         
-        /* Responsive */
-        @media (max-width:768px){
-            .stats-grid{grid-template-columns:1fr 1fr}
-            .top-buttons{flex-direction:column;gap:5px}
-            .top-btn{font-size:11px;padding:6px 10px}
-            table{font-size:12px}
-            th,td{padding:8px 10px}
-            .tabs{flex-direction:column}
-            .tab-btn{width:100%}
-            .device-grid{grid-template-columns:1fr}
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: #16213e;
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
         }
+        
+        .modal-content h3 {
+            color: #00ff88;
+            margin-bottom: 20px;
+        }
+        
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            color: white;
+        }
+        
+        .modal-content textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-save { background: #00ff88; color: #1a1a2e; }
+        .btn-cancel { background: #ff4444; color: white; }
+        
+        /* Message */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .message.success { background: #00ff88; color: #1a1a2e; }
+        .message.error { background: #ff4444; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ff88;
+        }
+        
+        /* Rank colors */
+        .rank-newbie{color:#cd7f32}.rank-junior{color:#c0c0c0}.rank-senior{color:#ffd700}
+        .rank-great{color:#32cd32}.rank-super-great{color:#00ff00}.rank-legend{color:#ff4500}
+        .rank-kings{color:#9370db}.rank-greatest{color:#ff00ff}.rank-mad-kings{color:#8b0000}
+        .rank-greatness{color:#00ffff}.rank-unbeatable{color:#ff8c00}.rank-monster-kings{color:#800080}
+        .rank-impossible{background:linear-gradient(135deg,#f00,#ff8c00,#ff0,#0f0,#0ff,#00f,#800080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
     </style>
 </head>
 <body>
-    <!-- Admin Login Form -->
-    <div id="loginForm" class="admin-login" style="display: none;">
-        <h2>🔐 Fitur Premium - Login</h2>
-        <input type="text" id="adminUsername" placeholder="Username" value="">
-        <input type="password" id="adminPassword" placeholder="Password" value="">
-        <button onclick="adminLogin()">LOGIN</button>
-    </div>
-    
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-container" style="display: none;">
-        <!-- Tombol Logout & Kembali -->
-        <div class="top-buttons">
-            <button class="top-btn back-btn" onclick="goBack()">← BACK</button>
-            <button class="top-btn refresh-btn" onclick="refreshAllData()">🔄 REFRESH</button>
-            <button class="top-btn logout-btn" onclick="adminLogout()">LOGOUT</button>
+    <div class="admin-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="login-box">
+            <h2>🔐 ADMIN PANEL</h2>
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="adminLogin()">LOGIN</button>
+            <div id="loginError" class="error"></div>
         </div>
         
-        <div class="admin-header">
-            <h1>👑 Fitur Premium</h1>
-            <p>Selamat datang, <span id="adminName"></span>! | <span id="lastUpdate">Loading...</span></p>
-        </div>
-        
-        <!-- Tab Navigation -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('users')">👥 USER MANAGEMENT</button>
-            <button class="tab-btn" onclick="switchTab('devices')">📱 DEVICE MONITOR</button>
-            <button class="tab-btn" onclick="switchTab('online')">🟢 ONLINE USERS</button>
-        </div>
-        
-        <!-- Tab 1: User Management -->
-        <div id="usersTab" class="tab-content active">
-            <!-- Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Users</h3>
-                    <div class="number" id="totalUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Online Now</h3>
-                    <div class="number" id="onlineUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Playing Games</h3>
-                    <div class="number" id="playingUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Banned Users</h3>
-                    <div class="number" id="bannedUsers">0</div>
-                </div>
+        <!-- Admin Panel (Hidden by default) -->
+        <div id="adminPanel" style="display:none;">
+            <div class="admin-header">
+                <h1>👑 ADMIN PANEL</h1>
+                <button onclick="adminLogout()">LOGOUT</button>
             </div>
             
-            <!-- Search Box -->
-            <div class="search-box">
-                <input type="text" id="searchUser" placeholder="Cari username atau UID...">
-                <button onclick="searchUser()">Cari</button>
-                <button onclick="clearSearch()" class="reset-btn">Reset</button>
+            <!-- Stats -->
+            <div class="stats-grid" id="statsContainer">
+                <div class="stat-card"><h3>Total Users</h3><div class="value" id="totalUsers">0</div></div>
+                <div class="stat-card"><h3>Online</h3><div class="value" id="onlineUsers">0</div></div>
+                <div class="stat-card"><h3>Banned</h3><div class="value" id="bannedUsers">0</div></div>
+                <div class="stat-card"><h3>Today Active</h3><div class="value" id="todayActive">0</div></div>
+            </div>
+            
+            <!-- Filter -->
+            <div class="filter-section">
+                <input type="text" id="searchInput" placeholder="🔍 Cari username..." oninput="filterUsers()">
+                <select id="statusFilter" onchange="filterUsers()">
+                    <option value="all">Semua Status</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                    <option value="banned">Banned</option>
+                </select>
+                <select id="rankFilter" onchange="filterUsers()">
+                    <option value="all">Semua Rank</option>
+                    <option value="0">🥉 Newbie</option>
+                    <option value="1">🥈 Junior</option>
+                    <option value="2">🥇 Senior</option>
+                    <option value="3">🏅 Great</option>
+                    <option value="4">🎖️ Super Great</option>
+                    <option value="5">🏆 Legend</option>
+                    <option value="6">👑 Kings</option>
+                    <option value="7">☢️ Greatest</option>
+                    <option value="8">☣️ Mad Kings</option>
+                    <option value="9">🔱 Greatness</option>
+                    <option value="10">⚜️ Unbeatable</option>
+                    <option value="11">🏴‍☠️ Monster Kings</option>
+                    <option value="12">⚛️亗 Impossible</option>
+                </select>
+                <button onclick="refreshData()" style="background:#00ff88; color:#1a1a2e; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">🔄 Refresh</button>
             </div>
             
             <!-- Users Table -->
-            <div class="users-table-container">
-                <h2>📋 DAFTAR SEMUA USER</h2>
+            <div class="users-table">
                 <table id="usersTable">
                     <thead>
                         <tr>
-                            <th>Username</th>
                             <th>Status</th>
-                            <th>Money</th>
-                            <th>Diamond</th>
+                            <th>Username</th>
                             <th>Rank</th>
-                            <th>Stars</th>
-                            <th>Terakhir Online</th>
-                            <th>Aksi</th>
+                            <th>💰 Money</th>
+                            <th>💎 Diamond</th>
+                            <th>⭐ Stars</th>
+                            <th>Device</th>
+                            <th>Last Seen</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <!-- Data akan diisi oleh JavaScript -->
+                        <tr><td colspan="9" class="loading">Memuat data...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        <!-- Tab 2: Device Monitor -->
-        <div id="devicesTab" class="tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Mobile Devices</h3>
-                    <div class="number" id="mobileCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Desktop Devices</h3>
-                    <div class="number" id="desktopCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Android Users</h3>
-                    <div class="number" id="androidCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>iOS Users</h3>
-                    <div class="number" id="iosCount">0</div>
-                </div>
-            </div>
-            
-            <div class="users-table-container">
-                <h2>📱 DEVICE MONITORING</h2>
-                <table id="devicesTable">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Device</th>
-                            <th>OS</th>
-                            <th>Browser</th>
-                            <th>Screen</th>
-                            <th>Timezone</th>
-                            <th>Last Update</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="devicesTableBody">
-                        <!-- Data akan diisi oleh JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Tab 3: Online Users -->
-        <div id="onlineTab" class="tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>In Lobby</h3>
-                    <div class="number" id="lobbyCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>In Game 1</h3>
-                    <div class="number" id="game1Count">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>In Game 2</h3>
-                    <div class="number" id="game2Count">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Idle Users</h3>
-                    <div class="number" id="idleCount">0</div>
-                </div>
-            </div>
-            
-            <div class="users-table-container">
-                <h2>🟢 USER ONLINE REAL-TIME</h2>
-                <div id="onlineUsersList" class="device-grid">
-                    <!-- Online users will be shown here -->
-                </div>
-            </div>
-        </div>
     </div>
     
-    <!-- Modal untuk Device Detail -->
-    <div id="deviceModal" class="device-modal">
-        <div class="device-content">
-            <div class="device-header">
-                <h3 id="deviceModalTitle">📱 Device Information</h3>
-                <button class="close-modal" onclick="closeDeviceModal()">×</button>
-            </div>
-            <div class="device-grid" id="deviceInfoGrid">
-                <!-- Device info will be inserted here -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal untuk Edit User -->
-    <div id="editModal" class="action-modal">
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
         <div class="modal-content">
-            <h3>✏️ Edit User</h3>
-            <p id="editUserInfo"></p>
-            <input type="number" id="editMoney" placeholder="Uang" min="0">
-            <input type="number" id="editDiamond" placeholder="Diamond" min="0">
-            <input type="number" id="editStars" placeholder="Stars" min="0">
-            <input type="number" id="editRank" placeholder="Rank (0-12)" min="0" max="12">
+            <h3>✏️ EDIT USER</h3>
+            <input type="hidden" id="editUid">
+            <input type="text" id="editUsername" placeholder="Username">
+            <select id="editRank">
+                <option value="0">🥉 Newbie</option>
+                <option value="1">🥈 Junior</option>
+                <option value="2">🥇 Senior</option>
+                <option value="3">🏅 Great</option>
+                <option value="4">🎖️ Super Great</option>
+                <option value="5">🏆 Legend</option>
+                <option value="6">👑 Kings</option>
+                <option value="7">☢️ Greatest</option>
+                <option value="8">☣️ Mad Kings</option>
+                <option value="9">🔱 Greatness</option>
+                <option value="10">⚜️ Unbeatable</option>
+                <option value="11">🏴‍☠️ Monster Kings</option>
+                <option value="12">⚛️亗 Impossible</option>
+            </select>
+            <input type="number" id="editMoney" placeholder="Money">
+            <input type="number" id="editDiamond" placeholder="Diamond">
+            <input type="number" id="editStars" placeholder="Stars">
             <div class="modal-buttons">
-                <button class="save-btn" onclick="saveUserEdit()">SIMPAN</button>
-                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
+                <button class="btn-save" onclick="saveUserEdit()">SIMPAN</button>
+                <button class="btn-cancel" onclick="closeEditModal()">BATAL</button>
             </div>
         </div>
     </div>
     
-    <!-- Modal untuk Give Resources -->
-    <div id="giveModal" class="action-modal">
+    <!-- Ban Modal -->
+    <div id="banModal" class="modal">
         <div class="modal-content">
-            <h3>🎁 Give Resources</h3>
-            <p id="giveUserInfo"></p>
-            <input type="number" id="giveMoney" placeholder="Jumlah Uang" min="0">
-            <input type="number" id="giveDiamond" placeholder="Jumlah Diamond" min="0">
+            <h3>🚫 BAN USER</h3>
+            <input type="hidden" id="banUid">
+            <input type="text" id="banUsername" readonly style="background:#333;">
+            <textarea id="banReason" placeholder="Alasan ban (opsional)"></textarea>
             <div class="modal-buttons">
-                <button class="save-btn" onclick="giveResources()">KASIHKAN</button>
-                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal untuk Hapus Akun -->
-    <div id="deleteModal" class="action-modal">
-        <div class="modal-content">
-            <h3>🗑️ Hapus Akun</h3>
-            <p id="deleteUserInfo"></p>
-            <p style="color:#ff6666;font-size:14px;margin:10px 0;">
-                ⚠️ PERINGATAN: Tindakan ini tidak dapat dibatalkan!
-                Semua data user akan dihapus permanen.
-            </p>
-            <input type="text" id="confirmUsername" placeholder="Ketik username untuk konfirmasi">
-            <div class="modal-buttons">
-                <button class="confirm-btn" onclick="confirmDelete()">HAPUS PERMANEN</button>
-                <button class="cancel-btn" onclick="closeModal()">BATAL</button>
+                <button class="btn-save" onclick="confirmBan()">BAN</button>
+                <button class="btn-cancel" onclick="closeBanModal()">BATAL</button>
             </div>
         </div>
     </div>
     
     <script>
-        // ==================== GLOBAL VARIABLES ====================
-        let currentEditingUser = null;
-        let allUsers = [];
-        let allDevices = {};
-        let realTimeListeners = [];
-        
-        // ==================== INITIALIZATION ====================
-        window.onload = function() {
-            const adminSession = localStorage.getItem('adminSession');
-            if (adminSession === 'true') {
-                showAdminPanel();
-            } else {
-                showLoginForm();
-            }
+        const ADMIN_USERS = {
+            'Taher': 'admin',
+            'Xhrzo': 'admin'
         };
         
-        function showLoginForm() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
+        let currentAdmin = null;
+        let allUsers = [];
+        let filteredUsers = [];
+        
+        const ranks = [
+            '🥉 Newbie', '🥈 Junior', '🥇 Senior', '🏅 Great', '🎖️ Super Great',
+            '🏆 Legend', '👑 Kings', '☢️ Greatest', '☣️ Mad Kings', '🔱 Greatness',
+            '⚜️ Unbeatable', '🏴‍☠️ Monster Kings', '⚛️亗 Impossible'
+        ];
+        
+        function showMessage(text, type) {
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
         }
         
-        function showAdminPanel() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            
-            // Update timestamp
-            document.getElementById('lastUpdate').textContent = 
-                'Last Update: ' + new Date().toLocaleTimeString('id-ID');
-            
-            // Load all data
-            loadAllData();
-            
-            // Start real-time monitoring
-            startRealTimeMonitoring();
-        }
-        
+        // ==================== LOGIN ====================
         function adminLogin() {
-            const username = document.getElementById('adminUsername').value.trim();
-            const password = document.getElementById('adminPassword').value.trim();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
             
-            if (username === 'Taher' && password === 'admin') {
-                localStorage.setItem('adminSession', 'true');
-                document.getElementById('adminName').textContent = username;
-                showAdminPanel();
-                showMessage('Login admin berhasil!', 'success');
+            if(ADMIN_USERS[username] && ADMIN_USERS[username] === password) {
+                currentAdmin = username;
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadUsers();
+                startRealtimeUpdates();
             } else {
-                showMessage('Username atau password salah!', 'error');
+                document.getElementById('loginError').textContent = 'Username atau password salah!';
             }
         }
         
         function adminLogout() {
-            // Stop all real-time listeners
-            realTimeListeners.forEach(ref => ref.off());
-            realTimeListeners = [];
-            
-            localStorage.removeItem('adminSession');
-            showLoginForm();
+            currentAdmin = null;
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
         }
         
-        function goBack() {
-            window.location.href = 'lobby.html';
-        }
-        
-        function refreshAllData() {
-            loadAllData();
-            showMessage('Data diperbarui!', 'success');
-            document.getElementById('lastUpdate').textContent = 
-                'Last Update: ' + new Date().toLocaleTimeString('id-ID');
-        }
-        
-        // ==================== TAB MANAGEMENT ====================
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active from all tab buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            
-            // Activate corresponding tab button
-            event.target.classList.add('active');
-            
-            // Load data for tab if needed
-            if (tabName === 'devices') {
-                loadDevicesTable();
-            } else if (tabName === 'online') {
-                loadOnlineUsers();
-            }
-        }
-        
-        // ==================== DATA LOADING ====================
-        async function loadAllData() {
-            try {
-                // Load users
-                const usersSnapshot = await database.ref('users').once('value');
+        // ==================== LOAD USERS ====================
+        function loadUsers() {
+            database.ref('users').once('value', (snapshot) => {
+                const users = snapshot.val();
                 allUsers = [];
-                usersSnapshot.forEach((childSnapshot) => {
-                    const user = childSnapshot.val();
-                    const uid = childSnapshot.key;
-                    allUsers.push({ uid, ...user });
+                
+                Object.keys(users).forEach(uid => {
+                    const user = users[uid];
+                    allUsers.push({
+                        uid: uid,
+                        ...user
+                    });
                 });
                 
-                // Load device data
-                const devicesSnapshot = await database.ref('user_stats').once('value');
-                allDevices = devicesSnapshot.val() || {};
-                
-                // Update UI
-                updateStatistics();
-                loadUsersTable();
-                loadDevicesTable();
-                loadOnlineUsers();
-                
-            } catch (error) {
-                showMessage('Error loading data: ' + error.message, 'error');
-                console.error('Error loading all data:', error);
-            }
-        }
-        
-        function updateStatistics() {
-            // User stats
-            const totalUsers = allUsers.length;
-            const onlineUsers = allUsers.filter(u => u.status === 'online').length;
-            const bannedUsers = allUsers.filter(u => u.banned).length;
-            
-            // Device stats
-            let mobileCount = 0, desktopCount = 0;
-            let androidCount = 0, iosCount = 0;
-            let playingCount = 0, lobbyCount = 0, game1Count = 0, game2Count = 0, idleCount = 0;
-            
-            for (const uid in allDevices) {
-                const device = allDevices[uid];
-                
-                if (device.type === 'mobile') mobileCount++;
-                if (device.type === 'desktop') desktopCount++;
-                if (device.os === 'Android') androidCount++;
-                if (device.os === 'iOS') iosCount++;
-                
-                // Check current page
-                if (device.page) {
-                    if (device.page.includes('game')) playingCount++;
-                    if (device.page === 'lobby') lobbyCount++;
-                    if (device.page.includes('GAME1')) game1Count++;
-                    if (device.page.includes('GAME2')) game2Count++;
-                    if (!device.page || device.page === 'unknown') idleCount++;
-                }
-            }
-            
-            // Update stats display
-            document.getElementById('totalUsers').textContent = totalUsers;
-            document.getElementById('onlineUsers').textContent = onlineUsers;
-            document.getElementById('bannedUsers').textContent = bannedUsers;
-            document.getElementById('playingUsers').textContent = playingCount;
-            
-            document.getElementById('mobileCount').textContent = mobileCount;
-            document.getElementById('desktopCount').textContent = desktopCount;
-            document.getElementById('androidCount').textContent = androidCount;
-            document.getElementById('iosCount').textContent = iosCount;
-            
-            document.getElementById('lobbyCount').textContent = lobbyCount;
-            document.getElementById('game1Count').textContent = game1Count;
-            document.getElementById('game2Count').textContent = game2Count;
-            document.getElementById('idleCount').textContent = idleCount;
-        }
-        
-        // ==================== USER MANAGEMENT ====================
-        function loadUsersTable() {
-            const usersTableBody = document.getElementById('usersTableBody');
-            usersTableBody.innerHTML = '';
-            
-            allUsers.forEach(user => {
-                // Status badge
-                let statusBadge = '';
-                if (user.banned) {
-                    statusBadge = '<span class="status-badge banned-badge">BANNED</span>';
-                } else if (user.status === 'online') {
-                    statusBadge = '<span class="status-badge online-badge">ONLINE</span>';
-                } else {
-                    statusBadge = '<span class="status-badge offline-badge">OFFLINE</span>';
-                }
-                
-                // Rank name
-                const rankNames = ["Newbie","Junior","Senior","Great","Super Great","Legend",
-                                  "Kings","Greatest","Mad Kings","Greatness","Unbeatable",
-                                  "Monster Kings","Impossible"];
-                const rankName = rankNames[user.rank || 0] || "Unknown";
-                
-                // Last online time
-                const lastOnline = user.lastOnline ? 
-                    formatTimeAgo(user.lastOnline) : 'Never';
-                
-                // Add to table
-                usersTableBody.innerHTML += `
-                    <tr>
-                        <td>
-                            <strong>${user.username}</strong><br>
-                            <small style="color:#888;font-size:11px">${user.uid.substring(0, 8)}...</small>
-                        </td>
-                        <td>${statusBadge}</td>
-                        <td>${user.money || 0}</td>
-                        <td>${user.diamond || 0}</td>
-                        <td>${rankName}</td>
-                        <td>${user.stars || 0}</td>
-                        <td>${lastOnline}</td>
-                        <td style="white-space: nowrap;">
-                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${user.uid}')" title="View Device Info">View</button>
-                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')" title="Edit User">Edit</button>
-                            <button class="user-action-btn give-btn" onclick="openGiveModal('${user.uid}')" title="Give Resources">Give</button>
-                            ${user.banned ? 
-                                `<button class="user-action-btn unban-btn" onclick="toggleBan('${user.uid}', false)" title="Unban User">Unban</button>` :
-                                `<button class="user-action-btn ban-btn" onclick="toggleBan('${user.uid}', true)" title="Ban User">Ban</button>`
-                            }
-                            <button class="user-action-btn kick-btn" onclick="forceLogout('${user.uid}')" title="Force Logout">Kick</button>
-                            <button class="user-action-btn delete-btn" onclick="openDeleteModal('${user.uid}')" title="Delete User">Hapus</button>
-                        </td>
-                    </tr>
-                `;
+                updateStats();
+                filterUsers();
             });
         }
         
-        function searchUser() {
-            const searchTerm = document.getElementById('searchUser').value.toLowerCase();
-            const usersTableBody = document.getElementById('usersTableBody');
+        function startRealtimeUpdates() {
+            database.ref('users').on('value', (snapshot) => {
+                const users = snapshot.val();
+                allUsers = [];
+                
+                Object.keys(users).forEach(uid => {
+                    const user = users[uid];
+                    allUsers.push({
+                        uid: uid,
+                        ...user
+                    });
+                });
+                
+                updateStats();
+                filterUsers();
+            });
+        }
+        
+        function updateStats() {
+            const total = allUsers.length;
+            const online = allUsers.filter(u => u.status === 'online').length;
+            const banned = allUsers.filter(u => u.banned).length;
             
-            if (!searchTerm) {
-                loadUsersTable();
+            const today = new Date().toDateString();
+            const todayActive = allUsers.filter(u => {
+                if(u.lastSeen) {
+                    return new Date(u.lastSeen).toDateString() === today;
+                }
+                return false;
+            }).length;
+            
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('onlineUsers').textContent = online;
+            document.getElementById('bannedUsers').textContent = banned;
+            document.getElementById('todayActive').textContent = todayActive;
+        }
+        
+        function filterUsers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const rank = document.getElementById('rankFilter').value;
+            
+            filteredUsers = allUsers.filter(user => {
+                if(search && !user.username?.toLowerCase().includes(search)) return false;
+                if(status === 'online' && user.status !== 'online') return false;
+                if(status === 'offline' && (user.status !== 'offline' || user.banned)) return false;
+                if(status === 'banned' && !user.banned) return false;
+                if(rank !== 'all' && user.rank != rank) return false;
+                return true;
+            });
+            
+            renderUsersTable();
+        }
+        
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            
+            if(filteredUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px;">Tidak ada user</td></tr>';
                 return;
             }
             
-            const filteredUsers = allUsers.filter(user => 
-                user.username.toLowerCase().includes(searchTerm) || 
-                user.uid.toLowerCase().includes(searchTerm)
-            );
-            
-            usersTableBody.innerHTML = '';
-            
+            let html = '';
             filteredUsers.forEach(user => {
-                let statusBadge = '';
-                if (user.banned) {
-                    statusBadge = '<span class="status-badge banned-badge">BANNED</span>';
-                } else if (user.status === 'online') {
-                    statusBadge = '<span class="status-badge online-badge">ONLINE</span>';
-                } else {
-                    statusBadge = '<span class="status-badge offline-badge">OFFLINE</span>';
+                const statusClass = user.banned ? 'status-banned' : (user.status === 'online' ? 'status-online' : 'status-offline');
+                const statusText = user.banned ? '🔴 BANNED' : (user.status === 'online' ? '🟢 Online' : '⚫ Offline');
+                
+                const rankClass = `rank-${ranks[user.rank || 0].toLowerCase().replace(/[^a-z]/g, '')}`;
+                
+                let deviceHtml = '-';
+                if(user.device) {
+                    const d = user.device;
+                    deviceHtml = `<div class="device-info">`;
+                    if(d.platform) deviceHtml += `📱 ${d.platform}<br>`;
+                    if(d.androidVersion) deviceHtml += `📱 Android ${d.androidVersion}<br>`;
+                    if(d.ip) deviceHtml += `🌐 ${d.ip}<br>`;
+                    if(d.latency) deviceHtml += `⚡ ${d.latency}ms`;
+                    deviceHtml += `</div>`;
                 }
                 
-                usersTableBody.innerHTML += `
+                const lastSeen = user.lastSeen ? new Date(user.lastSeen).toLocaleString('id-ID') : '-';
+                
+                html += `
                     <tr>
-                        <td><strong>${user.username}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td>${user.money || 0}</td>
-                        <td>${user.diamond || 0}</td>
-                        <td>Rank ${user.rank || 0}</td>
-                        <td>${user.stars || 0}</td>
-                        <td>${user.lastOnline ? formatTimeAgo(user.lastOnline) : 'Never'}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td><strong>${user.username || 'Unknown'}</strong></td>
+                        <td class="${rankClass}">${ranks[user.rank || 0]}</td>
+                        <td>💰 ${user.money || 0}</td>
+                        <td>💎 ${user.diamond || 0}</td>
+                        <td>⭐ ${user.stars || 0}</td>
+                        <td>${deviceHtml}</td>
+                        <td>${lastSeen}</td>
                         <td>
-                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${user.uid}')">View</button>
-                            <button class="user-action-btn edit-btn" onclick="openEditModal('${user.uid}')">Edit</button>
+                            <button class="action-btn btn-edit" onclick="openEditModal('${user.uid}')">✏️</button>
+                            ${user.banned ? 
+                                `<button class="action-btn btn-unban" onclick="unbanUser('${user.uid}')">🔓</button>` :
+                                `<button class="action-btn btn-ban" onclick="openBanModal('${user.uid}', '${user.username}')">🚫</button>`
+                            }
+                            <button class="action-btn btn-delete" onclick="deleteUser('${user.uid}')">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
+            
+            tbody.innerHTML = html;
         }
         
-        function clearSearch() {
-            document.getElementById('searchUser').value = '';
-            loadUsersTable();
-        }
-        
-        // ==================== DEVICE MONITORING ====================
-        function loadDevicesTable() {
-            const devicesTableBody = document.getElementById('devicesTableBody');
-            devicesTableBody.innerHTML = '';
-            
-            let deviceCount = 0;
-            
-            for (const uid in allDevices) {
-                const device = allDevices[uid];
-                
-                // Find user info
-                const user = allUsers.find(u => u.uid === uid);
-                if (!user) continue;
-                
-                deviceCount++;
-                
-                // Device icon
-                const deviceIcon = device.type === 'mobile' ? '📱' : 
-                                 device.type === 'tablet' ? '📟' : '💻';
-                
-                // Screen size
-                const screenSize = device.w && device.h ? `${device.w}x${device.h}` : 'unknown';
-                
-                // Last update time
-                const lastUpdate = device.t ? formatTimeAgo(device.t) : 'unknown';
-                
-                // Add to table
-                devicesTableBody.innerHTML += `
-                    <tr>
-                        <td><strong>${user.username}</strong></td>
-                        <td>${deviceIcon} ${device.type || 'unknown'}</td>
-                        <td>${device.os || 'unknown'}</td>
-                        <td>${device.browser || 'unknown'}</td>
-                        <td>${screenSize}</td>
-                        <td>${device.tz || 'unknown'}</td>
-                        <td>${lastUpdate}</td>
-                        <td>
-                            <button class="user-action-btn view-btn" onclick="viewDeviceInfo('${uid}')">Details</button>
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            if (deviceCount === 0) {
-                devicesTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="loader">
-                            Tidak ada device data yang ditemukan.
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-        
-        // ==================== ONLINE USERS ====================
-        function loadOnlineUsers() {
-            const onlineUsersList = document.getElementById('onlineUsersList');
-            onlineUsersList.innerHTML = '';
-            
-            let onlineCount = 0;
-            
-            for (const uid in allDevices) {
-                const device = allDevices[uid];
-                const user = allUsers.find(u => u.uid === uid);
-                
-                if (!user || user.status !== 'online' || user.banned) continue;
-                
-                onlineCount++;
-                
-                // Get current activity
-                let activity = 'Idle';
-                let activityColor = '#888';
-                
-                if (device.page) {
-                    if (device.page === 'lobby') {
-                        activity = 'In Lobby';
-                        activityColor = '#00ff88';
-                    } else if (device.page.includes('game')) {
-                        activity = 'Playing Game';
-                        activityColor = '#ffd700';
-                    }
-                }
-                
-                // Calculate time since last update
-                const lastSeen = device.t ? 
-                    Math.floor((Date.now() - device.t) / 1000) : 999;
-                const lastSeenText = lastSeen < 60 ? 
-                    `${lastSeen}s ago` : `${Math.floor(lastSeen/60)}m ago`;
-                
-                onlineUsersList.innerHTML += `
-                    <div class="info-card">
-                        <h4>${user.username}</h4>
-                        <div class="info-value" style="color:${activityColor}">${activity}</div>
-                        <div class="info-detail">
-                            📱 ${device.type || 'unknown'} | ${device.os || 'unknown'}<br>
-                            🖥️ ${device.w || 0}x${device.h || 0}<br>
-                            🗺️ ${device.tz || 'unknown'} | 🕐 ${lastSeenText}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            if (onlineCount === 0) {
-                onlineUsersList.innerHTML = `
-                    <div class="info-card" style="grid-column:1/-1;text-align:center">
-                        <h4>No Online Users</h4>
-                        <div class="info-value">Tidak ada user yang online saat ini</div>
-                    </div>
-                `;
-            }
-        }
-        
-        // ==================== DEVICE DETAIL VIEW ====================
-        function viewDeviceInfo(uid) {
-            const device = allDevices[uid];
-            const user = allUsers.find(u => u.uid === uid);
-            
-            if (!device || !user) {
-                showMessage('Device info tidak ditemukan', 'error');
-                return;
-            }
-            
-            document.getElementById('deviceModalTitle').textContent = 
-                `📱 ${user.username} - Device Details`;
-            
-            const deviceGrid = document.getElementById('deviceInfoGrid');
-            deviceGrid.innerHTML = '';
-            
-            // Basic Info
-            deviceGrid.innerHTML += `
-                <div class="info-card">
-                    <h4>👤 User Info</h4>
-                    <div class="info-value">${user.username}</div>
-                    <div class="info-detail">UID: ${uid}</div>
-                </div>
-                
-                <div class="info-card">
-                    <h4>📱 Device Type</h4>
-                    <div class="info-value">${device.type || 'unknown'}</div>
-                    <div class="info-detail">${device.os || 'OS tidak terdeteksi'}</div>
-                </div>
-                
-                <div class="info-card">
-                    <h4>🌐 Browser & Platform</h4>
-                    <div class="info-value">${device.browser || 'unknown'}</div>
-                    <div class="info-detail">Platform: ${device.plat || 'unknown'}</div>
-                </div>
-                
-                <div class="info-card">
-                    <h4>🖥️ Screen & Language</h4>
-                    <div class="info-value">${device.w || 0}x${device.h || 0}</div>
-                    <div class="info-detail">Language: ${device.lang || 'unknown'}</div>
-                </div>
-            `;
-            
-            // Connection Info
-            deviceGrid.innerHTML += `
-                <div class="info-card">
-                    <h4>📶 Connection</h4>
-                    <div class="info-value">${device.conn || 'unknown'}</div>
-                    <div class="info-detail">
-                        ${device.down ? `Speed: ${device.down} Mbps<br>` : ''}
-                        Online: ${device.online ? 'Yes' : 'No'}
-                    </div>
-                </div>
-            `;
-            
-            // Location & Time
-            deviceGrid.innerHTML += `
-                <div class="info-card">
-                    <h4>🗺️ Location & Time</h4>
-                    <div class="info-value">${device.tz || 'unknown'}</div>
-                    <div class="info-detail">
-                        Last Update: ${device.t ? formatTimeAgo(device.t) : 'Never'}<br>
-                        Current Page: ${device.page || 'unknown'}
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('deviceModal').classList.add('active');
-        }
-        
-        function closeDeviceModal() {
-            document.getElementById('deviceModal').classList.remove('active');
-        }
-        
-        // ==================== REAL-TIME MONITORING ====================
-        function startRealTimeMonitoring() {
-            // Listen for user updates
-            const usersRef = database.ref('users');
-            realTimeListeners.push(usersRef);
-            
-            usersRef.on('value', (snapshot) => {
-                allUsers = [];
-                snapshot.forEach((childSnapshot) => {
-                    const user = childSnapshot.val();
-                    const uid = childSnapshot.key;
-                    allUsers.push({ uid, ...user });
-                });
-                
-                updateStatistics();
-                
-                // Refresh current tab if on users tab
-                if (document.getElementById('usersTab').classList.contains('active')) {
-                    loadUsersTable();
-                }
-                if (document.getElementById('onlineTab').classList.contains('active')) {
-                    loadOnlineUsers();
-                }
-            });
-            
-            // Listen for device updates
-            const devicesRef = database.ref('user_stats');
-            realTimeListeners.push(devicesRef);
-            
-            devicesRef.on('value', (snapshot) => {
-                allDevices = snapshot.val() || {};
-                
-                updateStatistics();
-                
-                // Refresh current tab based on active tab
-                const activeTab = document.querySelector('.tab-content.active').id;
-                if (activeTab === 'devicesTab') loadDevicesTable();
-                if (activeTab === 'onlineTab') loadOnlineUsers();
-            });
-        }
-        
-        // ==================== HELPER FUNCTIONS ====================
-        function formatTimeAgo(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            
-            if (seconds < 60) return `${seconds} detik lalu`;
-            if (seconds < 3600) return `${Math.floor(seconds/60)} menit lalu`;
-            if (seconds < 86400) return `${Math.floor(seconds/3600)} jam lalu`;
-            return `${Math.floor(seconds/86400)} hari lalu`;
-        }
-        
-        function showMessage(text, type) {
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            message.textContent = text;
-            document.body.appendChild(message);
-            
-            setTimeout(() => {
-                message.remove();
-            }, 3000);
+        function refreshData() {
+            loadUsers();
+            showMessage('Data diperbarui!', 'success');
         }
         
         // ==================== EDIT USER ====================
         function openEditModal(uid) {
             const user = allUsers.find(u => u.uid === uid);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
+            if(!user) return;
             
-            currentEditingUser = uid;
-            
-            document.getElementById('editUserInfo').textContent = 
-                `Edit data untuk: ${user.username}`;
-            
+            document.getElementById('editUid').value = uid;
+            document.getElementById('editUsername').value = user.username || '';
+            document.getElementById('editRank').value = user.rank || 0;
             document.getElementById('editMoney').value = user.money || 0;
             document.getElementById('editDiamond').value = user.diamond || 0;
             document.getElementById('editStars').value = user.stars || 0;
-            document.getElementById('editRank').value = user.rank || 0;
             
             document.getElementById('editModal').classList.add('active');
-            document.getElementById('editMoney').focus();
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
         }
         
         async function saveUserEdit() {
-            if (!currentEditingUser) {
-                showMessage('Tidak ada user yang dipilih', 'error');
-                return;
-            }
-            
-            const money = parseInt(document.getElementById('editMoney').value) || 0;
-            const diamond = parseInt(document.getElementById('editDiamond').value) || 0;
-            const stars = parseInt(document.getElementById('editStars').value) || 0;
-            const rank = parseInt(document.getElementById('editRank').value) || 0;
-            
-            if (money < 0 || diamond < 0 || stars < 0) {
-                showMessage('Nilai tidak boleh minus', 'error');
-                return;
-            }
-            
-            if (rank < 0 || rank > 12) {
-                showMessage('Rank harus antara 0-12', 'error');
-                return;
-            }
+            const uid = document.getElementById('editUid').value;
+            const data = {
+                username: document.getElementById('editUsername').value,
+                rank: parseInt(document.getElementById('editRank').value),
+                money: parseInt(document.getElementById('editMoney').value) || 0,
+                diamond: parseInt(document.getElementById('editDiamond').value) || 0,
+                stars: parseInt(document.getElementById('editStars').value) || 0
+            };
             
             try {
-                await database.ref('users/' + currentEditingUser).update({
-                    money: money,
-                    diamond: diamond,
-                    stars: stars,
-                    rank: rank,
-                    lastEdited: Date.now(),
-                    editedBy: 'admin'
-                });
-                
-                // Update local data
-                const userIndex = allUsers.findIndex(u => u.uid === currentEditingUser);
-                if (userIndex !== -1) {
-                    allUsers[userIndex].money = money;
-                    allUsers[userIndex].diamond = diamond;
-                    allUsers[userIndex].stars = stars;
-                    allUsers[userIndex].rank = rank;
-                }
-                
-                showMessage('✅ User berhasil diupdate!', 'success');
-                closeModal();
-                loadUsersTable();
-                
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
+                await database.ref('users/' + uid).update(data);
+                showMessage('User berhasil diupdate!', 'success');
+                closeEditModal();
+            } catch(e) {
+                showMessage('Error: ' + e.message, 'error');
             }
         }
         
-        // ==================== GIVE RESOURCES ====================
-        function openGiveModal(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
-            
-            currentEditingUser = uid;
-            
-            document.getElementById('giveUserInfo').textContent = 
-                `Give resources ke: ${user.username}`;
-            
-            document.getElementById('giveMoney').value = '';
-            document.getElementById('giveDiamond').value = '';
-            
-            document.getElementById('giveModal').classList.add('active');
-            document.getElementById('giveMoney').focus();
+        // ==================== BAN USER ====================
+        function openBanModal(uid, username) {
+            document.getElementById('banUid').value = uid;
+            document.getElementById('banUsername').value = username;
+            document.getElementById('banReason').value = '';
+            document.getElementById('banModal').classList.add('active');
         }
         
-        async function giveResources() {
-            if (!currentEditingUser) {
-                showMessage('Tidak ada user yang dipilih', 'error');
-                return;
-            }
-            
-            const addMoney = parseInt(document.getElementById('giveMoney').value) || 0;
-            const addDiamond = parseInt(document.getElementById('giveDiamond').value) || 0;
-            
-            if (addMoney <= 0 && addDiamond <= 0) {
-                showMessage('Masukkan jumlah yang valid', 'error');
-                return;
-            }
-            
-            if (addMoney < 0 || addDiamond < 0) {
-                showMessage('Jumlah tidak boleh minus', 'error');
-                return;
-            }
-            
-            try {
-                const snapshot = await database.ref('users/' + currentEditingUser).once('value');
-                const user = snapshot.val();
-                
-                if (!user) {
-                    showMessage('User tidak ditemukan di database', 'error');
-                    return;
-                }
-                
-                const currentMoney = parseInt(user.money) || 0;
-                const currentDiamond = parseInt(user.diamond) || 0;
-                
-                const newMoney = currentMoney + addMoney;
-                const newDiamond = currentDiamond + addDiamond;
-                
-                await database.ref('users/' + currentEditingUser).update({
-                    money: newMoney,
-                    diamond: newDiamond,
-                    lastGift: Date.now(),
-                    giftedBy: 'admin'
-                });
-                
-                const userIndex = allUsers.findIndex(u => u.uid === currentEditingUser);
-                if (userIndex !== -1) {
-                    allUsers[userIndex].money = newMoney;
-                    allUsers[userIndex].diamond = newDiamond;
-                }
-                
-                let message = '✅ Berhasil memberi ';
-                if (addMoney > 0) message += `${addMoney} Money `;
-                if (addDiamond > 0) message += `${addDiamond} Diamond`;
-                message += ` ke user!`;
-                
-                showMessage(message, 'success');
-                closeModal();
-                loadUsersTable();
-                
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
-            }
+        function closeBanModal() {
+            document.getElementById('banModal').classList.remove('active');
         }
         
-        // ==================== BAN/UNBAN USER ====================
-        async function toggleBan(uid, ban) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
-            
-            const action = ban ? 'BAN' : 'UNBAN';
-            const username = user.username;
-            
-            const reason = prompt(
-                `${action} user: ${username}\n\n` +
-                `Masukkan alasan ${action.toLowerCase()} (optional):`
-            );
-            
-            if (ban && !confirm(
-                `Yakin ingin BAN user ${username}?\n\n` +
-                `Alasan: ${reason || 'No reason provided'}\n\n` +
-                `User tidak akan bisa login lagi!`
-            )) {
-                return;
-            }
-            
-            try {
-                const updates = {
-                    banned: ban,
-                    status: ban ? 'banned' : 'offline',
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP
-                };
-                
-                if (ban) {
-                    updates.banHistory = {
-                        action: 'BAN',
-                        timestamp: Date.now(),
-                        by: 'admin',
-                        reason: reason || 'Admin action',
-                        admin: 'Taher'
-                    };
-                    updates.banDate = new Date().toISOString();
-                }
-                
-                await database.ref('users/' + uid).update(updates);
-                
-                if (ban) {
-                    await database.ref('user_stats/' + uid).update({
-                        online: false,
-                        banned: true,
-                        forceLogout: true
-                    });
-                }
-                
-                showMessage(`✅ User ${username} berhasil di${ban ? 'BAN' : 'UNBAN'}!`, 'success');
-                
-                // Update local data
-                const userIndex = allUsers.findIndex(u => u.uid === uid);
-                if (userIndex !== -1) {
-                    allUsers[userIndex].banned = ban;
-                    allUsers[userIndex].status = ban ? 'banned' : 'offline';
-                }
-                
-                loadUsersTable();
-                updateStatistics();
-                
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
-            }
-        }
-        
-        // ==================== FORCE LOGOUT ====================
-        async function forceLogout(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
-            
-            if (!confirm(`Force logout user ${user.username}?\nUser akan dikick dari semua sesi.`)) {
-                return;
-            }
+        async function confirmBan() {
+            const uid = document.getElementById('banUid').value;
+            const reason = document.getElementById('banReason').value;
             
             try {
                 await database.ref('users/' + uid).update({
-                    status: 'offline',
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    forceLogout: Date.now(),
-                    forceBy: 'admin'
+                    banned: true,
+                    banReason: reason || 'Tidak ada alasan',
+                    bannedAt: firebase.database.ServerValue.TIMESTAMP,
+                    bannedBy: currentAdmin
                 });
-                
-                await database.ref('user_stats/' + uid).update({
-                    online: false,
-                    forceLogout: true
-                });
-                
-                const userIndex = allUsers.findIndex(u => u.uid === uid);
-                if (userIndex !== -1) {
-                    allUsers[userIndex].status = 'offline';
-                }
-                
-                showMessage(`✅ User ${user.username} berhasil di force logout!`, 'success');
-                loadUsersTable();
-                
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
+                showMessage('User berhasil di BAN!', 'success');
+                closeBanModal();
+            } catch(e) {
+                showMessage('Error: ' + e.message, 'error');
             }
         }
         
-        // ==================== DELETE USER ====================
-        function openDeleteModal(uid) {
-            const user = allUsers.find(u => u.uid === uid);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
-            
-            currentEditingUser = uid;
-            
-            document.getElementById('deleteUserInfo').textContent = 
-                `Hapus akun PERMANEN: ${user.username}`;
-            
-            document.getElementById('confirmUsername').value = '';
-            
-            document.getElementById('deleteModal').classList.add('active');
-            document.getElementById('confirmUsername').focus();
-        }
-        
-        async function confirmDelete() {
-            if (!currentEditingUser) {
-                showMessage('Tidak ada user yang dipilih', 'error');
-                return;
-            }
-            
-            const user = allUsers.find(u => u.uid === currentEditingUser);
-            if (!user) {
-                showMessage('User tidak ditemukan', 'error');
-                return;
-            }
-            
-            const confirmInput = document.getElementById('confirmUsername').value.trim();
-            const username = user.username;
-            
-            if (confirmInput !== username) {
-                showMessage('Username tidak cocok!', 'error');
-                return;
-            }
-            
-            const finalWarning = `⚠️ PERINGATAN AKHIR! ⚠️\n\n` +
-                `YAKIN ingin menghapus PERMANEN akun:\n` +
-                `👤 ${username}\n\n` +
-                `🚨 TINDAKAN INI TIDAK BISA DIBATALKAN!\n` +
-                `🚨 Semua data user akan dihapus selamanya!\n\n` +
-                `Ketik: "YA, HAPUS PERMANEN" untuk konfirmasi`;
-            
-            const finalConfirm = prompt(finalWarning);
-            if (finalConfirm !== "YA, HAPUS PERMANEN") {
-                showMessage('Penghapusan dibatalkan', 'warning');
-                closeModal();
-                return;
-            }
+        async function unbanUser(uid) {
+            if(!confirm('Yakin ingin membuka ban user ini?')) return;
             
             try {
-                await database.ref('users/' + currentEditingUser).remove();
-                await database.ref('user_stats/' + currentEditingUser).remove();
-                
-                const friendsSnapshot = await database.ref('friends').once('value');
-                const deletePromises = [];
-                
-                friendsSnapshot.forEach((childSnapshot) => {
-                    const friendUid = childSnapshot.key;
-                    deletePromises.push(
-                        database.ref('friends/' + friendUid + '/' + currentEditingUser).remove()
-                    );
+                await database.ref('users/' + uid).update({
+                    banned: false,
+                    banReason: null,
+                    bannedAt: null,
+                    bannedBy: null
                 });
-                
-                await Promise.all(deletePromises);
-                await database.ref('friends/' + currentEditingUser).remove();
-                
-                allUsers = allUsers.filter(u => u.uid !== currentEditingUser);
-                delete allDevices[currentEditingUser];
-                
-                showMessage(`✅ Akun ${username} berhasil dihapus PERMANEN!`, 'success');
-                closeModal();
-                
-                updateStatistics();
-                loadUsersTable();
-                loadDevicesTable();
-                loadOnlineUsers();
-                
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
+                showMessage('User berhasil diunban!', 'success');
+            } catch(e) {
+                showMessage('Error: ' + e.message, 'error');
             }
         }
         
-        // ==================== CLOSE MODAL ====================
-        function closeModal() {
-            document.getElementById('editModal').classList.remove('active');
-            document.getElementById('giveModal').classList.remove('active');
-            document.getElementById('deleteModal').classList.remove('active');
-            currentEditingUser = null;
+        async function deleteUser(uid) {
+            if(!confirm('⚠️ PERINGATAN! Menghapus user akan menghapus semua data termasuk chat dan friends. Lanjutkan?')) return;
+            
+            try {
+                // Hapus data user
+                await database.ref('users/' + uid).remove();
+                // Hapus friends
+                await database.ref('friends/' + uid).remove();
+                // Hapus chat
+                await database.ref('private_chats/user_' + uid).remove();
+                
+                showMessage('User berhasil dihapus!', 'success');
+            } catch(e) {
+                showMessage('Error: ' + e.message, 'error');
+            }
         }
         
-        // Close modal dengan Escape
+        // ==================== KEYBOARD ====================
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeDeviceModal();
-                closeModal();
+            if(e.key === 'Escape') {
+                closeEditModal();
+                closeBanModal();
             }
         });
     </script>

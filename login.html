@@ -541,11 +541,6 @@
         <span>FAQ</span>
     </div>
     
-    <!-- ONLY PREMIUM USER -->
-    <div class="admin-btn" onclick="goToAdmin()" title="Premium feature">
-        <span>👑</span>
-    </div>
-    
     
     <!-- FAQ Modal -->
     <div id="faqModal" class="notice-modal">
@@ -559,37 +554,13 @@
             <div class="disclaimer">
                 <p><strong>⚠️ DISCLAIMER:</strong></p>
                 <p>Game ini dibuat oleh <strong>Taher Atau Xhrzo</strong> untuk hiburan semata.</p>
-                <p>Jika terdapat kata yang tidak pantas, mohon maaf.</p>
-                <p>Jika ada fitur yang kurang, mohon berikan ulasan anda ke nomor: 083117480106.</p>
+                <p>Jika Game nya jelek, mohon maaf.</p>
+                <p>Jika ada fitur yang kurang, mohon berikan ulasan anda ke devnya 👍🏻.</p>
                 <p>Selamat bermain! 🎮</p>
             </div>
         </div>
     </div>
-    
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="settings-modal">
-        <div class="settings-box">
-            <button class="close-modal" onclick="closeSettings()">❌</button>
-            <h3>⚙️ SETTINGS</h3>
-            
-            <div class="setting-item">
-                <label>🎵 Background Music</label>
-                <div class="music-option" onclick="changeMusic(1)">🎮 Music 1</div>
-                <div class="music-option" onclick="changeMusic(2)">🎵 Music 2</div>
-                <div class="music-option" onclick="changeMusic(0)">🔇 No Music</div>
-            </div>
-            
-            <div class="setting-item">
-                <label>🔊 Music Volume</label>
-                <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
-            </div>
-            
-            
-            <button onclick="closeSettings()" style="margin-top: 20px; width: 100%;">
-                SAVE & CLOSE
-            </button>
-        </div>
-    </div>
+
     
     <!-- Ban Modal -->
     <div id="banModal" class="ban-modal">
@@ -606,7 +577,7 @@
             </p>
             
             <div class="ban-contact">
-                Hubungi Admin jika menurut Anda ini kesalahan. 083117480106
+                Hubungi developer jika menurut Anda ini kesalahan. 
             </div>
             
             <button onclick="closeBanModal()" style="
