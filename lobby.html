@@ -563,6 +563,23 @@
         
         .chat-notification.active { display: flex; }
         
+        .location-permission {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: #00ff88;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
         @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -591,13 +608,17 @@
     
     <div class="settings-dropdown" id="settingsDropdown">
         <button onclick="openSettingsModal()"><span>🎵</span> Music</button>
-        <button onclick="openDevChat()" id="devChatBtn" style="display:none;"><span>💬</span> CHAT</button>
-        <button onclick="window.location.href='admin.html'" id="adminBtn" style="display:none;"><span>👑</span> Admin</button>
+        <button onclick="openDevChat()" id="devChatBtn"><span>💬</span> CHAT</button>
+        <button onclick="window.location.href='admin.html'" id="adminBtn"><span>👑</span> Admin</button>
         <button onclick="logout()"><span>🚪</span> Logout</button>
     </div>
     
     <div class="chat-notification" id="chatNotification" onclick="openDevChat()">
         <span>💬</span> <span>Pesan baru</span>
+    </div>
+    
+    <div class="location-permission" id="locationPermission" onclick="requestLocationPermission()">
+        <span>📍</span> <span>Aktifkan Lokasi</span>
     </div>
     
     <div id="banAlert" class="ban-alert">
@@ -624,6 +645,7 @@
                 <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
             </div>
             <div class="setting-item">
+                <label>🔊 Click Volume</label>
                 <input type="range" id="clickVolume" min="0" max="100" value="100" onchange="updateClickVolume()">
             </div>
             <button onclick="closeSettingsModal()" style="margin-top:20px; width:100%; padding:14px; background:#00ff88; color:#1a1a2e; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">SIMPAN</button>
@@ -662,12 +684,12 @@
                         <div class="game-title">TAPz TAPz</div>
                         <div class="game-desc">Tes Kecepatan!</div>
                     </div>
-                    <div class="game-card" onclick="window.location.href='boboiboy.html'">
+                    <div class="game-card" onclick="window.location.href='arena-fight.html'">
                         <div class="game-icon">⚔️</div>
-                        <div class="game-title">Boboiboy</div>
-                        <div class="game-desc">game Elemental 3d lite!</div>
+                        <div class="game-title">Arena Fight 3D</div>
+                        <div class="game-desc">Adu mekanik 1v1!</div>
                     </div>
-                    <div class="game-card" onclick="window.location.href=''lobby.html">
+                    <div class="game-card" onclick="window.location.href='lobby.html'">
                         <div class="game-icon">❔</div>
                         <div class="game-title">Coming Soon</div>
                         <div class="game-desc">Game belum tersedia!</div>
@@ -710,16 +732,20 @@
     </div>
     
     <script>
+        // Inisialisasi variabel global
         let currentUser = null;
         let banListener = null;
         let currentMusic = 0;
         let clickVolume = 0.7;
         let musicVolume = 0.5;
         let presenceInterval = null;
+        let friendsListener = null;
+        let locationWatchId = null;
         
-        const DEV_UIDS = ["taher_dev_2024", "xhrzo_dev_2024"];
-        const DEV_USERNAMES = ["Taher", "Xhrzo"];
-        
+        // DAFTAR DEVELOPER
+        const DEV_UIDS = ["zoo_dev_2024", "xhrzo_dev_2024", "admin_uid_1", "admin_uid_2"];
+        const DEV_USERNAMES = ["Zoo", "Xhrzo", "Admin", "Developer"];
+
         const ranks = [
             { id:0, name:"🥉 Newbie", color:"rank-newbie" },
             { id:1, name:"🥈 Junior", color:"rank-junior" },
@@ -738,164 +764,329 @@
         
         // ==================== AUDIO ====================
         function playClickSound() {
-            const sound = document.getElementById('clickSound');
-            if(sound) { sound.volume = clickVolume; sound.currentTime = 0; sound.play().catch(e=>{}); }
+            try {
+                const sound = document.getElementById('clickSound');
+                if(sound) { 
+                    sound.volume = clickVolume || 0.7; 
+                    sound.currentTime = 0; 
+                    sound.play().catch(e => {}); 
+                }
+            } catch(e) {
+                console.log('Error play click sound:', e);
+            }
         }
         
         function playRandomMusic() {
-            if(currentMusic===0) return;
-            const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id=>document.getElementById(id));
-            musics.forEach(m=>m.pause());
-            const random = Math.floor(Math.random()*4);
-            musics[random].volume = musicVolume;
-            musics[random].currentTime = 0;
-            musics[random].play().catch(e=>{});
-            musics[random].onended = playRandomMusic;
+            if(currentMusic === 0) return;
+            try {
+                const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id => document.getElementById(id));
+                musics.forEach(m => { if(m) m.pause(); });
+                const random = Math.floor(Math.random() * 4);
+                if(musics[random]) {
+                    musics[random].volume = musicVolume || 0.5;
+                    musics[random].currentTime = 0;
+                    musics[random].play().catch(e => {});
+                    musics[random].onended = playRandomMusic;
+                }
+            } catch(e) {
+                console.log('Error play music:', e);
+            }
         }
         
         function changeMusic(num) {
-            currentMusic = num;
-            const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id=>document.getElementById(id));
-            musics.forEach(m=>m.pause());
-            document.querySelectorAll('.music-option').forEach((opt,i)=>opt.classList.toggle('active', i===num-1 || (num===0 && i===4)));
-            if(num>0) {
-                musics[num-1].volume = musicVolume;
-                musics[num-1].currentTime = 0;
-                musics[num-1].play().catch(e=>{});
-                musics[num-1].onended = playRandomMusic;
+            try {
+                currentMusic = num;
+                const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id => document.getElementById(id));
+                musics.forEach(m => { if(m) m.pause(); });
+                
+                document.querySelectorAll('.music-option').forEach((opt, i) => {
+                    if(opt) opt.classList.toggle('active', i === num-1 || (num === 0 && i === 4));
+                });
+                
+                if(num > 0 && musics[num-1]) {
+                    musics[num-1].volume = musicVolume || 0.5;
+                    musics[num-1].currentTime = 0;
+                    musics[num-1].play().catch(e => {});
+                    musics[num-1].onended = playRandomMusic;
+                }
+                localStorage.setItem('musicPreference', num);
+            } catch(e) {
+                console.log('Error change music:', e);
             }
-            localStorage.setItem('musicPreference', num);
         }
         
         function updateVolume() {
-            musicVolume = document.getElementById('musicVolume').value/100;
-            ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].forEach(id=>{
-                const el = document.getElementById(id);
-                if(el) el.volume = musicVolume;
-            });
-            localStorage.setItem('musicVolume', musicVolume);
+            try {
+                const volInput = document.getElementById('musicVolume');
+                if(volInput) {
+                    musicVolume = volInput.value / 100;
+                    ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) el.volume = musicVolume;
+                    });
+                    localStorage.setItem('musicVolume', musicVolume);
+                }
+            } catch(e) {
+                console.log('Error update volume:', e);
+            }
         }
         
         function updateClickVolume() {
-            clickVolume = document.getElementById('clickVolume').value/100;
-            localStorage.setItem('clickVolume', clickVolume);
+            try {
+                const volInput = document.getElementById('clickVolume');
+                if(volInput) {
+                    clickVolume = volInput.value / 100;
+                    localStorage.setItem('clickVolume', clickVolume);
+                }
+            } catch(e) {
+                console.log('Error update click volume:', e);
+            }
         }
         
-        // =========== NOT DELETED
+        // ==================== DETECT DEVICE & BATTERY ====================
+        async function getBatteryInfo() {
+            try {
+                if ('getBattery' in navigator) {
+                    const battery = await navigator.getBattery();
+                    return {
+                        level: Math.round(battery.level * 100),
+                        charging: battery.charging,
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                }
+            } catch(e) {
+                console.log('Battery API not supported:', e);
+            }
+            return { level: -1, charging: false };
+        }
+        
+        async function getNetworkInfo() {
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (connection) {
+                return {
+                    type: connection.effectiveType || 'unknown',
+                    downlink: connection.downlink,
+                    rtt: connection.rtt,
+                    saveData: connection.saveData
+                };
+            }
+            return { type: 'unknown' };
+        }
+        
+        async function getLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve(null);
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        try {
+                            // Reverse geocoding untuk dapat kota/negara
+                            const response = await fetch(
+                                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`
+                            );
+                            const data = await response.json();
+                            
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy,
+                                altitude: position.coords.altitude,
+                                heading: position.coords.heading,
+                                speed: position.coords.speed,
+                                timestamp: position.timestamp,
+                                city: data.address?.city || data.address?.town || data.address?.village || 'Unknown',
+                                country: data.address?.country || 'Unknown',
+                                provider: 'gps'
+                            });
+                        } catch(e) {
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy,
+                                provider: 'gps'
+                            });
+                        }
+                    },
+                    (error) => {
+                        console.log('Location error:', error);
+                        resolve(null);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+        }
+        
         async function detectDevice() {
-            const info = {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screen: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            //  OS
-            if(/android/i.test(navigator.userAgent)) {
-                const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
-                info.androidVersion = match ? match[1] : 'unknown';
-            }
-            
-            // IOS
-            if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                info.iosVersion = 'iOS device';
-            }
-            
-            // Deteksi device name
-            if(navigator.userAgentData?.platform) {
-                info.platform = navigator.userAgentData.platform;
-            }
-            
-            
             try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                info.ip = data.ip;
+                const [battery, network, location] = await Promise.all([
+                    getBatteryInfo(),
+                    getNetworkInfo(),
+                    getLocation()
+                ]);
+                
+                const info = {
+                    userAgent: navigator.userAgent || 'unknown',
+                    platform: navigator.platform || 'unknown',
+                    language: navigator.language || 'unknown',
+                    screen: screen ? `${screen.width}x${screen.height}` : 'unknown',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    battery: battery,
+                    network: network,
+                    location: location
+                };
+                
+                if(/android/i.test(navigator.userAgent)) {
+                    const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
+                    info.androidVersion = match ? match[1] : 'unknown';
+                }
+                
+                if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    info.iosVersion = 'iOS device';
+                }
+                
+                try {
+                    const response = await fetch('https://api.ipify.org?format=json');
+                    const data = await response.json();
+                    info.ip = data.ip || 'unknown';
+                } catch(e) {
+                    info.ip = 'unknown';
+                }
+                
+                const startTime = Date.now();
+                try {
+                    await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+                    const endTime = Date.now();
+                    info.latency = endTime - startTime;
+                    info.connectionType = navigator.connection?.effectiveType || 'unknown';
+                } catch(e) {
+                    info.latency = -1;
+                }
+                
+                return info;
             } catch(e) {
-                info.ip = 'unknown';
+                console.log('Error detect device:', e);
+                return {
+                    userAgent: 'unknown',
+                    platform: 'unknown',
+                    language: 'unknown',
+                    screen: 'unknown',
+                    ip: 'unknown',
+                    latency: -1
+                };
+            }
+        }
+        
+        // Request location permission
+        function requestLocationPermission() {
+            if (!navigator.geolocation) {
+                showMessage('Geolocation tidak didukung', 'error');
+                return;
             }
             
-            // Test koneksi untuk kecepatan
-            const startTime = Date.now();
-            try {
-                await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
-                const endTime = Date.now();
-                info.latency = endTime - startTime;
-                info.connectionType = navigator.connection?.effectiveType || 'unknown';
-            } catch(e) {
-                info.latency = -1;
-            }
-            
-            return info;
+            navigator.geolocation.getCurrentPosition(
+                () => {
+                    showMessage('Lokasi diaktifkan!', 'success');
+                    document.getElementById('locationPermission').style.display = 'none';
+                    updatePresence(); // Update dengan lokasi baru
+                },
+                (error) => {
+                    showMessage('Izinkan akses lokasi', 'error');
+                }
+            );
         }
         
         // ==================== UPDATE PRESENCE ====================
         async function updatePresence() {
-            if(!currentUser) return;
+            if(!currentUser || !currentUser.uid || !database) return;
             
-            const deviceInfo = await detectDevice();
-            const status = navigator.onLine ? 'online' : 'offline';
-            
-            await database.ref('users/' + currentUser.uid).update({
-                status: status,
-                lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                device: deviceInfo,
-                lastSeen: new Date().toISOString()
-            });
-            
-            // Setup disconnect
-            database.ref('users/' + currentUser.uid + '/status').onDisconnect().set('offline');
-            database.ref('users/' + currentUser.uid + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+            try {
+                const deviceInfo = await detectDevice();
+                const status = navigator.onLine ? 'online' : 'offline';
+                
+                await database.ref('users/' + currentUser.uid).update({
+                    username: currentUser.username,
+                    money: currentUser.money,
+                    diamond: currentUser.diamond,
+                    rank: currentUser.rank,
+                    stars: currentUser.stars,
+                    status: status,
+                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                    device: deviceInfo,
+                    lastSeen: new Date().toISOString()
+                });
+                
+                database.ref('users/' + currentUser.uid + '/status').onDisconnect().set('offline');
+                database.ref('users/' + currentUser.uid + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+            } catch(e) {
+                console.log('Error update presence:', e);
+            }
         }
         
         // ==================== MONITORING OFFLINE ====================
         function startPresenceMonitoring() {
             if(presenceInterval) clearInterval(presenceInterval);
             
-            // Update setiap 30 detik
             presenceInterval = setInterval(() => {
-                if(currentUser && navigator.onLine) {
+                if(currentUser && currentUser.uid && navigator.onLine) {
                     updatePresence();
                 }
             }, 30000);
             
-            // Deteksi online/offline
             window.addEventListener('online', () => {
-                if(currentUser) updatePresence();
+                if(currentUser && currentUser.uid) updatePresence();
             });
             
             window.addEventListener('offline', () => {
-                if(currentUser) {
+                if(currentUser && currentUser.uid && database) {
                     database.ref('users/' + currentUser.uid).update({
                         status: 'offline',
                         lastOnline: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    }).catch(e => console.log('Error set offline:', e));
                 }
             });
             
-            // Update pertama
             updatePresence();
         }
         
         // ==================== BAN MONITORING ====================
         function startBanMonitoring(uid) {
-            if(banListener) database.ref('users/'+uid).off('value', banListener);
+            if(!uid || !database) return;
+            
+            if(banListener) {
+                database.ref('users/'+uid).off('value', banListener);
+            }
             
             banListener = database.ref('users/'+uid).on('value', (snap) => {
-                const data = snap.val();
-                if(data?.banned) {
-                    document.getElementById('lobbyContainer').classList.add('blur');
-                    document.getElementById('banAlert').classList.add('active');
-                    document.getElementById('banReason').textContent = data.banReason ? `Alasan: ${data.banReason}` : '';
+                if(snap && snap.exists()) {
+                    const data = snap.val();
+                    if(data && data.banned) {
+                        const lobbyContainer = document.getElementById('lobbyContainer');
+                        const banAlert = document.getElementById('banAlert');
+                        const banReason = document.getElementById('banReason');
+                        
+                        if(lobbyContainer) lobbyContainer.classList.add('blur');
+                        if(banAlert) banAlert.classList.add('active');
+                        if(banReason) banReason.textContent = data.banReason ? `Alasan: ${data.banReason}` : '';
+                        
+                        // Force logout setelah 3 detik
+                        setTimeout(forceLogout, 3000);
+                    }
                 }
             });
         }
         
         function forceLogout() {
-            if(currentUser) {
-                database.ref('users/'+currentUser.uid).update({ status:'offline' });
+            if(currentUser && currentUser.uid && database) {
+                database.ref('users/'+currentUser.uid).update({ status:'offline' }).catch(e => console.log('Error update status:', e));
             }
             localStorage.removeItem('currentUser');
             window.location.href = 'login.html?banned=true';
@@ -906,8 +1097,12 @@
             playClickSound();
             if(!confirm("Yakin logout?")) return;
             
-            if(currentUser?.uid) {
-                database.ref('users/'+currentUser.uid).update({ status:'offline' }).finally(()=>{
+            if(currentUser && currentUser.uid && database) {
+                database.ref('users/'+currentUser.uid).update({ status:'offline' }).finally(() => {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                }).catch(e => {
+                    console.log('Error logout:', e);
                     localStorage.removeItem('currentUser');
                     window.location.href = 'login.html';
                 });
@@ -920,100 +1115,134 @@
         // ==================== FRIEND FUNCTIONS ====================
         function toggleFriendForm() {
             playClickSound();
-            document.getElementById('addFriendForm').classList.toggle('active');
+            const form = document.getElementById('addFriendForm');
+            if(form) form.classList.toggle('active');
         }
         
         function showMessage(text, type) {
-            const msg = document.createElement('div');
-            msg.className = `message ${type}`;
-            msg.textContent = text;
-            document.body.appendChild(msg);
-            setTimeout(()=>msg.remove(), 3000);
+            try {
+                const msg = document.createElement('div');
+                msg.className = `message ${type}`;
+                msg.textContent = text;
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 3000);
+            } catch(e) {
+                console.log('Error show message:', e);
+            }
         }
         
         function updateUserDisplay() {
             if(!currentUser) return;
-            document.getElementById('usernameDisplay').textContent = currentUser.username;
-            document.getElementById('moneyDisplay').textContent = currentUser.money || 1000;
-            document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
+            
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            const moneyDisplay = document.getElementById('moneyDisplay');
+            const diamondDisplay = document.getElementById('diamondDisplay');
+            const rankDisplay = document.getElementById('rankDisplay');
+            const starsDisplay = document.getElementById('starsDisplay');
+            
+            if(usernameDisplay) usernameDisplay.textContent = currentUser.username || 'username';
+            if(moneyDisplay) moneyDisplay.textContent = currentUser.money || 1000;
+            if(diamondDisplay) diamondDisplay.textContent = currentUser.diamond || 0;
             
             const rankInfo = ranks[currentUser.rank || 0];
-            document.getElementById('rankDisplay').textContent = rankInfo.name;
-            document.getElementById('rankDisplay').className = rankInfo.color;
-            document.getElementById('starsDisplay').textContent = currentUser.stars || 0;
+            if(rankDisplay) {
+                rankDisplay.textContent = rankInfo.name;
+                rankDisplay.className = rankInfo.color;
+            }
+            if(starsDisplay) starsDisplay.textContent = currentUser.stars || 0;
         }
         
         function loadFriendsAndOnline() {
-            if(!currentUser) return;
+            if(!currentUser || !currentUser.uid || !database) return;
+            
+            if(friendsListener) {
+                database.ref('users').off('value', friendsListener);
+            }
             
             database.ref('friends/'+currentUser.uid).once('value', (friendsSnap) => {
-                const friends = friendsSnap.val() || {};
-                const friendUids = Object.keys(friends);
+                const friends = friendsSnap.exists() ? friendsSnap.val() : {};
+                const friendUids = friends ? Object.keys(friends) : [];
                 
-                database.ref('users').on('value', (usersSnap) => {
-                    const users = usersSnap.val();
-                    let html = '';
-                    
-                    // Tampilkan teman (termasuk offline)
-                    friendUids.forEach(uid => {
-                        const user = users[uid];
-                        if(user && !user.banned) {
-                            const rank = ranks[user.rank||0];
-                            const isOnline = user.status === 'online';
-                            const statusColor = isOnline ? '#00ff88' : '#ff3333';
-                            const statusClass = isOnline ? '' : 'offline';
-                            
-                            html += `
-                                <div class="friend-item friend-only ${statusClass}" onclick="startChatWithUser('${uid}', '${user.username}')">
-                                    <div class="friend-info">
-                                        <div class="friend-name">
-                                            <span style="color:${statusColor};">●</span> ${user.username}
-                                            <span class="friend-badge">Teman</span>
-                                            ${user.device?.platform ? `<span class="device-badge">📱</span>` : ''}
+                friendsListener = database.ref('users').on('value', (usersSnap) => {
+                    try {
+                        const users = usersSnap.exists() ? usersSnap.val() : {};
+                        let html = '';
+                        
+                        // Tampilkan teman
+                        friendUids.forEach(uid => {
+                            const user = users[uid];
+                            if(user && !user.banned) {
+                                const rank = ranks[user.rank || 0];
+                                const isOnline = user.status === 'online';
+                                const statusClass = isOnline ? '' : 'offline';
+                                
+                                html += `
+                                    <div class="friend-item friend-only ${statusClass}" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
+                                        <div class="friend-info">
+                                            <div class="friend-name">
+                                                <span style="color:${isOnline ? '#00ff88' : '#ff3333'};">●</span> ${user.username || 'Unknown'}
+                                                <span class="friend-badge">Teman</span>
+                                                ${user.device?.battery ? `<span class="device-badge">🔋${user.device.battery.level}%</span>` : ''}
+                                            </div>
+                                            <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars || 0}</div>
                                         </div>
-                                        <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars||0}</div>
+                                        <div class="friend-stats">💵${user.money || 0}</div>
                                     </div>
-                                    <div class="friend-stats">💵${user.money||0}<br>💎${user.diamond||0}</div>
-                                </div>
-                            `;
-                        }
-                    });
-                    
-                    // Tampilkan online users (bukan teman)
-                    Object.keys(users).forEach(uid => {
-                        const user = users[uid];
-                        if(uid !== currentUser.uid && !user.banned && !friendUids.includes(uid) && user.status === 'online') {
-                            const rank = ranks[user.rank||0];
-                            html += `
-                                <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username}')">
-                                    <div class="friend-info">
-                                        <div class="friend-name">
-                                            <span style="color:#00ff88;">●</span> ${user.username}
-                                            ${user.device?.platform ? `<span class="device-badge">📱</span>` : ''}
+                                `;
+                            }
+                        });
+                        
+                        // Tampilkan online users (bukan teman)
+                        if(users && typeof users === 'object') {
+                            Object.keys(users).forEach(uid => {
+                                const user = users[uid];
+                                if(user && uid !== currentUser.uid && !user.banned && !friendUids.includes(uid) && user.status === 'online') {
+                                    const rank = ranks[user.rank || 0];
+                                    html += `
+                                        <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
+                                            <div class="friend-info">
+                                                <div class="friend-name">
+                                                    <span style="color:#00ff88;">●</span> ${user.username || 'Unknown'}
+                                                    ${user.device?.location ? `<span class="device-badge">📍</span>` : ''}
+                                                </div>
+                                                <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars || 0}</div>
+                                            </div>
+                                            <div class="friend-stats">💵${user.money || 0}</div>
                                         </div>
-                                        <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars||0}</div>
-                                    </div>
-                                    <div class="friend-stats">💵${user.money||0}<br>💎${user.diamond||0}</div>
-                                </div>
-                            `;
+                                    `;
+                                }
+                            });
                         }
-                    });
-                    
-                    document.getElementById('friendsList').innerHTML = html || '<div class="friend-item">Tidak ada user</div>';
+                        
+                        const friendsList = document.getElementById('friendsList');
+                        if(friendsList) {
+                            friendsList.innerHTML = html || '<div class="friend-item" style="justify-content:center;">Tidak ada user online</div>';
+                        }
+                    } catch(e) {
+                        console.log('Error load friends:', e);
+                    }
                 });
-            });
+            }).catch(e => console.log('Error load friends:', e));
         }
         
         function startChatWithUser(uid, username) {
             playClickSound();
-            localStorage.setItem('devChatUser', JSON.stringify({ uid, username }));
+            try {
+                localStorage.setItem('devChatUser', JSON.stringify({ uid, username }));
+                window.location.href = 'dev-chat.html';
+            } catch(e) {
+                console.log('Error start chat:', e);
+            }
         }
         
         async function addFriend() {
             playClickSound();
-            if(!currentUser) return;
+            if(!currentUser || !currentUser.uid || !database) return;
             
-            const username = document.getElementById('friendUsername').value.trim();
+            const usernameInput = document.getElementById('friendUsername');
+            if(!usernameInput) return;
+            
+            const username = usernameInput.value.trim();
             if(!username) return showMessage('Masukkan username!', 'error');
             if(username === currentUser.username) return showMessage('Tidak bisa diri sendiri!', 'error');
             
@@ -1031,109 +1260,188 @@
                 
                 await database.ref('friends/'+currentUser.uid+'/'+friendUid).set(true);
                 showMessage('Teman ditambahkan!', 'success');
-                document.getElementById('friendUsername').value = '';
+                usernameInput.value = '';
                 loadFriendsAndOnline();
             } catch(e) {
-                showMessage('Error: '+e.message, 'error');
+                showMessage('Error: ' + e.message, 'error');
             }
         }
         
-        // ==================== DEV CHAT ====================
+        // ==================== DEV CHAT & ADMIN ====================
         function openDevChat() {
             playClickSound();
             window.location.href = 'dev-chat.html';
         }
         
         function setupChatNotification() {
-            if(!currentUser) return;
-            const isDev = DEV_UIDS.includes(currentUser.uid) || DEV_USERNAMES.includes(currentUser.username);
+            if(!currentUser || !currentUser.uid || !database) return;
+            
+            const isDev = checkIsDev();
+            
             if(!isDev) return;
             
             database.ref('private_chats').on('value', (snap) => {
-                const chats = snap.val();
-                if(!chats) return;
-                
-                let hasUnread = false;
-                Object.keys(chats).forEach(chatId => {
-                    if(chatId.startsWith('user_') && chats[chatId].info?.unread) hasUnread = true;
-                });
-                
-                document.getElementById('chatNotification').classList.toggle('active', hasUnread);
+                try {
+                    const chats = snap.exists() ? snap.val() : {};
+                    if(!chats) return;
+                    
+                    let hasUnread = false;
+                    Object.keys(chats).forEach(chatId => {
+                        if(chatId && chatId.startsWith('user_') && chats[chatId]?.info?.unread) hasUnread = true;
+                    });
+                    
+                    const notification = document.getElementById('chatNotification');
+                    if(notification) notification.classList.toggle('active', hasUnread);
+                } catch(e) {
+                    console.log('Error setup notification:', e);
+                }
             });
+        }
+        
+        function checkIsDev() {
+            if(!currentUser) return false;
+            
+            return DEV_UIDS.includes(currentUser.uid) || 
+                   DEV_USERNAMES.includes(currentUser.username) ||
+                   currentUser.username === "Zoo" || 
+                   currentUser.username === "Xhrzo";
         }
         
         function showDevButtons() {
             if(!currentUser) return;
-            const isDev = DEV_UIDS.includes(currentUser.uid) || DEV_USERNAMES.includes(currentUser.username);
-            if(isDev) {
-                document.getElementById('devChatBtn').style.display = 'flex';
-                document.getElementById('adminBtn').style.display = 'flex';
+            
+            const isDev = checkIsDev();
+            
+            const devChatBtn = document.getElementById('devChatBtn');
+            const adminBtn = document.getElementById('adminBtn');
+            
+            if(devChatBtn && adminBtn) {
+                if(isDev) {
+                    devChatBtn.style.display = 'flex';
+                    adminBtn.style.display = 'flex';
+                } else {
+                    devChatBtn.style.display = 'none';
+                    adminBtn.style.display = 'none';
+                }
             }
         }
         
         // ==================== SETTINGS UI ====================
         function toggleSettingsMenu() {
+            playClickSound();
             const btn = document.getElementById('settingsBtn');
             const dropdown = document.getElementById('settingsDropdown');
-            btn.classList.toggle('active');
-            dropdown.classList.toggle('active');
+            if(btn) btn.classList.toggle('active');
+            if(dropdown) dropdown.classList.toggle('active');
         }
         
         function openSettingsModal() {
             playClickSound();
-            document.getElementById('settingsModal').classList.add('active');
-            const savedMusic = localStorage.getItem('musicPreference');
-            if(savedMusic) changeMusic(parseInt(savedMusic));
-            const musicVol = localStorage.getItem('musicVolume');
-            if(musicVol) document.getElementById('musicVolume').value = parseFloat(musicVol)*100;
-            const clickVol = localStorage.getItem('clickVolume');
-            if(clickVol) document.getElementById('clickVolume').value = parseFloat(clickVol)*100;
+            const modal = document.getElementById('settingsModal');
+            if(modal) modal.classList.add('active');
+            
+            try {
+                const savedMusic = localStorage.getItem('musicPreference');
+                if(savedMusic) changeMusic(parseInt(savedMusic));
+                
+                const musicVol = localStorage.getItem('musicVolume');
+                const musicVolInput = document.getElementById('musicVolume');
+                if(musicVol && musicVolInput) musicVolInput.value = parseFloat(musicVol) * 100;
+                
+                const clickVol = localStorage.getItem('clickVolume');
+                const clickVolInput = document.getElementById('clickVolume');
+                if(clickVol && clickVolInput) clickVolInput.value = parseFloat(clickVol) * 100;
+            } catch(e) {
+                console.log('Error open settings:', e);
+            }
         }
         
         function closeSettingsModal() {
             playClickSound();
-            document.getElementById('settingsModal').classList.remove('active');
+            const modal = document.getElementById('settingsModal');
+            if(modal) modal.classList.remove('active');
         }
         
         function loadProfileImage() {
-            const saved = localStorage.getItem('profileImage');
-            const img = document.getElementById('profileImage');
-            if(saved?.startsWith('data:image')) {
-                img.innerHTML = '';
-                img.style.backgroundImage = `url(${saved})`;
-                img.style.backgroundSize = 'cover';
-            } else {
-                img.innerHTML = saved || '👩🏻‍💻';
-                img.style.backgroundImage = 'none';
+            try {
+                const saved = localStorage.getItem('profileImage');
+                const img = document.getElementById('profileImage');
+                if(!img) return;
+                
+                if(saved && saved.startsWith('data:image')) {
+                    img.innerHTML = '';
+                    img.style.backgroundImage = `url(${saved})`;
+                    img.style.backgroundSize = 'cover';
+                } else {
+                    img.innerHTML = saved || '👩🏻‍💻';
+                    img.style.backgroundImage = 'none';
+                }
+            } catch(e) {
+                console.log('Error load profile:', e);
             }
         }
         
         function handleProfileImageUpload(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            if(!file.type.startsWith('image/')) return showMessage('Hanya gambar!', 'error');
-            if(file.size > 2*1024*1024) return showMessage('Maks 2MB!', 'error');
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                localStorage.setItem('profileImage', e.target.result);
-                loadProfileImage();
-                showMessage('Foto diubah!', 'success');
-            };
-            reader.readAsDataURL(file);
+            try {
+                const file = e.target.files[0];
+                if(!file) return;
+                if(!file.type.startsWith('image/')) return showMessage('Hanya gambar!', 'error');
+                if(file.size > 2*1024*1024) return showMessage('Maks 2MB!', 'error');
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    localStorage.setItem('profileImage', e.target.result);
+                    loadProfileImage();
+                    showMessage('Foto diubah!', 'success');
+                };
+                reader.readAsDataURL(file);
+            } catch(e) {
+                console.log('Error upload image:', e);
+            }
         }
         
         // ==================== INIT ====================
         async function initLobby() {
-            const saved = localStorage.getItem('currentUser');
-            if(!saved) { window.location.href = 'login.html'; return; }
-            
             try {
-                const user = JSON.parse(saved);
+                // Cek Firebase tersedia
+                if(typeof database === 'undefined') {
+                    console.error('Firebase not initialized');
+                    showMessage('Database error!', 'error');
+                    return;
+                }
+                
+                const saved = localStorage.getItem('currentUser');
+                if(!saved) { 
+                    window.location.href = 'login.html'; 
+                    return; 
+                }
+                
+                let user;
+                try {
+                    user = JSON.parse(saved);
+                } catch(e) {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                if(!user || !user.uid) {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
                 const snap = await database.ref('users/'+user.uid).once('value');
+                
+                if(!snap.exists()) {
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
                 const data = snap.val();
                 
-                if(!data || data.banned) {
+                if(data.banned) {
                     localStorage.removeItem('currentUser');
                     window.location.href = 'login.html';
                     return;
@@ -1141,7 +1449,7 @@
                 
                 currentUser = {
                     uid: user.uid,
-                    username: data.username,
+                    username: data.username || 'User',
                     money: data.money || 1000,
                     diamond: data.diamond || 0,
                     rank: data.rank || 0,
@@ -1167,35 +1475,65 @@
                 const clickVol = localStorage.getItem('clickVolume');
                 if(clickVol) clickVolume = parseFloat(clickVol);
                 
+                // Cek apakah sudah pernah minta lokasi
+                if(localStorage.getItem('locationPermission') !== 'granted') {
+                    document.getElementById('locationPermission').style.display = 'flex';
+                }
+                
                 database.ref('users/'+user.uid).on('value', (snap) => {
-                    const d = snap.val();
-                    if(d && currentUser) {
-                        currentUser = {...currentUser, ...d};
-                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                        updateUserDisplay();
+                    try {
+                        if(snap && snap.exists()) {
+                            const d = snap.val();
+                            if(d && currentUser) {
+                                currentUser = {
+                                    ...currentUser,
+                                    username: d.username || currentUser.username,
+                                    money: d.money || currentUser.money,
+                                    diamond: d.diamond || currentUser.diamond,
+                                    rank: d.rank || currentUser.rank,
+                                    stars: d.stars || currentUser.stars
+                                };
+                                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                                updateUserDisplay();
+                                showDevButtons();
+                                setupChatNotification();
+                            }
+                        }
+                    } catch(e) {
+                        console.log('Error user update:', e);
                     }
                 });
                 
                 document.querySelectorAll('button, .game-card, .feature-card, .friend-item, .back-btn, .music-option').forEach(el => {
-                    el.addEventListener('click', playClickSound);
+                    if(el) {
+                        el.addEventListener('click', playClickSound);
+                    }
                 });
                 
             } catch(e) {
-                showMessage('Error: '+e.message, 'error');
+                console.error('Init error:', e);
+                showMessage('Error: ' + e.message, 'error');
             }
         }
         
         // Event Listeners
-        document.getElementById('settingsBtn').addEventListener('click', toggleSettingsMenu);
-        document.getElementById('profileImageInput').addEventListener('change', handleProfileImageUpload);
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Escape') {
-                closeSettingsModal();
-                document.getElementById('settingsDropdown').classList.remove('active');
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsBtn = document.getElementById('settingsBtn');
+            if(settingsBtn) settingsBtn.addEventListener('click', toggleSettingsMenu);
+            
+            const profileInput = document.getElementById('profileImageInput');
+            if(profileInput) profileInput.addEventListener('change', handleProfileImageUpload);
+            
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'Escape') {
+                    closeSettingsModal();
+                    const dropdown = document.getElementById('settingsDropdown');
+                    if(dropdown) dropdown.classList.remove('active');
+                }
+            });
+            
+            initLobby();
         });
-        
-        window.onload = initLobby;
     </script>
 </body>
 </html>
