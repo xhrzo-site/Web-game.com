@@ -493,406 +493,420 @@
     </div>
     
     <script>
-        // Firebase sudah diinisialisasi di firebase-config.js
-        
-        // ==================== CLICK SOUND ONLY ====================
-        let clickVolume = 0.7;
-        
-        function playClickSound() {
-            const clickSound = document.getElementById('clickSound');
-            if (clickSound) {
-                clickSound.volume = clickVolume;
-                clickSound.currentTime = 0;
-                clickSound.play().catch(e => console.log("Click sound error:", e));
-            }
+    // Firebase sudah diinisialisasi di firebase-config.js
+    
+    // ==================== CLICK SOUND ONLY ====================
+    let clickVolume = 0.7;
+    
+    function playClickSound() {
+        const clickSound = document.getElementById('clickSound');
+        if (clickSound) {
+            clickSound.volume = clickVolume;
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.log("Click sound error:", e));
         }
-        
-        // Load saved volume
-        const savedClickVol = localStorage.getItem('clickVolume');
-        if (savedClickVol) {
-            clickVolume = parseFloat(savedClickVol);
-        }
-        
-        // ==================== DETEKSI DEVICE ====================
-        async function detectDevice() {
-            const info = {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screen: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            // Deteksi Android
-            if(/android/i.test(navigator.userAgent)) {
-                const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
-                info.androidVersion = match ? match[1] : 'unknown';
-            }
-            
-            // Deteksi iOS
-            if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                const match = navigator.userAgent.match(/OS\s([0-9_]+)/);
-                info.iosVersion = match ? match[1].replace(/_/g, '.') : 'iOS device';
-            }
-            
-            // Deteksi device name dari user agent
-            if(/Windows/.test(navigator.userAgent)) {
-                info.deviceType = 'Windows PC';
-            } else if(/Mac/.test(navigator.userAgent)) {
-                info.deviceType = 'Mac';
-            } else if(/Linux/.test(navigator.userAgent)) {
-                info.deviceType = 'Linux';
-            } else if(/Android/.test(navigator.userAgent)) {
-                info.deviceType = 'Android';
-            } else if(/iPhone/.test(navigator.userAgent)) {
-                info.deviceType = 'iPhone';
-            } else if(/iPad/.test(navigator.userAgent)) {
-                info.deviceType = 'iPad';
-            }
-            
-            // Dapatkan IP via API
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                info.ip = data.ip;
-            } catch(e) {
-                info.ip = 'unknown';
-            }
-            
-            // Test koneksi untuk kecepatan
-            const startTime = Date.now();
-            try {
-                await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
-                const endTime = Date.now();
-                info.latency = endTime - startTime;
-                info.connectionType = navigator.connection?.effectiveType || 'unknown';
-            } catch(e) {
-                info.latency = -1;
-            }
-            
-            return info;
-        }
-        
-        function addClickSoundToElements() {
-            const clickableElements = document.querySelectorAll(
-                'button, .faq-btn, .switch-form span, .close-modal'
-            );
-            
-            clickableElements.forEach(element => {
-                element.removeEventListener('click', playClickSound);
-                element.addEventListener('click', playClickSound);
-            });
-            
-            const inputFields = document.querySelectorAll('input[type="text"], input[type="password"]');
-            inputFields.forEach(input => {
-                input.removeEventListener('keypress', handleEnterWithSound);
-                input.addEventListener('keypress', handleEnterWithSound);
-            });
-        }
-        
-        function handleEnterWithSound(e) {
-            if (e.key === 'Enter') {
-                playClickSound();
-            }
-        }
-        
-        function openFAQ() {
-            playClickSound();
-            document.getElementById('faqModal').classList.add('active');
-        }
-        
-        function closeFAQ() {
-            playClickSound();
-            document.getElementById('faqModal').classList.remove('active');
-        }
-        
-        function switchToLogin() {
-            playClickSound();
-            document.getElementById('registerForm').classList.remove('active');
-            setTimeout(() => {
-                document.getElementById('loginForm').classList.add('active');
-            }, 50);
-        }
-        
-        function switchToRegister() {
-            playClickSound();
-            document.getElementById('loginForm').classList.remove('active');
-            setTimeout(() => {
-                document.getElementById('registerForm').classList.add('active');
-            }, 50);
-        }
-        
-        function showMessage(text, type = 'success') {
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            message.textContent = text;
-            document.body.appendChild(message);
-            
-            setTimeout(() => {
-                message.remove();
-            }, 3000);
-        }
-        
-        function showBanModal(userData) {
-            const banDetails = document.getElementById('banDetails');
-            
-            let banDate = 'Unknown';
-            if (userData.bannedAt) {
-                banDate = new Date(userData.bannedAt).toLocaleDateString('id-ID', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-            
-            let banReason = userData.banReason || 'Tidak disebutkan';
-            
-            banDetails.innerHTML = `
-                <div class="ban-info"><strong>Username:</strong> ${userData.username || 'Unknown'}</div>
-                <div class="ban-info"><strong>Status:</strong> <span style="color:#ff3333">BANNED PERMANEN</span></div>
-                <div class="ban-info"><strong>Tanggal Ban:</strong> ${banDate}</div>
-                <div class="ban-info"><strong>Alasan Ban:</strong> ${banReason}</div>
-                <div class="ban-info"><strong>Admin:</strong> ${userData.bannedBy || 'System'}</div>
-            `;
-            
-            document.getElementById('banModal').classList.add('active');
-        }
-        
-        function closeBanModal() {
-            playClickSound();
-            document.getElementById('banModal').classList.remove('active');
-            localStorage.removeItem('currentUser');
-        }
-        
-        // Event listeners
-        document.getElementById('faqModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFAQ();
-            }
-        });
-        
-        document.getElementById('regPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                playClickSound();
-                setTimeout(() => document.getElementById('registerBtn').click(), 100);
-            }
-        });
-        
-        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                playClickSound();
-                setTimeout(() => document.getElementById('loginBtn').click(), 100);
-            }
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeFAQ();
-                closeBanModal();
-            }
-        });
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            addClickSoundToElements();
-        });
-        
-        // ==================== REGISTER FUNCTION WITH DEVICE DETECTION ====================
-        document.getElementById('registerBtn').addEventListener('click', async () => {
-            playClickSound();
-            
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-            
-            if (username.length < 3) {
-                showMessage('Username minimal 3 karakter!', 'error');
-                return;
-            }
-            
-            if (password.length < 4) {
-                showMessage('Password minimal 4 karakter!', 'error');
-                return;
-            }
-            
-            const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
-            if (badWords.some(word => username.toLowerCase().includes(word))) {
-                showMessage('Username tidak diperbolehkan!', 'error');
-                return;
-            }
-            
-            try {
-                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                
-                if (snapshot.exists()) {
-                    showMessage('Username udah Ada yang pakai bro!', 'error');
-                    return;
-                }
-                
-                // Deteksi device sebelum register
-                const deviceInfo = await detectDevice();
-                
-                const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                await database.ref('users/' + userId).set({
-                    uid: userId,
-                    username: username,
-                    password: password,
-                    money: 1000,
-                    diamond: 10,
-                    rank: 0,
-                    stars: 0,
-                    credit: 0,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    status: 'online',
-                    gamesPlayed: 0,
-                    banned: false,
-                    device: deviceInfo,
-                    registeredIP: deviceInfo.ip,
-                    registeredDevice: deviceInfo.deviceType || 'Unknown'
-                });
-                
-                await database.ref('friends/' + userId).set({});
-                
-                // Setup disconnect handler
-                database.ref('users/' + userId + '/status').onDisconnect().set('offline');
-                database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-                
-                const userData = {
-                    uid: userId,
-                    username: username,
-                    money: 1000,
-                    diamond: 10,
-                    rank: 0,
-                    stars: 0,
-                    banned: false
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                
-                showMessage('Akun berhasil dibuat! ✅', 'success');
-                setTimeout(() => {
-                    window.location.href = 'lobby.html';
-                }, 1000);
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        });
-        
-        // ==================== LOGIN FUNCTION WITH DEVICE UPDATE ====================
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            playClickSound();
-            
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            
-            if (!username || !password) {
-                showMessage('Isi username dan password!', 'error');
-                return;
-            }
-            
-            try {
-                const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                
-                if (!snapshot.exists()) {
-                    showMessage('Username tidak ditemukan!', 'error');
-                    return;
-                }
-                
-                const userData = snapshot.val();
-                const userId = Object.keys(userData)[0];
-                const user = userData[userId];
-                
-                if (user.banned) {
-                    showMessage('❌ AKUN ANDA TELAH DI BAN!', 'error');
-                    setTimeout(() => {
-                        showBanModal(user);
-                    }, 500);
-                    return;
-                }
-                
-                if (user.password !== password) {
-                    showMessage('Password salah!', 'error');
-                    return;
-                }
-                
-                // Update device info saat login
-                const deviceInfo = await detectDevice();
-                
-                await database.ref('users/' + userId).update({
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    status: 'online',
-                    loginCount: (user.loginCount || 0) + 1,
-                    lastDevice: deviceInfo,
-                    lastLogin: new Date().toISOString()
-                });
-                
-                // Setup disconnect handler
-                database.ref('users/' + userId + '/status').onDisconnect().set('offline');
-                database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-                
-                const currentUser = {
-                    uid: userId,
-                    username: user.username,
-                    money: user.money,
-                    diamond: user.diamond,
-                    rank: user.rank || 0,
-                    stars: user.stars || 0,
-                    banned: false
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                showMessage('Login berhasil✅!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'lobby.html';
-                }, 1000);
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        });
-        
-        // ==================== INITIALIZATION ====================
-        window.onload = () => {
-            document.getElementById('loginUsername').focus();
-            
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                const user = JSON.parse(savedUser);
-                
-                checkBanStatus(user.uid).then(isBanned => {
-                    if (isBanned) {
-                        localStorage.removeItem('currentUser');
-                    } else {
-                        window.location.href = 'lobby.html';
-                    }
-                });
-            }
+    }
+    
+    // Load saved volume
+    const savedClickVol = localStorage.getItem('clickVolume');
+    if (savedClickVol) {
+        clickVolume = parseFloat(savedClickVol);
+    }
+    
+    // ==================== DETEKSI DEVICE ====================
+    async function detectDevice() {
+        const info = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            screen: `${screen.width}x${screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         };
         
-        async function checkBanStatus(userId) {
-            try {
-                const snapshot = await database.ref('users/' + userId).once('value');
-                const user = snapshot.val();
-                
-                if (user && user.banned) {
-                    setTimeout(() => {
-                        showBanModal(user);
-                    }, 100);
-                    return true;
-                }
-                
-                return false;
-            } catch (error) {
-                console.error('Error checking ban status:', error);
-                return false;
-            }
+        // Deteksi Android
+        if(/android/i.test(navigator.userAgent)) {
+            const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
+            info.androidVersion = match ? match[1] : 'unknown';
         }
-    </script>
+        
+        // Deteksi iOS
+        if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const match = navigator.userAgent.match(/OS\s([0-9_]+)/);
+            info.iosVersion = match ? match[1].replace(/_/g, '.') : 'iOS device';
+        }
+        
+        // Deteksi device name dari user agent
+        if(/Windows/.test(navigator.userAgent)) {
+            info.deviceType = 'Windows PC';
+        } else if(/Mac/.test(navigator.userAgent)) {
+            info.deviceType = 'Mac';
+        } else if(/Linux/.test(navigator.userAgent)) {
+            info.deviceType = 'Linux';
+        } else if(/Android/.test(navigator.userAgent)) {
+            info.deviceType = 'Android';
+        } else if(/iPhone/.test(navigator.userAgent)) {
+            info.deviceType = 'iPhone';
+        } else if(/iPad/.test(navigator.userAgent)) {
+            info.deviceType = 'iPad';
+        }
+        
+        // Dapatkan IP via API
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            info.ip = data.ip;
+        } catch(e) {
+            info.ip = 'unknown';
+        }
+        
+        // Test koneksi untuk kecepatan
+        const startTime = Date.now();
+        try {
+            await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+            const endTime = Date.now();
+            info.latency = endTime - startTime;
+            info.connectionType = navigator.connection?.effectiveType || 'unknown';
+        } catch(e) {
+            info.latency = -1;
+        }
+        
+        return info;
+    }
+    
+    function addClickSoundToElements() {
+        const clickableElements = document.querySelectorAll(
+            'button, .faq-btn, .switch-form span, .close-modal'
+        );
+        
+        clickableElements.forEach(element => {
+            element.removeEventListener('click', playClickSound);
+            element.addEventListener('click', playClickSound);
+        });
+        
+        const inputFields = document.querySelectorAll('input[type="text"], input[type="password"]');
+        inputFields.forEach(input => {
+            input.removeEventListener('keypress', handleEnterWithSound);
+            input.addEventListener('keypress', handleEnterWithSound);
+        });
+    }
+    
+    function handleEnterWithSound(e) {
+        if (e.key === 'Enter') {
+            playClickSound();
+        }
+    }
+    
+    function openFAQ() {
+        playClickSound();
+        document.getElementById('faqModal').classList.add('active');
+    }
+    
+    function closeFAQ() {
+        playClickSound();
+        document.getElementById('faqModal').classList.remove('active');
+    }
+    
+    function switchToLogin() {
+        playClickSound();
+        document.getElementById('registerForm').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('loginForm').classList.add('active');
+        }, 50);
+    }
+    
+    function switchToRegister() {
+        playClickSound();
+        document.getElementById('loginForm').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('registerForm').classList.add('active');
+        }, 50);
+    }
+    
+    function showMessage(text, type = 'success') {
+        const message = document.createElement('div');
+        message.className = `message ${type}`;
+        message.textContent = text;
+        document.body.appendChild(message);
+        
+        setTimeout(() => {
+            message.remove();
+        }, 3000);
+    }
+    
+    function showBanModal(userData) {
+        const banDetails = document.getElementById('banDetails');
+        
+        let banDate = 'Unknown';
+        if (userData.bannedAt) {
+            banDate = new Date(userData.bannedAt).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        let banReason = userData.banReason || 'Tidak disebutkan';
+        
+        banDetails.innerHTML = `
+            <div class="ban-info"><strong>Username:</strong> ${userData.username || 'Unknown'}</div>
+            <div class="ban-info"><strong>Status:</strong> <span style="color:#ff3333">BANNED PERMANEN</span></div>
+            <div class="ban-info"><strong>Tanggal Ban:</strong> ${banDate}</div>
+            <div class="ban-info"><strong>Alasan Ban:</strong> ${banReason}</div>
+            <div class="ban-info"><strong>Admin:</strong> ${userData.bannedBy || 'System'}</div>
+        `;
+        
+        document.getElementById('banModal').classList.add('active');
+    }
+    
+    function closeBanModal() {
+        playClickSound();
+        document.getElementById('banModal').classList.remove('active');
+        localStorage.removeItem('currentUser');
+    }
+    
+    // Event listeners
+    document.getElementById('faqModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeFAQ();
+        }
+    });
+    
+    document.getElementById('regPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            playClickSound();
+            setTimeout(() => document.getElementById('registerBtn').click(), 100);
+        }
+    });
+    
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            playClickSound();
+            setTimeout(() => document.getElementById('loginBtn').click(), 100);
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeFAQ();
+            closeBanModal();
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        addClickSoundToElements();
+    });
+    
+    // ==================== REGISTER FUNCTION WITH DEVICE DETECTION ====================
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+        playClickSound();
+        
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value.trim();
+        
+        if (username.length < 3) {
+            showMessage('Username minimal 3 karakter!', 'error');
+            return;
+        }
+        
+        if (password.length < 4) {
+            showMessage('Password minimal 4 karakter!', 'error');
+            return;
+        }
+        
+        const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
+        if (badWords.some(word => username.toLowerCase().includes(word))) {
+            showMessage('Username tidak diperbolehkan!', 'error');
+            return;
+        }
+        
+        try {
+            const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            
+            if (snapshot.exists()) {
+                showMessage('Username udah Ada yang pakai bro!', 'error');
+                return;
+            }
+            
+            // Deteksi device sebelum register
+            const deviceInfo = await detectDevice();
+            
+            const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            await database.ref('users/' + userId).set({
+                uid: userId,
+                username: username,
+                password: password,
+                money: 1000,
+                diamond: 10,
+                rank: 0,
+                stars: 0,
+                credit: 0,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                status: 'online',
+                gamesPlayed: 0,
+                banned: false,
+                device: deviceInfo,
+                registeredIP: deviceInfo.ip,
+                registeredDevice: deviceInfo.deviceType || 'Unknown'
+            });
+            
+            await database.ref('friends/' + userId).set({});
+            
+            // Setup disconnect handler
+            database.ref('users/' + userId + '/status').onDisconnect().set('offline');
+            database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+            
+            const userData = {
+                uid: userId,
+                username: username,
+                money: 1000,
+                diamond: 10,
+                rank: 0,
+                stars: 0,
+                banned: false
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            
+            showMessage('Akun berhasil dibuat! ✅', 'success');
+            setTimeout(() => {
+                window.location.href = 'lobby.html';
+            }, 1000);
+            
+        } catch (error) {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    });
+    
+    // ==================== LOGIN FUNCTION WITH DEVICE UPDATE ====================
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        playClickSound();
+        
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        
+        if (!username || !password) {
+            showMessage('Isi username dan password!', 'error');
+            return;
+        }
+        
+        try {
+            const snapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            
+            if (!snapshot.exists()) {
+                showMessage('Username tidak ditemukan!', 'error');
+                return;
+            }
+            
+            const userData = snapshot.val();
+            const userId = Object.keys(userData)[0];
+            const user = userData[userId];
+            
+            if (user.banned) {
+                showMessage('❌ AKUN ANDA TELAH DI BAN!', 'error');
+                setTimeout(() => {
+                    showBanModal(user);
+                }, 500);
+                return;
+            }
+            
+            if (user.password !== password) {
+                showMessage('Password salah!', 'error');
+                return;
+            }
+            
+            // Update device info saat login
+            const deviceInfo = await detectDevice();
+            
+            await database.ref('users/' + userId).update({
+                lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                status: 'online',
+                loginCount: (user.loginCount || 0) + 1,
+                lastDevice: deviceInfo,
+                lastLogin: new Date().toISOString()
+            });
+            
+            // Setup disconnect handler
+            database.ref('users/' + userId + '/status').onDisconnect().set('offline');
+            database.ref('users/' + userId + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+            
+            const currentUser = {
+                uid: userId,
+                username: user.username,
+                money: user.money,
+                diamond: user.diamond,
+                rank: user.rank || 0,
+                stars: user.stars || 0,
+                banned: false
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showMessage('Login berhasil✅!', 'success');
+            setTimeout(() => {
+                window.location.href = 'lobby.html';
+            }, 1000);
+            
+        } catch (error) {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    });
+    
+    // ==================== INITIALIZATION - FIXED ====================
+    window.onload = () => {
+        document.getElementById('loginUsername').focus();
+        
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            
+            // Cek apakah user benar-benar ada di database dan tidak di-ban
+            checkBanStatus(user.uid).then(isBanned => {
+                if (isBanned) {
+                    localStorage.removeItem('currentUser');
+                } else {
+                    // User ada di localStorage, cek status online
+                    database.ref('users/' + user.uid + '/status').once('value').then((snapshot) => {
+                        const status = snapshot.val();
+                        // Hanya redirect ke lobby jika status online atau afk
+                        if (status === 'online' || status === 'afk') {
+                            window.location.href = 'lobby.html';
+                        } else {
+                            // Jika status offline, hapus localStorage dan tetap di halaman login
+                            localStorage.removeItem('currentUser');
+                        }
+                    }).catch(() => {
+                        // Jika error, hapus localStorage
+                        localStorage.removeItem('currentUser');
+                    });
+                }
+            });
+        }
+    };
+    
+    async function checkBanStatus(userId) {
+        try {
+            const snapshot = await database.ref('users/' + userId).once('value');
+            const user = snapshot.val();
+            
+            if (user && user.banned) {
+                setTimeout(() => {
+                    showBanModal(user);
+                }, 100);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Error checking ban status:', error);
+            return false;
+        }
+    }
+</script>
 </body>
 </html>
