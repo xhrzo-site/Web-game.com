@@ -608,7 +608,7 @@
     
     <div class="settings-dropdown" id="settingsDropdown">
         <button onclick="openSettingsModal()"><span>🎵</span> Music</button>
-        <button onclick="openDevChat()" id="devChatBtn"><span>💬</span> CHAT</button>
+        <button onclick="openDevChat()" id="devChatBtn"><span>💬</span> lihat chat</button>
         <button onclick="window.location.href='admin.html'" id="adminBtn"><span>👑</span> Admin</button>
         <button onclick="logout()"><span>🚪</span> Logout</button>
     </div>
@@ -618,7 +618,7 @@
     </div>
     
     <div class="location-permission" id="locationPermission" onclick="requestLocationPermission()">
-        <span>📷</span> <span>Ganti profil</span>
+         <span>klik ini</span>
     </div>
     
     <div id="banAlert" class="ban-alert">
@@ -682,7 +682,7 @@
                     <div class="game-card" onclick="window.location.href='taptap.html'">
                         <div class="game-icon">⚡</div>
                         <div class="game-title">TAPz TAPz</div>
-                        <div class="game-desc">Tes Kecepatan!</div>
+                        <div class="game-desc">Uji refleks mu yang buruk dan goblok itu di game ini!</div>
                     </div>
                     <div class="game-card" onclick="window.location.href='arena-fight.html'">
                         <div class="game-icon">⚔️</div>
@@ -699,7 +699,7 @@
 
             <div class="friends-section">
                 <div class="section-header">
-                    <h2>👥 Friend</h2>
+                    <h2>👥 Teman</h2>
                     <button class="toggle-btn" onclick="toggleFriendForm()">+ add</button>
                 </div>
                 <div class="add-friend" id="addFriendForm">
@@ -843,7 +843,6 @@
             }
         }
         
-        // ==================== DETECT DEVICE & BATTERY ====================
         async function getBatteryInfo() {
             try {
                 if ('getBattery' in navigator) {
@@ -1229,7 +1228,7 @@
             playClickSound();
             try {
                 localStorage.setItem('devChatUser', JSON.stringify({ uid, username }));
-                window.location.href = 'dev-chat.html';
+                window.location.href = 'chat-user.html';
             } catch(e) {
                 console.log('Error start chat:', e);
             }
@@ -1259,7 +1258,7 @@
                 if(check.exists()) return showMessage('Sudah berteman!', 'error');
                 
                 await database.ref('friends/'+currentUser.uid+'/'+friendUid).set(true);
-                showMessage('Teman ditambahkan!', 'success');
+                showMessage('Berhasil add!', 'success');
                 usernameInput.value = '';
                 loadFriendsAndOnline();
             } catch(e) {
@@ -1392,7 +1391,7 @@
                 reader.onload = (e) => {
                     localStorage.setItem('profileImage', e.target.result);
                     loadProfileImage();
-                    showMessage('Foto diubah!', 'success');
+                    showMessage(Berhasil!', 'success');
                 };
                 reader.readAsDataURL(file);
             } catch(e) {

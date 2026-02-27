@@ -631,7 +631,7 @@
         
         setTimeout(() => {
             message.remove();
-        }, 3000);
+        }, 1000);
     }
     
     function showBanModal(userData) {
@@ -717,7 +717,7 @@
             return;
         }
         
-        const badWords = ['admin', 'owner', 'moderator', 'taher', 'xhrzo'];
+        const badWords = ['admin', 'owner', 'moderator', 'zoo', 'xhrzo'];
         if (badWords.some(word => username.toLowerCase().includes(word))) {
             showMessage('Username tidak diperbolehkan!', 'error');
             return;
@@ -765,7 +765,7 @@
                 uid: userId,
                 username: username,
                 money: 1000,
-                diamond: 10,
+                diamond: 0,
                 rank: 0,
                 stars: 0,
                 banned: false
@@ -776,7 +776,7 @@
             showMessage('Akun berhasil dibuat! ✅', 'success');
             setTimeout(() => {
                 window.location.href = 'lobby.html';
-            }, 1000);
+            }, 500);
             
         } catch (error) {
             showMessage('Error: ' + error.message, 'error');
@@ -850,7 +850,7 @@
             showMessage('Login berhasil✅!', 'success');
             setTimeout(() => {
                 window.location.href = 'lobby.html';
-            }, 1000);
+            }, 50);
             
         } catch (error) {
             showMessage('Error: ' + error.message, 'error');

@@ -340,7 +340,7 @@
         // ==================== FIREBASE ====================
         let currentUser = null;
         let contactsListener = null;
-        const DEV_UID = "taher_dev, zoo_dev_2024";
+        const DEV_UID = "zoo_dev_2024";
         
         // ==================== ENKRIPSI SEDERHANA ====================
         function decryptMessage(encryptedText) {
@@ -504,12 +504,12 @@
                     return;
                 }
                 
-                // Cek apakah ini developer (Taher)
-                if (user.uid !== DEV_UID && user.username !== "Taher") {
-                    showMessage('Akses ditolak! Halaman ini khusus developer', 'error');
+                // Cek apakah ini developer (Zoo)
+                if (user.uid !== DEV_UID && user.username !== "Zoo") {
+                    showMessage('Akses ditolak!', 'error');
                     setTimeout(() => {
                         window.location.href = 'lobby.html';
-                    }, 2000);
+                    }, 100);
                     return;
                 }
                 
