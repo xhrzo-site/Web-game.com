@@ -2,612 +2,388 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Lobby - The All Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Game Lobby · The All Game</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- firebase-config.js (diasumsikan ada) -->
     <script src="firebase-config.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
         }
-        
         body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(145deg, #0a0c1a 0%, #1a1f3a 100%);
             color: #fff;
             min-height: 100vh;
-            overflow-x: hidden;
+            padding: 8px 8px 80px 8px;
         }
-        
+        /* elemen lebih besar dan nyaman */
         .ban-alert {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(135deg, #ff3333, #cc0000);
+            top: 0; left: 0; width: 100%;
+            background: #b71c1c;
             color: white;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
             font-weight: bold;
             z-index: 2000;
-            animation: slideDown 0.5s ease;
             display: none;
+            font-size: 1.2rem;
         }
-        
         .ban-alert.active { display: block; }
-        
-        .ban-alert-content {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .ban-alert button {
-            background: white;
-            color: #ff3333;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
         .settings-btn {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 255, 136, 0.2);
-            border: 2px solid #00ff88;
-            border-radius: 10px;
-            padding: 12px;
-            cursor: pointer;
-            color: #00ff88;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            z-index: 1001;
+            top: 18px;
+            left: 18px;
+            background: rgba(0,255,136,0.2);
+            border: 2.5px solid #00ff88;
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 34px;
+            z-index: 1001;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 6px 0 #0b6e3f;
         }
-        
         .settings-dropdown {
             position: fixed;
-            top: 80px;
-            left: 20px;
-            background: rgba(30, 30, 46, 0.95);
+            top: 95px;
+            left: 18px;
+            background: #1f2540ee;
+            backdrop-filter: blur(20px);
             border: 2px solid #00ff88;
-            border-radius: 12px;
-            padding: 15px;
-            min-width: 200px;
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+            border-radius: 32px;
+            padding: 18px 14px;
+            min-width: 240px;
             z-index: 1000;
             display: none;
-            backdrop-filter: blur(10px);
+            box-shadow: 0 18px 30px black;
         }
-        
         .settings-dropdown.active { display: block; }
-        
         .settings-dropdown button {
             width: 100%;
-            padding: 12px;
-            margin: 5px 0;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
+            padding: 18px 16px;
+            margin: 6px 0;
+            background: rgba(0,255,136,0.1);
+            border: 1px solid #00ff8860;
+            border-radius: 60px;
             color: white;
-            font-size: 16px;
-            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 16px;
         }
-        
-        .settings-dropdown button:hover {
-            background: rgba(0, 255, 136, 0.3);
-        }
-        
         .settings-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95);
             z-index: 2000;
             display: none;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
-        
         .settings-modal.active { display: flex; }
-        
         .settings-box {
-            background: rgba(30, 30, 46, 0.95);
-            border: 2px solid #00ff88;
-            border-radius: 18px;
-            padding: 30px;
+            background: #1e2642;
+            border: 3px solid #00ff88;
+            border-radius: 48px;
+            padding: 35px 25px;
             width: 100%;
-            max-width: 400px;
-            position: relative;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        
         .close-modal {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 20px;
-            cursor: pointer;
+            top: 20px; right: 20px;
+            background: none; border: none;
+            color: white; font-size: 32px;
         }
-        
-        .setting-item {
-            margin-bottom: 25px;
+        .setting-item { margin-bottom: 30px; }
+        .setting-item label { 
+            display: block; 
+            margin-bottom: 18px; 
+            color: #aaffdd; 
+            font-weight: 700;
+            font-size: 1.4rem;
         }
-        
-        .setting-item label {
-            display: block;
-            margin-bottom: 10px;
-            color: #88ffcc;
-            font-weight: 600;
-        }
-        
-        .setting-item input[type="range"] {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-        }
-        
         .music-option {
-            background: rgba(0, 255, 136, 0.1);
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-top: 8px;
-            cursor: pointer;
-            border: 1px solid transparent;
+            background: #142035;
+            padding: 18px 22px;
+            border-radius: 60px;
+            margin-top: 12px;
+            border: 2px solid #3d4e70;
+            font-weight: 600;
+            font-size: 1.2rem;
         }
-        
-        .music-option:hover { background: rgba(0, 255, 136, 0.2); }
         .music-option.active {
-            background: rgba(0, 255, 136, 0.3);
+            background: #00ff8840;
             border-color: #00ff88;
         }
-        
         #lobbyContainer {
-            min-height: 100vh;
-            padding: 30px 20px;
-            padding-top: 100px;
-            max-width: 1200px;
+            max-width: 720px;
             margin: 0 auto;
         }
-        
-        #lobbyContainer.blur {
-            opacity: 0.5;
-            filter: blur(2px);
-            pointer-events: none;
-        }
-        
         .header {
+            background: rgba(8, 12, 26, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: 30px 20px;
+            margin-bottom: 24px;
+            border: 1.5px solid #00ff8860;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(0, 255, 136, 0.25);
             flex-direction: column;
+            align-items: center;
         }
-        
         .profile-image-container {
+            width: 140px;
+            height: 140px;
+            margin-bottom: 16px;
             position: relative;
-            margin-bottom: 15px;
-            width: 120px;
-            height: 120px;
         }
-        
         .profile-image {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid #00ff88;
-            object-fit: cover;
-            cursor: pointer;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            width: 100%; height: 100%;
+            border-radius: 100px;
+            border: 5px solid #00ff88;
+            background: #232845;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            color: #00ff88;
+            font-size: 70px;
             overflow: hidden;
+            background-size: cover;
+            background-position: center;
         }
-        
-        .profile-image-upload-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            opacity: 0;
-            z-index: 2;
-        }
-        
-        #profileImageInput { display: none; }
-        
         .user-info-box {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1.5px solid #00ff88;
+            background: #10162b;
+            border-radius: 70px;
+            padding: 25px 30px;
+            border: 3px solid #00ff88;
             width: 100%;
-            max-width: 450px;
-            text-align: center;
-            margin: 15px 0;
+            margin: 16px 0 10px;
         }
-        
         .username-display {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00ff88;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #aaffaa;
+            text-align: center;
             word-break: break-word;
-            margin-bottom: 15px;
         }
-        
         .rank-stars-container {
             display: flex;
-            flex-direction: column;
             gap: 15px;
-            width: 100%;
+            margin-top: 22px;
+            flex-wrap: wrap;
         }
-        
         .rank-display-box, .stars-display-box {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 15px;
-            border-radius: 12px;
+            flex: 1;
+            background: #0a1022;
+            border-radius: 50px;
+            padding: 20px 12px;
+            font-size: 1.5rem;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            border: 1px solid;
-            min-height: 60px;
+            border: 2px solid #3e5570;
         }
-        
         .user-stats {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
+            gap: 25px;
             justify-content: center;
+            width: 100%;
+            margin-top: 18px;
         }
-        
         .stat {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 12px 20px;
-            border-radius: 12px;
+            background: #11172e;
+            padding: 18px 35px;
+            border-radius: 70px;
+            font-size: 1.8rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-width: 120px;
+            gap: 16px;
+            border: 2px solid #ffd966;
+            box-shadow: 0 7px 0 #0a0e1c;
+            min-width: 150px;
             justify-content: center;
         }
-        
+        .stat span:first-child { font-size: 2.6rem; } /* 💵💎 besar */
         .lobby-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
         }
-        
         .games-section, .friends-section {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(0, 255, 136, 0.08);
+            background: rgba(10,10,25,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 50px;
+            padding: 30px 22px;
+            border: 1px solid #00ff8840;
         }
-        
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
         .section-header h2 {
-            margin: 0;
-            font-size: 22px;
-            color: #00ff88;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #00ffbb;
         }
-        
+        .toggle-btn {
+            background: #00ff8820;
+            border: 2px solid #00ff88;
+            padding: 16px 32px;
+            border-radius: 60px;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 20px;
-            margin-top: 20px;
         }
-        
         .game-card {
-            background: rgba(0, 0, 0, 0.35);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: #121c30;
+            border-radius: 40px;
+            padding: 30px 12px;
+            min-height: 200px;
+            border: 2px solid #3b5070;
         }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #00ff88;
-            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.25);
-        }
-        
-        .game-icon { font-size: 42px; margin-bottom: 12px; }
-        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; color: #fff; }
-        .game-desc { font-size: 14px; color: #88ffcc; }
-        
-        .toggle-btn {
-            background: rgba(0, 255, 136, 0.15);
-            color: #00ff88;
-            border: 1px solid #00ff88;
-            padding: 10px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
+        .game-icon { font-size: 60px; }
+        .game-title { font-size: 1.5rem; }
         .add-friend {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
             display: none;
+            gap: 12px;
+            margin: 20px 0 25px;
+            flex-wrap: wrap;
         }
-        
         .add-friend.active { display: flex; }
-        
         .add-friend input {
-            flex: 1;
-            padding: 12px 15px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 2;
+            padding: 20px 24px;
+            border-radius: 70px;
+            background: #111d33;
+            border: 2px solid #3a5f80;
             color: white;
+            font-size: 1.3rem;
         }
-        
-        .add-friend input:focus {
-            outline: none;
-            border-color: #00ff88;
-        }
-        
         .add-friend button {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            flex: 1;
+            padding: 20px 24px;
+            background: #00cc6a;
+            border-radius: 70px;
+            font-weight: bold;
+            font-size: 1.3rem;
             border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
         }
-        
         .friends-list {
-            max-height: 400px;
+            max-height: 550px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 8px;
         }
-        
-        .friends-list::-webkit-scrollbar { width: 6px; }
-        .friends-list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-        .friends-list::-webkit-scrollbar-thumb { background: rgba(0, 255, 136, 0.3); border-radius: 3px; }
-        
         .friend-item {
-            background: rgba(0, 0, 0, 0.35);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
+            background: #121e36;
+            border-radius: 40px;
+            padding: 22px 24px;
+            margin-bottom: 16px;
+            border-left: 10px solid #00ff88;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #00ff88;
-            transition: all 0.3s;
-            cursor: pointer;
+            font-size: 1.3rem;
         }
-        
-        .friend-item:hover {
-            transform: translateX(5px);
-            background: rgba(0, 0, 0, 0.45);
-        }
-        
-        .friend-item.friend-only {
-            border-left: 5px solid #ffd700;
-        }
-        
-        .friend-item.offline {
-            opacity: 0.7;
-            border-left: 5px solid #ff3333;
-        }
-        
-        .friend-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        
-        .friend-name {
-            font-weight: bold;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .friend-rank { font-size: 12px; opacity: 0.9; }
-        
-        .friend-badge {
-            font-size: 10px;
-            background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid #ffd700;
-        }
-        
-        .device-badge {
-            font-size: 10px;
-            background: rgba(0, 255, 136, 0.1);
-            color: #88ffcc;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 5px;
-            border: 1px solid #00ff88;
-        }
-        
+        .friend-item.offline { opacity: 0.7; border-left-color: #b33; }
+        .friend-name { font-weight: 800; font-size: 1.5rem; }
+        .friend-rank { font-size: 1.2rem; }
+        .friend-badge, .device-badge { font-size: 1rem; padding: 8px 14px; }
         .features-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 25px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 30px;
         }
-        
         .feature-card {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 18px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.08);
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: #172336;
+            border-radius: 50px;
+            padding: 30px 8px;
+            border: 3px solid #ffd96680;
         }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: #ffd700;
-            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25);
-        }
-        
-        .feature-icon { font-size: 50px; margin-bottom: 15px; }
-        .feature-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #ffd700; }
-        .feature-card p { color: #ccc; font-size: 14px; }
-        
-        .rank-newbie{color:#cd7f32}.rank-junior{color:#c0c0c0}.rank-senior{color:#ffd700}
-        .rank-great{color:#32cd32}.rank-super-great{color:#00ff00}.rank-legend{color:#ff4500}
-        .rank-kings{color:#9370db}.rank-greatest{color:#ff00ff}.rank-mad-kings{color:#8b0000}
-        .rank-greatness{color:#00ffff}.rank-unbeatable{color:#ff8c00}.rank-monster-kings{color:#800080}
-        .rank-impossible{background:linear-gradient(135deg,#f00,#ff8c00,#ff0,#0f0,#0ff,#00f,#800080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        
-        .loading { text-align: center; padding: 20px; color: #00ff88; }
-        
-        .message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: #fff;
-            font-weight: bold;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            min-width: 300px;
-            text-align: center;
-        }
-        
-        .message.success { background: linear-gradient(135deg, #00ff88, #00cc6a); }
-        .message.error { background: linear-gradient(135deg, #ff3333, #cc0000); }
-        
+        .feature-icon { font-size: 55px; }
+        .feature-title { font-size: 1.2rem; font-weight: 700; }
         .chat-notification {
             position: fixed;
-            top: 80px;
-            right: 20px;
-            background: linear-gradient(135deg, #ff3333, #cc0000);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            font-weight: bold;
-            z-index: 1500;
-            animation: bounce 1s ease infinite;
-            cursor: pointer;
+            bottom: 25px; right: 20px;
+            background: #e63946;
+            border-radius: 70px;
+            padding: 20px 32px;
+            font-size: 1.3rem;
+            gap: 12px;
             display: none;
-            align-items: center;
-            gap: 10px;
+            z-index: 1500;
+            box-shadow: 0 9px 0 #941e2c;
         }
-        
         .chat-notification.active { display: flex; }
-        
         .location-permission {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            border-radius: 50px;
-            padding: 10px 20px;
-            color: #00ff88;
-            font-size: 12px;
-            cursor: pointer;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            bottom: 110px; right: 20px;
+            background: #1f3450;
+            border-radius: 70px;
+            padding: 18px 30px;
+            border: 2px solid #ffaa33;
+            font-size: 1.2rem;
+            display: none;
         }
-        
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        @media (max-width: 992px) {
-            .lobby-container { grid-template-columns: 1fr; }
+        .message {
+            position: fixed; top: 20px; right: 20px;
+            padding: 22px 35px;
+            border-radius: 60px;
+            font-weight: bold;
+            z-index: 3000;
+            font-size: 1.3rem;
         }
-        
-        @media (max-width: 768px) {
-            .profile-image-container { width: 100px; height: 100px; }
-            .username-display { font-size: 20px; }
-            .stat { min-width: 100px; padding: 10px 15px; font-size: 14px; }
-            .chat-notification { top: auto; bottom: 20px; right: 20px; left: 20px; justify-content: center; }
+        /* rank colors */
+        .rank-newbie { color: #cd7f32; } .rank-junior { color: #c0c0c0; } .rank-senior { color: #ffd700; }
+        .rank-great { color: #32cd32; } .rank-super-great { color: #00ff00; } .rank-legend { color: #ff4500; }
+        .rank-kings { color: #9370db; } .rank-greatest { color: #ff00ff; } .rank-mad-kings { color: #8b0000; }
+        .rank-greatness { color: #00ffff; } .rank-unbeatable { color: #ff8c00; } .rank-monster-kings { color: #800080; }
+        .rank-impossible { background: linear-gradient(135deg, #f00, #ff8c00, #ff0, #0f0, #0ff, #00f, #800080); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @media (max-width: 480px) {
+            .stat { min-width: 120px; padding: 14px 20px; font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
+    <!-- 9 MUSIK (6 lama + 3 baru sesuai permintaan) -->
     <audio id="bgMusic1" preload="auto"><source src="https://e.top4top.io/m_3674v14i19.mp3"></audio>
     <audio id="bgMusic2" preload="auto"><source src="https://d.top4top.io/m_36746vfto7.mp3"></audio>
     <audio id="bgMusic3" preload="auto"><source src="https://e.top4top.io/m_3673yeacl2.mp3"></audio>
     <audio id="bgMusic4" preload="auto"><source src="https://d.top4top.io/m_36735qanc1.mp3"></audio>
+    <audio id="bgMusic5" preload="auto"><source src="https://c.top4top.io/m_3710lrl021.mp3"></audio>
+    <audio id="bgMusic6" preload="auto"><source src="https://b.top4top.io/m_3710i391d0.mp3"></audio>
+    <!-- 3 TAMBAHAN BARU -->
+    <audio id="bgMusic7" preload="auto"><source src="https://l.top4top.io/m_3710b3xdt0.mp3"></audio>
+    <audio id="bgMusic8" preload="auto"><source src="https://c.top4top.io/m_3710vio4m0.mp3"></audio>
+    <audio id="bgMusic9" preload="auto"><source src="https://d.top4top.io/m_37100v7471.mp3"></audio>
+    
     <audio id="clickSound" preload="auto"><source src="https://c.top4top.io/m_3673bf8xd0.mp3"></audio>
     
     <div class="settings-btn" id="settingsBtn">⚙️</div>
-    
     <div class="settings-dropdown" id="settingsDropdown">
-        <button onclick="openSettingsModal()"><span>🎵</span> Music</button>
+        <button onclick="openSettingsModal()"><span>🎵</span> Musik</button>
         <button onclick="openDevChat()" id="devChatBtn"><span>💬</span> lihat chat</button>
         <button onclick="window.location.href='admin.html'" id="adminBtn"><span>👑</span> Admin</button>
         <button onclick="logout()"><span>🚪</span> Logout</button>
@@ -616,39 +392,41 @@
     <div class="chat-notification" id="chatNotification" onclick="openDevChat()">
         <span>💬</span> <span>Pesan baru</span>
     </div>
-    
-    <div class="location-permission" id="locationPermission" onclick="requestLocationPermission()">
-         <span>klik ini</span>
-    </div>
+    <div class="location-permission" id="locationPermission" onclick="requestLocationPermission()">📍 izinkan lokasi</div>
     
     <div id="banAlert" class="ban-alert">
         <div class="ban-alert-content">
-            <div><strong>🚫 AKUN DI BAN!</strong> <span id="banReason"></span></div>
+            <div><strong>🚫 DI BAN!</strong> <span id="banReason"></span></div>
             <button onclick="forceLogout()">OK</button>
         </div>
     </div>
     
     <div id="settingsModal" class="settings-modal">
         <div class="settings-box">
-            <button class="close-modal" onclick="closeSettingsModal()">❌</button>
-            <h3>SETTINGS</h3>
+            <button class="close-modal" onclick="closeSettingsModal()">✖</button>
+            <h2 style="margin-bottom:30px; font-size:2.2rem;">🎚️ SETTINGS</h2>
             <div class="setting-item">
-                <label>🎵 Musik</label>
+                <label>🎵 Musik (9 pilihan)</label>
                 <div class="music-option" onclick="changeMusic(1)">Music 1</div>
                 <div class="music-option" onclick="changeMusic(2)">Music 2</div>
                 <div class="music-option" onclick="changeMusic(3)">Music 3</div>
                 <div class="music-option" onclick="changeMusic(4)">Music 4</div>
+                <div class="music-option" onclick="changeMusic(5)">Music 5 (new)</div>
+                <div class="music-option" onclick="changeMusic(6)">Music 6 (new)</div>
+                <div class="music-option" onclick="changeMusic(7)">Music 7 (baru)</div>
+                <div class="music-option" onclick="changeMusic(8)">Music 8 (baru)</div>
+                <div class="music-option" onclick="changeMusic(9)">Music 9 (baru)</div>
                 <div class="music-option" onclick="changeMusic(0)">🔇 Off</div>
             </div>
             <div class="setting-item">
-                <label>🔊 Volume</label>
-                <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()">
+                <label>🔊 Volume musik</label>
+                <input type="range" id="musicVolume" min="0" max="100" value="50" onchange="updateVolume()" style="width:100%; height:12px;">
             </div>
             <div class="setting-item">
                 <label>🔊 Click Volume</label>
                 <input type="range" id="clickVolume" min="0" max="100" value="100" onchange="updateClickVolume()">
             </div>
-            <button onclick="closeSettingsModal()" style="margin-top:20px; width:100%; padding:14px; background:#00ff88; color:#1a1a2e; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">SIMPAN</button>
+            <button onclick="closeSettingsModal()" style="width:100%; padding:22px; background:#00ff88; color:black; border-radius:80px; font-weight:bold; font-size:1.6rem;">SIMPAN</button>
         </div>
     </div>
     
@@ -660,7 +438,6 @@
                 <div class="profile-image" id="profileImage">👩🏻‍💻</div>
                 <div class="profile-image-upload-area" onclick="document.getElementById('profileImageInput').click()"></div>
             </div>
-            
             <div class="user-info-box">
                 <div class="username-display" id="usernameDisplay">username</div>
                 <div class="rank-stars-container">
@@ -668,7 +445,6 @@
                     <div class="stars-display-box"><span>⭐</span> <span id="starsDisplay">0</span></div>
                 </div>
             </div>
-            
             <div class="user-stats">
                 <div class="stat"><span>💰</span> <span id="moneyDisplay">1000</span></div>
                 <div class="stat"><span>💎</span> <span id="diamondDisplay">0</span></div>
@@ -677,26 +453,25 @@
         
         <div class="lobby-container">
             <div class="games-section">
-                <h2>🎮 Game</h2>
+                <h2 style="font-size:2.4rem; margin-bottom:20px;">🎮 Game</h2>
                 <div class="games-grid">
                     <div class="game-card" onclick="window.location.href='taptap.html'">
                         <div class="game-icon">⚡</div>
                         <div class="game-title">TAPz TAPz</div>
-                        <div class="game-desc">Uji refleks mu yang buruk dan goblok itu di game ini!</div>
+                        <div class="game-desc">refleks</div>
                     </div>
                     <div class="game-card" onclick="window.location.href='arena-fight.html'">
                         <div class="game-icon">⚔️</div>
-                        <div class="game-title">Arena Fight 3D</div>
-                        <div class="game-desc">Adu mekanik 1v1!</div>
+                        <div class="game-title">Arena 3D</div>
+                        <div class="game-desc">1v1</div>
                     </div>
                     <div class="game-card" onclick="window.location.href='lobby.html'">
                         <div class="game-icon">❔</div>
                         <div class="game-title">Coming Soon</div>
-                        <div class="game-desc">Game belum tersedia!</div>
+                        <div class="game-desc">-</div>
                     </div>
                 </div>
             </div>
-
             <div class="friends-section">
                 <div class="section-header">
                     <h2>👥 Teman</h2>
@@ -706,833 +481,383 @@
                     <input type="text" id="friendUsername" placeholder="Username teman">
                     <button onclick="addFriend()">Tambah</button>
                 </div>
-                <div class="friends-list" id="friendsList">
-                    <div class="loading">Memuat...</div>
-                </div>
+                <div class="friends-list" id="friendsList"><div class="loading" style="font-size:1.5rem;">Memuat teman...</div></div>
             </div>
         </div>
         
         <div class="features-section">
             <div class="feature-card" onclick="window.location.href='spin.html'">
                 <div class="feature-icon">🎰</div>
-                <div class="feature-title">LUCKY SPIN</div>
-                <p>Dapatkan hadiah!</p>
+                <div class="feature-title">SPIN</div>
             </div>
             <div class="feature-card" onclick="window.location.href='contact.html'">
                 <div class="feature-icon">💬</div>
-                <div class="feature-title">CONTACT DEV</div>
-                <p>Chat developer</p>
+                <div class="feature-title">CONTACT</div>
             </div>
             <div class="feature-card" onclick="window.location.href='shop.html'">
                 <div class="feature-icon">🛒</div>
                 <div class="feature-title">SHOP</div>
-                <p>Beli item</p>
             </div>
         </div>
     </div>
     
     <script>
-        // Inisialisasi variabel global
-        let currentUser = null;
-        let banListener = null;
-        let currentMusic = 0;
-        let clickVolume = 0.7;
-        let musicVolume = 0.5;
-        let presenceInterval = null;
-        let friendsListener = null;
-        let locationWatchId = null;
-        
-        // DAFTAR DEVELOPER
-        const DEV_UIDS = ["taher_dev", "zoo_dev_2024", "xhrzo_dev_2024", "admin_uid_1", "admin_uid_2"];
-        const DEV_USERNAMES = ["Taher", "Zoo", "Xhrzo", "Admin", "Developer"];
-
-        const ranks = [
-            { id:0, name:"🥉 Newbie", color:"rank-newbie" },
-            { id:1, name:"🥈 Junior", color:"rank-junior" },
-            { id:2, name:"🥇 Senior", color:"rank-senior" },
-            { id:3, name:"🏅 Great", color:"rank-great" },
-            { id:4, name:"🎖️ Super Great", color:"rank-super-great" },
-            { id:5, name:"🏆 Legend", color:"rank-legend" },
-            { id:6, name:"👑 Kings", color:"rank-kings" },
-            { id:7, name:"☢️ Greatest", color:"rank-greatest" },
-            { id:8, name:"☣️ Mad Kings", color:"rank-mad-kings" },
-            { id:9, name:"🔱 Greatness", color:"rank-greatness" },
-            { id:10, name:"⚜️ Unbeatable", color:"rank-unbeatable" },
-            { id:11, name:"🏴‍☠️ Monster Kings", color:"rank-monster-kings" },
-            { id:12, name:"⚛️亗 Impossible 亗⚛️", color:"rank-impossible" }
-        ];
-        
-        // ==================== AUDIO ====================
-        function playClickSound() {
-            try {
-                const sound = document.getElementById('clickSound');
-                if(sound) { 
-                    sound.volume = clickVolume || 0.7; 
-                    sound.currentTime = 0; 
-                    sound.play().catch(e => {}); 
-                }
-            } catch(e) {
-                console.log('Error play click sound:', e);
+        (function() {
+            let currentUser = null;
+            let banListener = null;
+            let currentMusic = 0;        // 0 off, 1..9
+            let clickVolume = 0.7;
+            let musicVolume = 0.5;
+            let presenceInterval = null;
+            let friendsListener = null;
+            
+            const DEV_UIDS = ["taher_dev", "zoo_dev_2024", "xhrzo_dev_2024", "admin_uid_1", "admin_uid_2"];
+            const DEV_USERNAMES = ["Taher", "Zoo", "Xhrzo", "Admin", "Developer"];
+            
+            const ranks = [
+                { id:0, name:"🥉 Newbie", color:"rank-newbie" },
+                { id:1, name:"🥈 Junior", color:"rank-junior" },
+                { id:2, name:"🥇 Senior", color:"rank-senior" },
+                { id:3, name:"🏅 Great", color:"rank-great" },
+                { id:4, name:"🎖️ Super Great", color:"rank-super-great" },
+                { id:5, name:"🏆 Legend", color:"rank-legend" },
+                { id:6, name:"👑 Kings", color:"rank-kings" },
+                { id:7, name:"☢️ Greatest", color:"rank-greatest" },
+                { id:8, name:"☣️ Mad Kings", color:"rank-mad-kings" },
+                { id:9, name:"🔱 Greatness", color:"rank-greatness" },
+                { id:10, name:"⚜️ Unbeatable", color:"rank-unbeatable" },
+                { id:11, name:"🏴‍☠️ Monster Kings", color:"rank-monster-kings" },
+                { id:12, name:"⚛️亗 Impossible 亗⚛️", color:"rank-impossible" }
+            ];
+            
+            // ========== AUDIO dengan 9 music ==========
+            function playClickSound() {
+                try {
+                    const sound = document.getElementById('clickSound');
+                    if(sound) { sound.volume = clickVolume || 0.7; sound.currentTime = 0; sound.play().catch(e=>{}); }
+                } catch(e){}
             }
-        }
-        
-        function playRandomMusic() {
-            if(currentMusic === 0) return;
-            try {
-                const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id => document.getElementById(id));
-                musics.forEach(m => { if(m) m.pause(); });
-                const random = Math.floor(Math.random() * 4);
-                if(musics[random]) {
-                    musics[random].volume = musicVolume || 0.5;
-                    musics[random].currentTime = 0;
-                    musics[random].play().catch(e => {});
-                    musics[random].onended = playRandomMusic;
-                }
-            } catch(e) {
-                console.log('Error play music:', e);
-            }
-        }
-        
-        function changeMusic(num) {
-            try {
-                currentMusic = num;
-                const musics = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].map(id => document.getElementById(id));
-                musics.forEach(m => { if(m) m.pause(); });
-                
-                document.querySelectorAll('.music-option').forEach((opt, i) => {
-                    if(opt) opt.classList.toggle('active', i === num-1 || (num === 0 && i === 4));
-                });
-                
-                if(num > 0 && musics[num-1]) {
-                    musics[num-1].volume = musicVolume || 0.5;
-                    musics[num-1].currentTime = 0;
-                    musics[num-1].play().catch(e => {});
-                    musics[num-1].onended = playRandomMusic;
-                }
-                localStorage.setItem('musicPreference', num);
-            } catch(e) {
-                console.log('Error change music:', e);
-            }
-        }
-        
-        function updateVolume() {
-            try {
-                const volInput = document.getElementById('musicVolume');
-                if(volInput) {
-                    musicVolume = volInput.value / 100;
-                    ['bgMusic1','bgMusic2','bgMusic3','bgMusic4'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if(el) el.volume = musicVolume;
+            
+            function changeMusic(num) {
+                try {
+                    currentMusic = num;
+                    const musicIds = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4','bgMusic5','bgMusic6','bgMusic7','bgMusic8','bgMusic9'];
+                    musicIds.forEach(id => { let el = document.getElementById(id); if(el) el.pause(); });
+                    
+                    document.querySelectorAll('.music-option').forEach((opt,i) => {
+                        if (opt) opt.classList.toggle('active', (num===i+1) || (num===0 && i===9));
                     });
-                    localStorage.setItem('musicVolume', musicVolume);
-                }
-            } catch(e) {
-                console.log('Error update volume:', e);
-            }
-        }
-        
-        function updateClickVolume() {
-            try {
-                const volInput = document.getElementById('clickVolume');
-                if(volInput) {
-                    clickVolume = volInput.value / 100;
-                    localStorage.setItem('clickVolume', clickVolume);
-                }
-            } catch(e) {
-                console.log('Error update click volume:', e);
-            }
-        }
-        
-        async function getBatteryInfo() {
-            try {
-                if ('getBattery' in navigator) {
-                    const battery = await navigator.getBattery();
-                    return {
-                        level: Math.round(battery.level * 100),
-                        charging: battery.charging,
-                        chargingTime: battery.chargingTime,
-                        dischargingTime: battery.dischargingTime
-                    };
-                }
-            } catch(e) {
-                console.log('Battery API not supported:', e);
-            }
-            return { level: -1, charging: false };
-        }
-        
-        async function getNetworkInfo() {
-            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            if (connection) {
-                return {
-                    type: connection.effectiveType || 'unknown',
-                    downlink: connection.downlink,
-                    rtt: connection.rtt,
-                    saveData: connection.saveData
-                };
-            }
-            return { type: 'unknown' };
-        }
-        
-        async function getLocation() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve(null);
-                    return;
-                }
-                
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        try {
-                            // Reverse geocoding untuk dapat kota/negara
-                            const response = await fetch(
-                                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`
-                            );
-                            const data = await response.json();
-                            
-                            resolve({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                accuracy: position.coords.accuracy,
-                                altitude: position.coords.altitude,
-                                heading: position.coords.heading,
-                                speed: position.coords.speed,
-                                timestamp: position.timestamp,
-                                city: data.address?.city || data.address?.town || data.address?.village || 'Unknown',
-                                country: data.address?.country || 'Unknown',
-                                provider: 'gps'
-                            });
-                        } catch(e) {
-                            resolve({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                accuracy: position.coords.accuracy,
-                                provider: 'gps'
-                            });
+                    
+                    if (num > 0 && num <= 9) {
+                        const player = document.getElementById(musicIds[num-1]);
+                        if (player) {
+                            player.volume = musicVolume;
+                            player.currentTime = 0;
+                            player.play().catch(e=>{});
+                            player.onended = playRandomMusic;
                         }
-                    },
-                    (error) => {
-                        console.log('Location error:', error);
-                        resolve(null);
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
                     }
-                );
-            });
-        }
-        
-        async function detectDevice() {
-            try {
-                const [battery, network, location] = await Promise.all([
-                    getBatteryInfo(),
-                    getNetworkInfo(),
-                    getLocation()
-                ]);
-                
-                const info = {
-                    userAgent: navigator.userAgent || 'unknown',
-                    platform: navigator.platform || 'unknown',
-                    language: navigator.language || 'unknown',
-                    screen: screen ? `${screen.width}x${screen.height}` : 'unknown',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    battery: battery,
-                    network: network,
-                    location: location
-                };
-                
-                if(/android/i.test(navigator.userAgent)) {
-                    const match = navigator.userAgent.match(/Android\s([0-9.]+)/);
-                    info.androidVersion = match ? match[1] : 'unknown';
+                    localStorage.setItem('musicPreference', num);
+                } catch(e){}
+            }
+            
+            function playRandomMusic() {
+                if (currentMusic === 0) return;
+                const musicIds = ['bgMusic1','bgMusic2','bgMusic3','bgMusic4','bgMusic5','bgMusic6','bgMusic7','bgMusic8','bgMusic9'];
+                const random = Math.floor(Math.random() * 9);  // 0-8
+                musicIds.forEach(id => { let el = document.getElementById(id); if(el) el.pause(); });
+                let next = document.getElementById(musicIds[random]);
+                if(next) { next.volume = musicVolume; next.currentTime = 0; next.play().catch(e=>{}); next.onended = playRandomMusic; }
+            }
+            
+            function updateVolume() {
+                let vol = document.getElementById('musicVolume').value / 100;
+                musicVolume = vol;
+                for (let i=1;i<=9;i++) {
+                    let el = document.getElementById('bgMusic'+i); if(el) el.volume = vol;
                 }
-                
-                if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                    info.iosVersion = 'iOS device';
-                }
-                
+                localStorage.setItem('musicVolume', vol);
+            }
+            function updateClickVolume() {
+                clickVolume = document.getElementById('clickVolume').value / 100;
+                localStorage.setItem('clickVolume', clickVolume);
+            }
+            
+            // ========== helper ==========
+            async function detectDevice() { return { userAgent: navigator.userAgent, platform: navigator.platform }; }
+            
+            function requestLocationPermission() {
+                if (!navigator.geolocation) return;
+                navigator.geolocation.getCurrentPosition(()=>{
+                    document.getElementById('locationPermission').style.display='none';
+                    localStorage.setItem('locationPermission','granted');
+                }, ()=>{});
+            }
+            
+            async function updatePresence() {
+                if(!currentUser || !database) return;
                 try {
-                    const response = await fetch('https://api.ipify.org?format=json');
-                    const data = await response.json();
-                    info.ip = data.ip || 'unknown';
-                } catch(e) {
-                    info.ip = 'unknown';
-                }
-                
-                const startTime = Date.now();
-                try {
-                    await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
-                    const endTime = Date.now();
-                    info.latency = endTime - startTime;
-                    info.connectionType = navigator.connection?.effectiveType || 'unknown';
-                } catch(e) {
-                    info.latency = -1;
-                }
-                
-                return info;
-            } catch(e) {
-                console.log('Error detect device:', e);
-                return {
-                    userAgent: 'unknown',
-                    platform: 'unknown',
-                    language: 'unknown',
-                    screen: 'unknown',
-                    ip: 'unknown',
-                    latency: -1
-                };
-            }
-        }
-        
-        // Request location permission
-        function requestLocationPermission() {
-            if (!navigator.geolocation) {
-                showMessage('Geolocation tidak didukung', 'error');
-                return;
+                    let info = await detectDevice();
+                    await database.ref('users/'+currentUser.uid).update({
+                        username: currentUser.username,
+                        money: currentUser.money,
+                        diamond: currentUser.diamond,
+                        rank: currentUser.rank,
+                        stars: currentUser.stars,
+                        status: navigator.onLine ? 'online' : 'offline',
+                        lastOnline: firebase.database.ServerValue.TIMESTAMP,
+                        device: info
+                    });
+                    database.ref('users/'+currentUser.uid+'/status').onDisconnect().set('offline');
+                } catch(e){}
             }
             
-            navigator.geolocation.getCurrentPosition(
-                () => {
-                    showMessage('Lokasi diaktifkan!', 'success');
-                    document.getElementById('locationPermission').style.display = 'none';
-                    updatePresence(); // Update dengan lokasi baru
-                },
-                (error) => {
-                    showMessage('Izinkan akses lokasi', 'error');
-                }
-            );
-        }
-        
-        // ==================== UPDATE PRESENCE ====================
-        async function updatePresence() {
-            if(!currentUser || !currentUser.uid || !database) return;
-            
-            try {
-                const deviceInfo = await detectDevice();
-                const status = navigator.onLine ? 'online' : 'offline';
-                
-                await database.ref('users/' + currentUser.uid).update({
-                    username: currentUser.username,
-                    money: currentUser.money,
-                    diamond: currentUser.diamond,
-                    rank: currentUser.rank,
-                    stars: currentUser.stars,
-                    status: status,
-                    lastOnline: firebase.database.ServerValue.TIMESTAMP,
-                    device: deviceInfo,
-                    lastSeen: new Date().toISOString()
-                });
-                
-                database.ref('users/' + currentUser.uid + '/status').onDisconnect().set('offline');
-                database.ref('users/' + currentUser.uid + '/lastOnline').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-            } catch(e) {
-                console.log('Error update presence:', e);
-            }
-        }
-        
-        // ==================== MONITORING OFFLINE ====================
-        function startPresenceMonitoring() {
-            if(presenceInterval) clearInterval(presenceInterval);
-            
-            presenceInterval = setInterval(() => {
-                if(currentUser && currentUser.uid && navigator.onLine) {
-                    updatePresence();
-                }
-            }, 30000);
-            
-            window.addEventListener('online', () => {
-                if(currentUser && currentUser.uid) updatePresence();
-            });
-            
-            window.addEventListener('offline', () => {
-                if(currentUser && currentUser.uid && database) {
-                    database.ref('users/' + currentUser.uid).update({
-                        status: 'offline',
-                        lastOnline: firebase.database.ServerValue.TIMESTAMP
-                    }).catch(e => console.log('Error set offline:', e));
-                }
-            });
-            
-            updatePresence();
-        }
-        
-        // ==================== BAN MONITORING ====================
-        function startBanMonitoring(uid) {
-            if(!uid || !database) return;
-            
-            if(banListener) {
-                database.ref('users/'+uid).off('value', banListener);
+            function startPresenceMonitoring() {
+                if(presenceInterval) clearInterval(presenceInterval);
+                presenceInterval = setInterval(() => { if(currentUser) updatePresence(); }, 30000);
+                updatePresence();
             }
             
-            banListener = database.ref('users/'+uid).on('value', (snap) => {
-                if(snap && snap.exists()) {
-                    const data = snap.val();
-                    if(data && data.banned) {
-                        const lobbyContainer = document.getElementById('lobbyContainer');
-                        const banAlert = document.getElementById('banAlert');
-                        const banReason = document.getElementById('banReason');
-                        
-                        if(lobbyContainer) lobbyContainer.classList.add('blur');
-                        if(banAlert) banAlert.classList.add('active');
-                        if(banReason) banReason.textContent = data.banReason ? `Alasan: ${data.banReason}` : '';
-                        
-                        // Force logout setelah 3 detik
+            function startBanMonitoring(uid) {
+                if(!database) return;
+                if(banListener) database.ref('users/'+uid).off('value', banListener);
+                banListener = database.ref('users/'+uid).on('value', (snap) => {
+                    if(snap && snap.val()?.banned) {
+                        document.getElementById('lobbyContainer').classList.add('blur');
+                        document.getElementById('banAlert').classList.add('active');
+                        document.getElementById('banReason').textContent = snap.val().banReason || '';
                         setTimeout(forceLogout, 3000);
                     }
-                }
-            });
-        }
-        
-        function forceLogout() {
-            if(currentUser && currentUser.uid && database) {
-                database.ref('users/'+currentUser.uid).update({ status:'offline' }).catch(e => console.log('Error update status:', e));
-            }
-            localStorage.removeItem('currentUser');
-            window.location.href = 'login.html?banned=true';
-        }
-        
-        // ==================== LOGOUT ====================
-        function logout() {
-            playClickSound();
-            if(!confirm("Yakin logout?")) return;
-            
-            if(currentUser && currentUser.uid && database) {
-                database.ref('users/'+currentUser.uid).update({ status:'offline' }).finally(() => {
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
-                }).catch(e => {
-                    console.log('Error logout:', e);
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
                 });
-            } else {
+            }
+            
+            function forceLogout() {
+                if(currentUser && database) database.ref('users/'+currentUser.uid).update({status:'offline'});
                 localStorage.removeItem('currentUser');
-                window.location.href = 'login.html';
-            }
-        }
-        
-        // ==================== FRIEND FUNCTIONS ====================
-        function toggleFriendForm() {
-            playClickSound();
-            const form = document.getElementById('addFriendForm');
-            if(form) form.classList.toggle('active');
-        }
-        
-        function showMessage(text, type) {
-            try {
-                const msg = document.createElement('div');
-                msg.className = `message ${type}`;
-                msg.textContent = text;
-                document.body.appendChild(msg);
-                setTimeout(() => msg.remove(), 3000);
-            } catch(e) {
-                console.log('Error show message:', e);
-            }
-        }
-        
-        function updateUserDisplay() {
-            if(!currentUser) return;
-            
-            const usernameDisplay = document.getElementById('usernameDisplay');
-            const moneyDisplay = document.getElementById('moneyDisplay');
-            const diamondDisplay = document.getElementById('diamondDisplay');
-            const rankDisplay = document.getElementById('rankDisplay');
-            const starsDisplay = document.getElementById('starsDisplay');
-            
-            if(usernameDisplay) usernameDisplay.textContent = currentUser.username || 'username';
-            if(moneyDisplay) moneyDisplay.textContent = currentUser.money || 1000;
-            if(diamondDisplay) diamondDisplay.textContent = currentUser.diamond || 0;
-            
-            const rankInfo = ranks[currentUser.rank || 0];
-            if(rankDisplay) {
-                rankDisplay.textContent = rankInfo.name;
-                rankDisplay.className = rankInfo.color;
-            }
-            if(starsDisplay) starsDisplay.textContent = currentUser.stars || 0;
-        }
-        
-        function loadFriendsAndOnline() {
-            if(!currentUser || !currentUser.uid || !database) return;
-            
-            if(friendsListener) {
-                database.ref('users').off('value', friendsListener);
+                window.location.href = 'login.html?banned=true';
             }
             
-            database.ref('friends/'+currentUser.uid).once('value', (friendsSnap) => {
-                const friends = friendsSnap.exists() ? friendsSnap.val() : {};
-                const friendUids = friends ? Object.keys(friends) : [];
-                
-                friendsListener = database.ref('users').on('value', (usersSnap) => {
-                    try {
-                        const users = usersSnap.exists() ? usersSnap.val() : {};
-                        let html = '';
-                        
-                        // Tampilkan teman
-                        friendUids.forEach(uid => {
-                            const user = users[uid];
-                            if(user && !user.banned) {
-                                const rank = ranks[user.rank || 0];
-                                const isOnline = user.status === 'online';
-                                const statusClass = isOnline ? '' : 'offline';
-                                
-                                html += `
-                                    <div class="friend-item friend-only ${statusClass}" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
-                                        <div class="friend-info">
-                                            <div class="friend-name">
-                                                <span style="color:${isOnline ? '#00ff88' : '#ff3333'};">●</span> ${user.username || 'Unknown'}
-                                                <span class="friend-badge">Teman</span>
-                                                ${user.device?.battery ? `<span class="device-badge">🔋${user.device.battery.level}%</span>` : ''}
-                                            </div>
-                                            <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars || 0}</div>
-                                        </div>
-                                        <div class="friend-stats">💵${user.money || 0}</div>
-                                    </div>
-                                `;
-                            }
-                        });
-                        
-                        // Tampilkan online users (bukan teman)
-                        if(users && typeof users === 'object') {
-                            Object.keys(users).forEach(uid => {
-                                const user = users[uid];
-                                if(user && uid !== currentUser.uid && !user.banned && !friendUids.includes(uid) && user.status === 'online') {
-                                    const rank = ranks[user.rank || 0];
-                                    html += `
-                                        <div class="friend-item" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
-                                            <div class="friend-info">
-                                                <div class="friend-name">
-                                                    <span style="color:#00ff88;">●</span> ${user.username || 'Unknown'}
-                                                    ${user.device?.location ? `<span class="device-badge">📍</span>` : ''}
-                                                </div>
-                                                <div class="friend-rank ${rank.color}">${rank.name} ⭐${user.stars || 0}</div>
-                                            </div>
-                                            <div class="friend-stats">💵${user.money || 0}</div>
-                                        </div>
-                                    `;
+            function logout() {
+                playClickSound();
+                if(!confirm("Logout?")) return;
+                if(currentUser && database) {
+                    database.ref('users/'+currentUser.uid).update({status:'offline'}).finally(()=>{
+                        localStorage.removeItem('currentUser'); window.location.href='login.html';
+                    });
+                } else { localStorage.removeItem('currentUser'); window.location.href='login.html'; }
+            }
+            
+            function toggleFriendForm() { playClickSound(); document.getElementById('addFriendForm').classList.toggle('active'); }
+            function showMessage(text, type) { let m=document.createElement('div'); m.className=`message ${type}`; m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),2500); }
+            
+            function updateUserDisplay() {
+                if(!currentUser) return;
+                document.getElementById('usernameDisplay').innerText = currentUser.username || 'username';
+                document.getElementById('moneyDisplay').innerText = currentUser.money ?? 1000;
+                document.getElementById('diamondDisplay').innerText = currentUser.diamond ?? 0;
+                let r = ranks[currentUser.rank || 0];
+                document.getElementById('rankDisplay').innerHTML = `<span class="${r.color}">${r.name}</span>`;
+                document.getElementById('starsDisplay').innerText = currentUser.stars || 0;
+            }
+            
+            // ========== FRIENDS & ONLINE + klik pindah chat-user.html ==========
+            function loadFriendsAndOnline() {
+                if(!currentUser || !database) return;
+                if(friendsListener) database.ref('users').off('value', friendsListener);
+                database.ref('friends/'+currentUser.uid).once('value', (fSnap) => {
+                    let friends = fSnap.exists() ? fSnap.val() : {};
+                    let friendUids = Object.keys(friends);
+                    
+                    friendsListener = database.ref('users').on('value', (usersSnap) => {
+                        try {
+                            let users = usersSnap.val() || {};
+                            let html = '';
+                            // teman
+                            friendUids.forEach(uid => {
+                                let u = users[uid];
+                                if(u && !u.banned) {
+                                    let rank = ranks[u.rank||0];
+                                    let online = u.status==='online';
+                                    html += `<div class="friend-item friend-only ${online?'':'offline'}" onclick="startPrivateChat('${uid}', '${u.username||'Unknown'}')">
+                                        <div><div class="friend-name"><span style="color:${online?'#0f0':'#f33'};">●</span> ${u.username} <span class="friend-badge">Teman</span></div>
+                                        <div class="friend-rank ${rank.color}">${rank.name} ⭐${u.stars||0}</div></div>
+                                        <div>💵${u.money||0}</div>
+                                    </div>`;
                                 }
                             });
-                        }
-                        
-                        const friendsList = document.getElementById('friendsList');
-                        if(friendsList) {
-                            friendsList.innerHTML = html || '<div class="friend-item" style="justify-content:center;">Tidak ada user online</div>';
-                        }
-                    } catch(e) {
-                        console.log('Error load friends:', e);
-                    }
-                });
-            }).catch(e => console.log('Error load friends:', e));
-        }
-        
-        function startChatWithUser(uid, username) {
-            playClickSound();
-            try {
-                localStorage.setItem('devChatUser', JSON.stringify({ uid, username }));
-                window.location.href = 'chat-user.html';
-            } catch(e) {
-                console.log('Error start chat:', e);
-            }
-        }
-        
-        async function addFriend() {
-            playClickSound();
-            if(!currentUser || !currentUser.uid || !database) return;
-            
-            const usernameInput = document.getElementById('friendUsername');
-            if(!usernameInput) return;
-            
-            const username = usernameInput.value.trim();
-            if(!username) return showMessage('Masukkan username!', 'error');
-            if(username === currentUser.username) return showMessage('Tidak bisa diri sendiri!', 'error');
-            
-            try {
-                const snap = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                if(!snap.exists()) return showMessage('User tidak ditemukan!', 'error');
-                
-                const friendData = snap.val();
-                const friendUid = Object.keys(friendData)[0];
-                
-                if(friendData[friendUid].banned) return showMessage('User di BAN!', 'error');
-                
-                const check = await database.ref('friends/'+currentUser.uid+'/'+friendUid).once('value');
-                if(check.exists()) return showMessage('Sudah berteman!', 'error');
-                
-                await database.ref('friends/'+currentUser.uid+'/'+friendUid).set(true);
-                showMessage('Berhasil add!', 'success');
-                usernameInput.value = '';
-                loadFriendsAndOnline();
-            } catch(e) {
-                showMessage('Error: ' + e.message, 'error');
-            }
-        }
-        
-        // ==================== DEV CHAT & ADMIN ====================
-        function openDevChat() {
-            playClickSound();
-            window.location.href = 'dev-chat.html';
-        }
-        
-        function setupChatNotification() {
-            if(!currentUser || !currentUser.uid || !database) return;
-            
-            const isDev = checkIsDev();
-            
-            if(!isDev) return;
-            
-            database.ref('private_chats').on('value', (snap) => {
-                try {
-                    const chats = snap.exists() ? snap.val() : {};
-                    if(!chats) return;
-                    
-                    let hasUnread = false;
-                    Object.keys(chats).forEach(chatId => {
-                        if(chatId && chatId.startsWith('user_') && chats[chatId]?.info?.unread) hasUnread = true;
+                            // online non-teman
+                            Object.keys(users).forEach(uid => {
+                                let u = users[uid];
+                                if(u && uid !== currentUser.uid && !u.banned && !friendUids.includes(uid) && u.status==='online') {
+                                    let rank = ranks[u.rank||0];
+                                    html += `<div class="friend-item" onclick="startPrivateChat('${uid}', '${u.username||'Unknown'}')">
+                                        <div><div class="friend-name"><span style="color:#0f0;">●</span> ${u.username}</div>
+                                        <div class="friend-rank ${rank.color}">${rank.name} ⭐${u.stars||0}</div></div>
+                                        <div>💵${u.money||0}</div>
+                                    </div>`;
+                                }
+                            });
+                            document.getElementById('friendsList').innerHTML = html || '<div class="friend-item" style="justify-content:center;">Tidak ada user</div>';
+                        } catch(e){}
                     });
-                    
-                    const notification = document.getElementById('chatNotification');
-                    if(notification) notification.classList.toggle('active', hasUnread);
-                } catch(e) {
-                    console.log('Error setup notification:', e);
-                }
-            });
-        }
-        
-        function checkIsDev() {
-            if(!currentUser) return false;
-            
-            return DEV_UIDS.includes(currentUser.uid) || 
-                   DEV_USERNAMES.includes(currentUser.username) ||
-                   currentUser.username === "Zoo" || 
-                   currentUser.username === "Xhrzo";
-        }
-        
-        function showDevButtons() {
-            if(!currentUser) return;
-            
-            const isDev = checkIsDev();
-            
-            const devChatBtn = document.getElementById('devChatBtn');
-            const adminBtn = document.getElementById('adminBtn');
-            
-            if(devChatBtn && adminBtn) {
-                if(isDev) {
-                    devChatBtn.style.display = 'flex';
-                    adminBtn.style.display = 'flex';
-                } else {
-                    devChatBtn.style.display = 'none';
-                    adminBtn.style.display = 'none';
-                }
+                }).catch(e=>console.log);
             }
-        }
-        
-        // ==================== SETTINGS UI ====================
-        function toggleSettingsMenu() {
-            playClickSound();
-            const btn = document.getElementById('settingsBtn');
-            const dropdown = document.getElementById('settingsDropdown');
-            if(btn) btn.classList.toggle('active');
-            if(dropdown) dropdown.classList.toggle('active');
-        }
-        
-        function openSettingsModal() {
-            playClickSound();
-            const modal = document.getElementById('settingsModal');
-            if(modal) modal.classList.add('active');
             
-            try {
-                const savedMusic = localStorage.getItem('musicPreference');
-                if(savedMusic) changeMusic(parseInt(savedMusic));
-                
-                const musicVol = localStorage.getItem('musicVolume');
-                const musicVolInput = document.getElementById('musicVolume');
-                if(musicVol && musicVolInput) musicVolInput.value = parseFloat(musicVol) * 100;
-                
-                const clickVol = localStorage.getItem('clickVolume');
-                const clickVolInput = document.getElementById('clickVolume');
-                if(clickVol && clickVolInput) clickVolInput.value = parseFloat(clickVol) * 100;
-            } catch(e) {
-                console.log('Error open settings:', e);
-            }
-        }
-        
-        function closeSettingsModal() {
-            playClickSound();
-            const modal = document.getElementById('settingsModal');
-            if(modal) modal.classList.remove('active');
-        }
-        
-        function loadProfileImage() {
-            try {
-                const saved = localStorage.getItem('profileImage');
-                const img = document.getElementById('profileImage');
-                if(!img) return;
-                
-                if(saved && saved.startsWith('data:image')) {
-                    img.innerHTML = '';
-                    img.style.backgroundImage = `url(${saved})`;
-                    img.style.backgroundSize = 'cover';
-                } else {
-                    img.innerHTML = saved || '👩🏻‍💻';
-                    img.style.backgroundImage = 'none';
-                }
-            } catch(e) {
-                console.log('Error load profile:', e);
-            }
-        }
-        
-        function handleProfileImageUpload(e) {
-            try {
-                const file = e.target.files[0];
-                if(!file) return;
-                if(!file.type.startsWith('image/')) return showMessage('Hanya gambar!', 'error');
-                if(file.size > 2*1024*1024) return showMessage('Maks 2MB!', 'error');
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    localStorage.setItem('profileImage', e.target.result);
-                    loadProfileImage();
-                    showMessage(Berhasil!', 'success');
-                };
-                reader.readAsDataURL(file);
-            } catch(e) {
-                console.log('Error upload image:', e);
-            }
-        }
-        
-        // ==================== INIT ====================
-        async function initLobby() {
-            try {
-                // Cek Firebase tersedia
-                if(typeof database === 'undefined') {
-                    console.error('Firebase not initialized');
-                    showMessage('Database error!', 'error');
-                    return;
-                }
-                
-                const saved = localStorage.getItem('currentUser');
-                if(!saved) { 
-                    window.location.href = 'login.html'; 
-                    return; 
-                }
-                
-                let user;
+            // 🔥 FUNGSI UNTUK MEMBUKA CHAT PRIBADI (chat-user.html)
+            window.startPrivateChat = function(uid, username) {
+                playClickSound();
                 try {
-                    user = JSON.parse(saved);
-                } catch(e) {
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
-                    return;
+                    localStorage.setItem('privateChatTarget', JSON.stringify({ uid, username }));
+                    window.location.href = 'chat-user.html';   // pindah ke halaman chat pribadi
+                } catch(e) { showMessage('Gagal buka chat','error'); }
+            };
+            
+            // add friend
+            async function addFriend() {
+                playClickSound();
+                if(!currentUser) return;
+                let inp = document.getElementById('friendUsername');
+                let username = inp.value.trim();
+                if(!username) return showMessage('Masukkan username','error');
+                try {
+                    let snap = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                    if(!snap.exists()) return showMessage('Tidak ditemukan','error');
+                    let friendUid = Object.keys(snap.val())[0];
+                    if(friendUid === currentUser.uid) return showMessage('Sendiri?','error');
+                    let cek = await database.ref('friends/'+currentUser.uid+'/'+friendUid).once('value');
+                    if(cek.exists()) return showMessage('Sudah teman','error');
+                    await database.ref('friends/'+currentUser.uid+'/'+friendUid).set(true);
+                    showMessage('Berhasil ditambahkan','success');
+                    inp.value = '';
+                    loadFriendsAndOnline();
+                } catch(e){ showMessage('error','error'); }
+            }
+            
+            // ========== DEV / ADMIN ==========
+            function checkIsDev() {
+                if(!currentUser) return false;
+                return DEV_UIDS.includes(currentUser.uid) || DEV_USERNAMES.includes(currentUser.username);
+            }
+            function showDevButtons() {
+                let isDev = checkIsDev();
+                let devBtn = document.getElementById('devChatBtn');
+                let adminBtn = document.getElementById('adminBtn');
+                if(devBtn && adminBtn) {
+                    devBtn.style.display = isDev ? 'flex' : 'none';
+                    adminBtn.style.display = isDev ? 'flex' : 'none';
                 }
-                
-                if(!user || !user.uid) {
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                const snap = await database.ref('users/'+user.uid).once('value');
-                
-                if(!snap.exists()) {
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                const data = snap.val();
-                
-                if(data.banned) {
-                    localStorage.removeItem('currentUser');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                currentUser = {
-                    uid: user.uid,
-                    username: data.username || 'User',
-                    money: data.money || 1000,
-                    diamond: data.diamond || 0,
-                    rank: data.rank || 0,
-                    stars: data.stars || 0
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                startBanMonitoring(user.uid);
-                updateUserDisplay();
-                loadFriendsAndOnline();
-                loadProfileImage();
-                startPresenceMonitoring();
-                setupChatNotification();
-                showDevButtons();
-                
-                const savedMusic = localStorage.getItem('musicPreference');
-                if(savedMusic) changeMusic(parseInt(savedMusic));
-                else changeMusic(Math.floor(Math.random()*4)+1);
-                
-                const musicVol = localStorage.getItem('musicVolume');
-                if(musicVol) musicVolume = parseFloat(musicVol);
-                const clickVol = localStorage.getItem('clickVolume');
-                if(clickVol) clickVolume = parseFloat(clickVol);
-                
-                // Cek apakah sudah pernah minta lokasi
-                if(localStorage.getItem('locationPermission') !== 'granted') {
-                    document.getElementById('locationPermission').style.display = 'flex';
-                }
-                
-                database.ref('users/'+user.uid).on('value', (snap) => {
-                    try {
-                        if(snap && snap.exists()) {
-                            const d = snap.val();
+            }
+            function openDevChat() { playClickSound(); window.location.href='dev-chat.html'; }
+            
+            // ========== SETTINGS MODAL ==========
+            function toggleSettingsMenu() { playClickSound(); document.getElementById('settingsDropdown').classList.toggle('active'); }
+            function openSettingsModal() {
+                playClickSound();
+                document.getElementById('settingsModal').classList.add('active');
+                let saved = localStorage.getItem('musicPreference');
+                if(saved) changeMusic(parseInt(saved));
+                let mv = localStorage.getItem('musicVolume'); if(mv) document.getElementById('musicVolume').value = parseFloat(mv)*100;
+                let cv = localStorage.getItem('clickVolume'); if(cv) document.getElementById('clickVolume').value = parseFloat(cv)*100;
+            }
+            function closeSettingsModal() { playClickSound(); document.getElementById('settingsModal').classList.remove('active'); }
+            
+            // profile image
+            function loadProfileImage() {
+                let saved = localStorage.getItem('profileImage');
+                let imgDiv = document.getElementById('profileImage');
+                if(saved && saved.startsWith('data:image')) {
+                    imgDiv.innerHTML = ''; imgDiv.style.backgroundImage = `url(${saved})`; imgDiv.style.backgroundSize='cover';
+                } else { imgDiv.innerHTML = saved || '👩🏻‍💻'; imgDiv.style.backgroundImage='none'; }
+            }
+            function handleProfileImageUpload(e) {
+                let file = e.target.files[0];
+                if(!file) return;
+                if(!file.type.startsWith('image/')) return showMessage('gambar','error');
+                if(file.size>2*1024*1024) return showMessage('max 2MB','error');
+                let reader = new FileReader();
+                reader.onload = (ev) => { localStorage.setItem('profileImage', ev.target.result); loadProfileImage(); showMessage('Berhasil','success'); };
+                reader.readAsDataURL(file);
+            }
+            
+            // ========== INIT ==========
+            async function initLobby() {
+                try {
+                    if(typeof database === 'undefined') { alert('Firebase error'); return; }
+                    let saved = localStorage.getItem('currentUser');
+                    if(!saved) { window.location.href='login.html'; return; }
+                    let user = JSON.parse(saved);
+                    if(!user.uid) throw new Error('no uid');
+                    
+                    let snap = await database.ref('users/'+user.uid).once('value');
+                    if(!snap.exists() || snap.val().banned) { localStorage.removeItem('currentUser'); window.location.href='login.html'; return; }
+                    
+                    let data = snap.val();
+                    currentUser = {
+                        uid: user.uid,
+                        username: data.username || 'User',
+                        money: data.money || 1000,
+                        diamond: data.diamond || 0,
+                        rank: data.rank || 0,
+                        stars: data.stars || 0
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    startBanMonitoring(user.uid);
+                    updateUserDisplay();
+                    loadFriendsAndOnline();
+                    loadProfileImage();
+                    startPresenceMonitoring();
+                    showDevButtons();
+                    
+                    // musik default random 1-9
+                    let savedMusic = localStorage.getItem('musicPreference');
+                    if(savedMusic) changeMusic(parseInt(savedMusic));
+                    else changeMusic(Math.floor(Math.random()*9)+1);
+                    
+                    let musicVol = localStorage.getItem('musicVolume');
+                    if(musicVol) musicVolume = parseFloat(musicVol);
+                    let clickVol = localStorage.getItem('clickVolume');
+                    if(clickVol) clickVolume = parseFloat(clickVol);
+                    
+                    if(!localStorage.getItem('locationPermission')) document.getElementById('locationPermission').style.display='flex';
+                    
+                    // listener update realtime
+                    database.ref('users/'+user.uid).on('value', (s)=>{
+                        if(s.exists()) {
+                            let d = s.val();
                             if(d && currentUser) {
-                                currentUser = {
-                                    ...currentUser,
-                                    username: d.username || currentUser.username,
-                                    money: d.money || currentUser.money,
-                                    diamond: d.diamond || currentUser.diamond,
-                                    rank: d.rank || currentUser.rank,
-                                    stars: d.stars || currentUser.stars
-                                };
+                                currentUser = {...currentUser, username:d.username, money:d.money, diamond:d.diamond, rank:d.rank, stars:d.stars};
                                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                                updateUserDisplay();
-                                showDevButtons();
-                                setupChatNotification();
+                                updateUserDisplay(); showDevButtons();
                             }
                         }
-                    } catch(e) {
-                        console.log('Error user update:', e);
-                    }
-                });
-                
-                document.querySelectorAll('button, .game-card, .feature-card, .friend-item, .back-btn, .music-option').forEach(el => {
-                    if(el) {
-                        el.addEventListener('click', playClickSound);
-                    }
-                });
-                
-            } catch(e) {
-                console.error('Init error:', e);
-                showMessage('Error: ' + e.message, 'error');
+                    });
+                    
+                    document.querySelectorAll('button, .game-card, .feature-card, .friend-item, .music-option').forEach(el => el?.addEventListener('click', playClickSound));
+                } catch(e){ console.error(e); showMessage('Init error','error'); }
             }
-        }
-        
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const settingsBtn = document.getElementById('settingsBtn');
-            if(settingsBtn) settingsBtn.addEventListener('click', toggleSettingsMenu);
             
-            const profileInput = document.getElementById('profileImageInput');
-            if(profileInput) profileInput.addEventListener('change', handleProfileImageUpload);
-            
-            document.addEventListener('keydown', (e) => {
-                if(e.key === 'Escape') {
-                    closeSettingsModal();
-                    const dropdown = document.getElementById('settingsDropdown');
-                    if(dropdown) dropdown.classList.remove('active');
-                }
+            // event binding
+            document.addEventListener('DOMContentLoaded', ()=>{
+                document.getElementById('settingsBtn').addEventListener('click', toggleSettingsMenu);
+                document.getElementById('profileImageInput').addEventListener('change', handleProfileImageUpload);
+                document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') { closeSettingsModal(); document.getElementById('settingsDropdown').classList.remove('active'); } });
+                initLobby();
             });
             
-            initLobby();
-        });
+            // export ke global
+            window.changeMusic = changeMusic;
+            window.updateVolume = updateVolume;
+            window.updateClickVolume = updateClickVolume;
+            window.logout = logout;
+            window.forceLogout = forceLogout;
+            window.openSettingsModal = openSettingsModal;
+            window.closeSettingsModal = closeSettingsModal;
+            window.toggleFriendForm = toggleFriendForm;
+            window.addFriend = addFriend;
+            window.openDevChat = openDevChat;
+            window.requestLocationPermission = requestLocationPermission;
+        })();
     </script>
 </body>
 </html>
