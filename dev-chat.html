@@ -340,7 +340,7 @@
         // ==================== FIREBASE ====================
         let currentUser = null;
         let contactsListener = null;
-        const DEV_UID = "zoo_dev_2024";
+        const DEV_UID = "taher_dev_2024";
         
         // ==================== ENKRIPSI SEDERHANA ====================
         function decryptMessage(encryptedText) {
@@ -505,7 +505,7 @@
                 }
                 
                 // Cek apakah ini developer (Zoo)
-                if (user.uid !== DEV_UID && user.username !== "Zoo") {
+                if (user.uid !== DEV_UID && user.username !== "Taher") {
                     showMessage('Akses ditolak!', 'error');
                     setTimeout(() => {
                         window.location.href = 'lobby.html';
