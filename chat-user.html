@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Private Chat · The All Game</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- firebase-config.js (WAJIB ADA) -->
+    <script src="firebase-config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0c0f1f 0%, #1b2340 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 0 70px 0;
+        }
+        /* header chat */
+        .chat-header {
+            background: #10172b;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 3px solid #00ff88;
+            box-shadow: 0 8px 0 #0a1020;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn {
+            background: #1f2a44;
+            border: none;
+            color: white;
+            font-size: 2.2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #00ff88;
+        }
+        .friend-info {
+            flex: 1;
+        }
+        .friend-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #aaffaa;
+        }
+        .friend-status {
+            font-size: 1.2rem;
+            color: #aaccaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 14px;
+            background: #00cc66;
+            display: inline-block;
+        }
+        .status-dot.offline { background: #ff4d4d; }
+        
+        /* area pesan */
+        .messages-container {
+            flex: 1;
+            padding: 20px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-height: calc(100vh - 180px);
+        }
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+        .my-message {
+            align-self: flex-end;
+        }
+        .other-message {
+            align-self: flex-start;
+        }
+        .message-bubble {
+            padding: 18px 22px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+        }
+        .my-message .message-bubble {
+            background: #0066cc;
+            color: white;
+            border-bottom-right-radius: 8px;
+            border: 2px solid #4da6ff;
+        }
+        .other-message .message-bubble {
+            background: #2a344d;
+            color: #f0f0f0;
+            border-bottom-left-radius: 8px;
+            border: 2px solid #5f7bbf;
+        }
+        .message-time {
+            font-size: 1rem;
+            margin: 6px 12px 0;
+            color: #aaa;
+        }
+        .my-message .message-time { text-align: right; }
+        
+        /* input area */
+        .input-area {
+            background: #121b30;
+            padding: 18px 20px;
+            display: flex;
+            gap: 12px;
+            border-top: 3px solid #00ff88;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            backdrop-filter: blur(10px);
+        }
+        .input-area input {
+            flex: 1;
+            background: #1f2a44;
+            border: 2px solid #3f5b80;
+            border-radius: 50px;
+            padding: 20px 25px;
+            color: white;
+            font-size: 1.3rem;
+            outline: none;
+        }
+        .input-area input:focus {
+            border-color: #00ff88;
+        }
+        .input-area button {
+            background: #00cc6a;
+            border: none;
+            border-radius: 60px;
+            padding: 0 35px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: black;
+            box-shadow: 0 7px 0 #0a6e3a;
+            cursor: pointer;
+        }
+        .empty-chat {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aabbdd;
+            font-size: 1.5rem;
+        }
+        .loading {
+            text-align: center;
+            color: #00ffaa;
+            font-size: 1.6rem;
+            padding: 40px;
+        }
+        /* message notif */
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e63946;
+            padding: 18px 30px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            z-index: 2000;
+            display: none;
+        }
+        @media (max-width: 480px) {
+            .friend-name { font-size: 1.7rem; }
+            .message-bubble { font-size: 1.2rem; padding: 15px 18px; }
+            .input-area input { padding: 16px 20px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <div class="friend-info">
+            <div class="friend-name" id="chatFriendName">Loading...</div>
+            <div class="friend-status" id="chatFriendStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="messages-container" id="messagesContainer">
+        <div class="loading">Memuat pesan...</div>
+    </div>
+    
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Ketik pesan..." maxlength="500">
+        <button onclick="sendMessage()">Kirim</button>
+    </div>
+    
+    <div class="message-popup" id="messagePopup">Pesan baru</div>
+    
+    <script>
+        (function() {
+            // ========== GLOBAL ==========
+            let currentUser = null;
+            let targetUser = null;      // { uid, username }
+            let chatId = null;
+            let messagesListener = null;
+            let targetStatusListener = null;
+            
+            const database = window.database; // dari firebase-config.js
+            
+            // ========== CEK FIREBASE ==========
+            if (typeof database === 'undefined') {
+                alert('Firebase tidak terinisialisasi. Pastikan firebase-config.js benar.');
+            }
+            
+            // ========== INISIALISASI ==========
+            async function initChat() {
+                try {
+                    // Ambil user yang login
+                    const saved = localStorage.getItem('currentUser');
+                    if (!saved) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    currentUser = JSON.parse(saved);
+                    if (!currentUser || !currentUser.uid) throw new Error('Invalid user');
+                    
+                    // Ambil target chat dari localStorage (diset oleh lobby.html)
+                    const targetRaw = localStorage.getItem('privateChatTarget');
+                    if (!targetRaw) {
+                        alert('Tidak ada target chat. Kembali ke lobby.');
+                        window.location.href = 'lobby.html';
+                        return;
+                    }
+                    
+                    targetUser = JSON.parse(targetRaw);
+                    if (!targetUser || !targetUser.uid) throw new Error('Invalid target');
+                    
+                    // Tampilkan nama target
+                    document.getElementById('chatFriendName').innerText = targetUser.username || 'Teman';
+                    
+                    // Buat ID chat unik (urut berdasarkan uid agar konsisten)
+                    chatId = [currentUser.uid, targetUser.uid].sort().join('_');
+                    
+                    // Load pesan
+                    loadMessages();
+                    
+                    // Pantau status online target
+                    monitorTargetStatus();
+                    
+                    // Tandai pesan sudah dibaca (jika ada notifikasi)
+                    markMessagesAsRead();
+                    
+                } catch (e) {
+                    console.error('Init error:', e);
+                    alert('Gagal memuat chat. Kembali ke lobby.');
+                    window.location.href = 'lobby.html';
+                }
+            }
+            
+            // ========== LOAD PESAN ==========
+            function loadMessages() {
+                if (!database || !chatId) return;
+                
+                // Hapus listener lama
+                if (messagesListener) {
+                    database.ref('chats/' + chatId).off('value', messagesListener);
+                }
+                
+                const messagesRef = database.ref('chats/' + chatId);
+                
+                messagesListener = messagesRef.orderByChild('timestamp').on('value', (snapshot) => {
+                    const container = document.getElementById('messagesContainer');
+                    if (!container) return;
+                    
+                    const messages = snapshot.val();
+                    container.innerHTML = ''; // kosongkan
+                    
+                    if (!messages) {
+                        container.innerHTML = '<div class="empty-chat">Belum ada pesan. Mulai obrolan!</div>';
+                        return;
+                    }
+                    
+                    // Ubah object ke array dan urutkan berdasarkan timestamp
+                    const messageList = Object.keys(messages).map(key => ({
+                        id: key,
+                        ...messages[key]
+                    })).filter(msg => msg.sender && msg.text).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    
+                    if (messageList.length === 0) {
+                        container.innerHTML = '<div class="empty-chat">Belum ada pesan. Mulai obrolan!</div>';
+                        return;
+                    }
+                    
+                    // Render setiap pesan
+                    messageList.forEach(msg => {
+                        const isMe = msg.sender === currentUser.uid;
+                        const wrapper = document.createElement('div');
+                        wrapper.className = `message-wrapper ${isMe ? 'my-message' : 'other-message'}`;
+                        
+                        const bubble = document.createElement('div');
+                        bubble.className = 'message-bubble';
+                        bubble.innerText = msg.text;
+                        
+                        const timeSpan = document.createElement('div');
+                        timeSpan.className = 'message-time';
+                        if (msg.timestamp) {
+                            const date = new Date(msg.timestamp);
+                            timeSpan.innerText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        } else {
+                            timeSpan.innerText = 'baru saja';
+                        }
+                        
+                        wrapper.appendChild(bubble);
+                        wrapper.appendChild(timeSpan);
+                        container.appendChild(wrapper);
+                    });
+                    
+                    // Scroll ke bawah
+                    container.scrollTop = container.scrollHeight;
+                    
+                    // Jika ada pesan baru dan sedang di tab ini, tandai sudah dibaca
+                    markMessagesAsRead();
+                });
+            }
+            
+            // ========== KIRIM PESAN ==========
+            async function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const text = input.value.trim();
+                if (!text) return;
+                
+                if (!currentUser || !targetUser || !database || !chatId) {
+                    alert('Koneksi error');
+                    return;
+                }
+                
+                try {
+                    const messageRef = database.ref('chats/' + chatId).push();
+                    await messageRef.set({
+                        sender: currentUser.uid,
+                        receiver: targetUser.uid,
+                        text: text,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        read: false
+                    });
+                    
+                    input.value = ''; // kosongkan input
+                    
+                    // Update unread count untuk receiver (opsional, untuk notifikasi)
+                    // Bisa juga simpan di struktur terpisah
+                    
+                } catch (e) {
+                    console.error('Send error:', e);
+                    alert('Gagal mengirim pesan');
+                }
+            }
+            
+            // ========== TANDAI SUDAH DIBACA ==========
+            function markMessagesAsRead() {
+                if (!database || !chatId || !currentUser) return;
+                
+                // Cari pesan yang receiver = currentUser dan read = false
+                database.ref('chats/' + chatId).orderByChild('receiver').equalTo(currentUser.uid).once('value', (snap) => {
+                    if (snap.exists()) {
+                        snap.forEach(child => {
+                            if (child.val().read === false) {
+                                // update jadi read
+                                child.ref.update({ read: true });
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // ========== MONITOR STATUS TARGET ==========
+            function monitorTargetStatus() {
+                if (!database || !targetUser) return;
+                
+                if (targetStatusListener) {
+                    database.ref('users/' + targetUser.uid).off('value', targetStatusListener);
+                }
+                
+                targetStatusListener = database.ref('users/' + targetUser.uid).on('value', (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.val();
+                        const isOnline = data.status === 'online';
+                        const dot = document.getElementById('statusDot');
+                        const statusText = document.getElementById('statusText');
+                        
+                        if (isOnline) {
+                            dot.className = 'status-dot';
+                            statusText.innerText = 'online';
+                        } else {
+                            dot.className = 'status-dot offline';
+                            statusText.innerText = 'offline';
+                        }
+                    }
+                });
+            }
+            
+            // ========== FUNGSI BACK ==========
+            function goBack() {
+                // Bersihkan target dari localStorage (opsional)
+                localStorage.removeItem('privateChatTarget');
+                window.location.href = 'lobby.html';
+            }
+            
+            // ========== HANDLE ENTER ==========
+            function handleEnter(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            }
+            
+            // ========== CLEANUP LISTENER ==========
+            function cleanup() {
+                if (messagesListener && database && chatId) {
+                    database.ref('chats/' + chatId).off('value', messagesListener);
+                }
+                if (targetStatusListener && database && targetUser) {
+                    database.ref('users/' + targetUser.uid).off('value', targetStatusListener);
+                }
+            }
+            
+            // ========== EVENT LISTENERS ==========
+            document.addEventListener('DOMContentLoaded', () => {
+                initChat();
+                
+                // Enter untuk kirim
+                document.getElementById('messageInput').addEventListener('keypress', handleEnter);
+                
+                // Bersihkan listener saat pindah halaman
+                window.addEventListener('beforeunload', cleanup);
+            });
+            
+            // Ekspor fungsi ke global
+            window.sendMessage = sendMessage;
+            window.goBack = goBack;
+            
+        })();
+    </script>
+</body>
+</html>
