@@ -675,7 +675,7 @@
                 return;
             }
             
-            const diamondCost = 10;
+            const diamondCost = 150;
             const currentRank = currentUser.rank || 0;
             const maxRank = ranks.length - 1;
             
@@ -803,7 +803,7 @@
                 
                 // Beri reward 20 diamond
                 await database.ref('users/' + currentUser.uid).update({
-                    diamond: currentUser.diamond + 20
+                    diamond: currentUser.diamond + 
                 });
                 
                 // Update local

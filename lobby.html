@@ -64,23 +64,44 @@
             animation: twinkle 3s infinite;
         }
 
-        /* Border Styles */
-        .border-default { border: 2px solid #00ff88 !important; }
-        .border-silver { border: 3px solid #c0c0c0 !important; box-shadow: 0 0 15px #c0c0c0; }
-        .border-gold { border: 3px solid #ffd700 !important; box-shadow: 0 0 20px #ffd700; }
-        .border-galaxy { 
+        /* Border Styles berdasarkan Rank */
+        .border-rank-0 { border: 2px solid #cd7f32 !important; } /* Newbie - Bronze */
+        .border-rank-1 { border: 2px solid #c0c0c0 !important; box-shadow: 0 0 10px #c0c0c0; } /* Junior - Silver */
+        .border-rank-2 { border: 2px solid #ffd700 !important; box-shadow: 0 0 15px #ffd700; } /* Senior - Gold */
+        .border-rank-3 { border: 2px solid #32cd32 !important; box-shadow: 0 0 15px #32cd32; } /* Great - Green */
+        .border-rank-4 { border: 2px solid #00ff00 !important; box-shadow: 0 0 20px #00ff00; } /* Super Great - Bright Green */
+        .border-rank-5 { border: 2px solid #ff4500 !important; box-shadow: 0 0 20px #ff4500; } /* Legend - Orange Red */
+        .border-rank-6 { border: 2px solid #9370db !important; box-shadow: 0 0 20px #9370db; } /* Kings - Purple */
+        .border-rank-7 { border: 2px solid #ff00ff !important; box-shadow: 0 0 20px #ff00ff; } /* Greatest - Magenta */
+        .border-rank-8 { border: 2px solid #8b0000 !important; box-shadow: 0 0 20px #8b0000; } /* Mad Kings - Dark Red */
+        .border-rank-9 { border: 2px solid #00ffff !important; box-shadow: 0 0 20px #00ffff; } /* Greatness - Cyan */
+        .border-rank-10 { border: 2px solid #ff8c00 !important; box-shadow: 0 0 20px #ff8c00; } /* Unbeatable - Orange */
+        .border-rank-11 { border: 2px solid #800080 !important; box-shadow: 0 0 20px #800080; } /* Monster Kings - Purple */
+        .border-rank-12 { 
+            border: 3px solid #ff0000 !important;
+            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+            animation: borderPulse 1.5s ease infinite;
+        } /* Good Man - Red */
+        .border-rank-13 { 
             border: 3px solid transparent !important;
-            background: linear-gradient(45deg, #4a00e0, #8e2de2) border-box;
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff) border-box;
             -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            animation: borderGlow 3s infinite;
+            animation: rgbBorder 3s linear infinite;
+        } /* Impossible - RGB */
+
+        @keyframes borderPulse {
+            0% { box-shadow: 0 0 15px #ff0000; }
+            50% { box-shadow: 0 0 30px #ff0000, 0 0 45px #ff4500; }
+            100% { box-shadow: 0 0 15px #ff0000; }
         }
-        @keyframes borderGlow {
-            0% { box-shadow: 0 0 5px #4a00e0; }
-            50% { box-shadow: 0 0 20px #8e2de2; }
-            100% { box-shadow: 0 0 5px #4a00e0; }
+
+        @keyframes rgbBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Skin UI Styles */
@@ -144,20 +165,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Profile Border Preview */
-        .border-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 10px auto;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-
-        /* Shop Items in Settings */
+        /* Shop Items */
         .shop-items {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -168,7 +176,7 @@
         .shop-item {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            padding: 15px;
+            padding: 13px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -192,7 +200,7 @@
         }
 
         .shop-item-name {
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 5px;
             color: #00ff88;
         }
@@ -599,7 +607,7 @@
 
         .add-friend input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 10px 13px;
             border-radius: 40px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -612,7 +620,7 @@
         }
 
         .add-friend button {
-            padding: 12px 25px;
+            padding: 11px 23px;
             background: linear-gradient(135deg, #00ff88, #00cc6a);
             border: none;
             border-radius: 40px;
@@ -735,12 +743,44 @@
         .feature-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #ffd700; }
         .feature-card p { color: #ccc; font-size: 14px; }
 
-        /* Rank Colors */
-        .rank-newbie{color:#cd7f32}.rank-junior{color:#c0c0c0}.rank-senior{color:#ffd700}
-        .rank-great{color:#32cd32}.rank-super-great{color:#00ff00}.rank-legend{color:#ff4500}
-        .rank-kings{color:#9370db}.rank-greatest{color:#ff00ff}.rank-mad-kings{color:#8b0000}
-        .rank-greatness{color:#00ffff}.rank-unbeatable{color:#ff8c00}.rank-monster-kings{color:#800080}
-        .rank-impossible{background:linear-gradient(135deg,#f00,#ff8c00,#ff0,#0f0,#0ff,#00f,#800080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        /* Rank Colors - Diperbarui */
+        .rank-newbie { color: #cd7f32; } /* Bronze */
+        .rank-junior { color: #c0c0c0; } /* Silver */
+        .rank-senior { color: #ffd700; } /* Gold */
+        .rank-great { color: #32cd32; } /* Green */
+        .rank-super-great { color: #00ff00; text-shadow: 0 0 10px #00ff00; } /* Bright Green with Glow */
+        .rank-legend { color: #ff4500; text-shadow: 0 0 10px #ff4500; } /* Orange Red */
+        .rank-kings { color: #9370db; text-shadow: 0 0 10px #9370db; } /* Purple */
+        .rank-greatest { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; } /* Magenta */
+        .rank-mad-kings { color: #8b0000; text-shadow: 0 0 10px #8b0000; } /* Dark Red */
+        .rank-greatness { color: #00ffff; text-shadow: 0 0 10px #00ffff; } /* Cyan */
+        .rank-unbeatable { color: #ff8c00; text-shadow: 0 0 10px #ff8c00; } /* Orange */
+        .rank-monster-kings { color: #800080; text-shadow: 0 0 10px #800080; } /* Purple */
+        .rank-good-man { 
+            color: #ff0000; 
+            text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500;
+            animation: textPulse 1.5s ease infinite;
+        } /* Red with Pulse */
+        .rank-impossible { 
+            background: linear-gradient(135deg, #f00, #ff8c00, #ff0, #0f0, #0ff, #00f, #800080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 300% 300%;
+            animation: gradientMove 3s ease infinite;
+            font-weight: bold;
+        }
+
+        @keyframes textPulse {
+            0% { text-shadow: 0 0 10px #ff0000; }
+            50% { text-shadow: 0 0 20px #ff0000, 0 0 30px #ff4500; }
+            100% { text-shadow: 0 0 10px #ff0000; }
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
         .loading { text-align: center; padding: 20px; color: #00ff88; }
 
@@ -1040,7 +1080,8 @@
             { id:9, name:"🔱 Greatness", color:"rank-greatness" },
             { id:10, name:"⚜️ Unbeatable", color:"rank-unbeatable" },
             { id:11, name:"🏴‍☠️ Monster Kings", color:"rank-monster-kings" },
-            { id:12, name:"⚛️亗 Impossible 亗⚛️", color:"rank-impossible" }
+            { id:12, name:"⚠️ Good Man", color:"rank-good-man" },
+            { id:13, name:"⚛️亗 Impossible 亗⚛️", color:"rank-impossible" }
         ];
 
         // Skin dan Border yang dimiliki user
@@ -1391,13 +1432,20 @@
             if (!profileImage) return;
             
             // Remove all border classes
+            for (let i = 0; i <= 13; i++) {
+                profileImage.classList.remove('border-rank-' + i);
+            }
             profileImage.classList.remove('border-silver', 'border-gold', 'border-galaxy');
             
-            // Get current border from localStorage
-            const currentBorder = localStorage.getItem('currentBorder_' + currentUser?.uid) || 'default';
+            // First check purchased border from localStorage
+            const currentBorder = localStorage.getItem('currentBorder_' + currentUser?.uid);
             
-            if (currentBorder !== 'default' && userItems.borders.includes(currentBorder)) {
+            if (currentBorder && currentBorder !== 'default' && userItems.borders.includes(currentBorder)) {
                 profileImage.classList.add('border-' + currentBorder);
+            } else {
+                // If no purchased border, apply border based on rank
+                const rank = currentUser?.rank || 0;
+                profileImage.classList.add('border-rank-' + rank);
             }
         }
 
@@ -1548,6 +1596,9 @@
                 rankDisplay.className = rankInfo.color;
             }
             if(starsDisplay) starsDisplay.textContent = currentUser.stars || 0;
+            
+            // Update border based on rank
+            applyCurrentBorder();
         }
 
         function updateDisplay() {
