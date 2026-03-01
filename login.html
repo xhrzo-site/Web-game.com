@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Game | © by Zoo x taher</title>
+    <title>Register | FUN GAME</title>
 
 <!-- OPEN SOURCE CODE CUKUP BAWA DANA 5K UDAH FULL HTML + DB +ASET 🗿 -->
 <!-- ENJOY TO MY PROJECT BROW👍🏻😉 -->
@@ -612,7 +612,7 @@
         document.getElementById('registerForm').classList.remove('active');
         setTimeout(() => {
             document.getElementById('loginForm').classList.add('active');
-        }, 50);
+        }, 0);
     }
     
     function switchToRegister() {
@@ -741,7 +741,7 @@
                 username: username,
                 password: password,
                 money: 1000,
-                diamond: 10,
+                diamond: 50,
                 rank: 0,
                 stars: 0,
                 credit: 0,
@@ -765,7 +765,7 @@
                 uid: userId,
                 username: username,
                 money: 1000,
-                diamond: 0,
+                diamond: 50,
                 rank: 0,
                 stars: 0,
                 banned: false
@@ -776,7 +776,7 @@
             showMessage('Akun berhasil dibuat! ✅', 'success');
             setTimeout(() => {
                 window.location.href = 'lobby.html';
-            }, 500);
+            }, 0);
             
         } catch (error) {
             showMessage('Error: ' + error.message, 'error');
@@ -850,7 +850,7 @@
             showMessage('Login berhasil✅!', 'success');
             setTimeout(() => {
                 window.location.href = 'lobby.html';
-            }, 50);
+            }, 0);
             
         } catch (error) {
             showMessage('Error: ' + error.message, 'error');
