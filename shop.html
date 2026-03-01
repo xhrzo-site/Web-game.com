@@ -18,10 +18,50 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #0a0a1f, #1a1a3a);
             color: #fff;
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+        }
+
+        /* Galaxy Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(100, 50, 255, 0.15) 0%, transparent 30%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 50, 150, 0.15) 0%, transparent 30%),
+                        radial-gradient(circle at 40% 80%, rgba(50, 200, 255, 0.15) 0%, transparent 30%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Stars Animation */
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
         }
         
         /* ===== HEADER ===== */
@@ -38,6 +78,8 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
+            position: relative;
+            z-index: 1;
         }
         
         .header-left {
@@ -111,6 +153,8 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 30px;
+            position: relative;
+            z-index: 1;
         }
         
         /* ===== SECTION STYLES ===== */
@@ -138,32 +182,74 @@
             font-size: 32px;
         }
         
-        /* ===== RATE CARD ===== */
-        .rate-card {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 106, 0.05));
+        /* ===== DAILY CODE SECTION ===== */
+        .daily-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.05));
             border-radius: 18px;
             padding: 25px;
-            border: 2px solid #00ff88;
+            border: 2px solid #ffd700;
             text-align: center;
             margin-bottom: 20px;
+            animation: glowPulse 2s ease infinite;
+        }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 25px #ffd700; }
+            100% { box-shadow: 0 0 10px #ffd700; }
         }
         
-        .rate-title {
+        .daily-title {
             font-size: 20px;
-            color: #88ffcc;
+            color: #ffd700;
             margin-bottom: 15px;
         }
         
-        .rate-value {
-            font-size: 32px;
+        .daily-code {
+            font-size: 48px;
             font-weight: bold;
-            color: #00ff88;
-            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            color: #ffd700;
+            letter-spacing: 10px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
         
-        .rate-value small {
-            font-size: 16px;
+        .daily-timer {
             color: #88ffcc;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .daily-btn {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .daily-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        .daily-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .daily-claimed {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            color: #ffd700;
+            font-weight: bold;
+            margin-top: 15px;
         }
         
         /* ===== PRODUCT GRID ===== */
@@ -273,115 +359,48 @@
             background: linear-gradient(135deg, #666, #444);
         }
         
-        /* ===== TOP UP SECTION ===== */
-        .topup-container {
+        /* ===== DIAMOND TO COIN ===== */
+        .exchange-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
-        
-        .topup-box {
+
+        .exchange-card {
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 25px;
-        }
-        
-        .topup-box h3 {
-            color: #00ff88;
-            margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #88ffcc;
-            font-size: 14px;
-        }
-        
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .input-group input:focus {
-            outline: none;
-            border-color: #00ff88;
-            background: rgba(255, 255, 255, 0.12);
-        }
-        
-        .input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .code-display {
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px dashed #00ff88;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 20px;
             text-align: center;
-            margin: 20px 0;
+            border: 2px solid #ffd700;
         }
-        
-        .code-text {
-            font-size: 32px;
+
+        .exchange-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .exchange-rate {
+            font-size: 24px;
             font-weight: bold;
-            color: #00ff88;
-            letter-spacing: 5px;
-            font-family: monospace;
-            margin-bottom: 5px;
-        }
-        
-        .code-note {
-            color: #88ffcc;
-            font-size: 12px;
-        }
-        
-        .generate-btn {
-            width: 100%;
-            padding: 14px;
-            background: rgba(0, 255, 136, 0.15);
-            border: 2px solid #00ff88;
-            border-radius: 12px;
-            color: #00ff88;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+            color: #ffd700;
             margin-bottom: 15px;
         }
-        
-        .generate-btn:hover {
-            background: rgba(0, 255, 136, 0.3);
-        }
-        
-        .redeem-btn {
+
+        .exchange-btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
-            border: none;
-            border-radius: 12px;
-            color: white;
+            padding: 12px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            color: #ffd700;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
         }
-        
-        .redeem-btn:hover {
+
+        .exchange-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
         }
         
         /* ===== MESSAGE ===== */
@@ -422,12 +441,6 @@
         }
         
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 992px) {
-            .topup-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
         @media (max-width: 768px) {
             body { padding: 10px; }
             
@@ -449,6 +462,11 @@
             
             .section { padding: 20px; }
             .products-grid { grid-template-columns: 1fr; }
+            
+            .daily-code {
+                font-size: 32px;
+                letter-spacing: 5px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -459,11 +477,14 @@
             }
             
             .product-price { font-size: 20px; }
-            .code-text { font-size: 24px; }
+            .daily-code { font-size: 24px; }
         }
     </style>
 </head>
 <body>
+    <!-- Stars Background -->
+    <div class="stars" id="stars"></div>
+
     <!-- Header -->
     <div class="header">
         <div class="header-left">
@@ -485,21 +506,43 @@
         </div>
     </div>
     
-        
-        <!-- Coin to Diamond -->
+    <div class="shop-container">
+        <!-- Daily Code Section -->
         <div class="section">
             <div class="section-title">
-                <span>💱</span> Tukar Coin ke Diamond
+                <span>🎁</span> DAILY REWARD
             </div>
-            <div class="products-grid">
-                <div class="product-card">
-                    <div class="product-icon">💎</div>
-                    <div class="product-name">10 Diamond</div>
-                    <div class="product-desc">Tukarkan 1.000 coin mu menjadi 10 diamond</div>
-                    <div class="product-price">
-                        1.000 💰 <small>=</small> 10 💎
-                    </div>
-                    <button class="buy-btn" onclick="exchangeCoinToDiamond()" id="exchangeBtn">TUKAR</button>
+            <div class="daily-card">
+                <div class="daily-title">✨ DAILY CODE ✨</div>
+                <div class="daily-code" id="dailyCodeDisplay">XXXXXX</div>
+                <div class="daily-timer" id="dailyTimer">Reset dalam: 00:00:00</div>
+                <button class="daily-btn" onclick="claimDailyCode()" id="dailyClaimBtn">CLAIM 50 💎</button>
+                <div id="dailyClaimedInfo" class="daily-claimed" style="display: none;">
+                    ✅ Kamu sudah claim hari ini! Kembali besok
+                </div>
+            </div>
+        </div>
+
+        <!-- Diamond to Coin Exchange -->
+        <div class="section">
+            <div class="section-title">
+                <span>💱</span> Tukar Diamond ke Coin
+            </div>
+            <div class="exchange-grid">
+                <div class="exchange-card">
+                    <div class="exchange-icon">💰</div>
+                    <div class="exchange-rate">1 💎 = 100 💰</div>
+                    <button class="exchange-btn" onclick="exchangeDiamondToCoin(1)">TUKAR 1 💎</button>
+                </div>
+                <div class="exchange-card">
+                    <div class="exchange-icon">💰💰</div>
+                    <div class="exchange-rate">5 💎 = 500 💰</div>
+                    <button class="exchange-btn" onclick="exchangeDiamondToCoin(5)">TUKAR 5 💎</button>
+                </div>
+                <div class="exchange-card">
+                    <div class="exchange-icon">💰💰💰</div>
+                    <div class="exchange-rate">10 💎 = 1000 💰</div>
+                    <button class="exchange-btn" onclick="exchangeDiamondToCoin(10)">TUKAR 10 💎</button>
                 </div>
             </div>
         </div>
@@ -513,57 +556,15 @@
                 <div class="product-card">
                     <div class="product-icon">👑</div>
                     <div class="product-name">Rank Up 1 Level</div>
-                    <div class="product-desc">Naikkan rank mu 1 level lebih tinggi!</div>
+                    <div class="product-desc">Naikkan rank mu 1 level lebih tinggi! (Max: Impossible)</div>
                     <div class="product-price">
-                        10 💎
+                        150 💎
                     </div>
                     <button class="buy-btn" onclick="upgradeRank()" id="rankUpBtn">BELI RANK</button>
                 </div>
             </div>
         </div>
-        
-        <!-- Top Up Section -->
-        <div class="section">
-            <div class="section-title">
-                <span>📲</span> CODE OTP
-            </div>
-            <div class="topup-container">
-                <!-- Generate Code -->
-                <div class="topup-box">
-                    <h3><span>🎫</span> Generate Code</h3>
-                    <div class="code-display" id="codeDisplay">
-                        <div class="code-text" id="generatedCode">XXX-XXX</div>
-                        <div class="code-note">Generate code untuk TOPUP free di bawah</div>
-                    </div>
-                    <button class="generate-btn" onclick="generateCode()" id="generateBtn">
-                        🔄 GENERATE CODE
-                    </button>
-                    <p style="color: #88ffcc; font-size: 12px; text-align: center; margin-top: 10px;">
-                        Kode akan expired dalam 5 menit
-                    </p>
-                </div>
-                
-                <!-- Redeem Code -->
-                <div class="topup-box">
-                    <h3><span>📥</span> TOP UP FREE</h3>
-                    <div class="input-group">
-                        <label>📧 Email</label>
-                        <input type="email" id="emailInput" placeholder="Masukkan email kamu">
-                    </div>
-                    <div class="input-group">
-                        <label>🔑 Code</label>
-                        <input type="text" id="codeInput" placeholder="Masukkan kode">
-                    </div>
-                    <button class="redeem-btn" onclick="redeemCode()" id="redeemBtn">
-                        ✔️ TOPUP
-                    </button>
-                    <p style="color: #ff8888; font-size: 12px; text-align: center; margin-top: 15px;">
-                        *Setiap email hanya bisa redeem 1x
-                    </p>
-                </div>
-            </div>
-        </div>
-        
+    </div>
         
     <!-- Audio -->
     <audio id="clickSound" preload="auto">
@@ -589,6 +590,23 @@
             clickVolume = parseFloat(savedClickVol);
         }
         
+        // ==================== CREATE STARS ====================
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            if (!starsContainer) return;
+            
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        
         // ==================== FIREBASE ====================
         let currentUser = null;
         
@@ -605,7 +623,8 @@
             { id: 9, name: "🔱 Greatness", starsNeeded: 80 },
             { id: 10, name: "⚜️ Unbeatable", starsNeeded: 100 },
             { id: 11, name: "🏴‍☠️ Monster Kings", starsNeeded: 200 },
-            { id: 12, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000 }
+            { id: 12, name: "⚠️ Good Man", starsNeeded: 500 },
+            { id: 13, name: "⚛️亗 Impossible 亗⚛️", starsNeeded: 1000 }
         ];
         
         // ==================== MESSAGE ====================
@@ -628,8 +647,90 @@
             document.getElementById('diamondDisplay').textContent = currentUser.diamond || 0;
         }
         
-        // ==================== EXCHANGE COIN TO DIAMOND ====================
-        async function exchangeCoinToDiamond() {
+        // ==================== DAILY CODE SYSTEM ====================
+        let dailyCode = null;
+        let lastCodeDate = null;
+        let dailyTimer = null;
+
+        function generateDailyCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return code;
+        }
+
+        function checkAndUpdateDailyCode() {
+            const today = new Date().toDateString();
+            const savedCode = localStorage.getItem('dailyCode');
+            const savedDate = localStorage.getItem('dailyCodeDate');
+            
+            if (savedDate !== today || !savedCode) {
+                // Generate new code for today
+                dailyCode = generateDailyCode();
+                localStorage.setItem('dailyCode', dailyCode);
+                localStorage.setItem('dailyCodeDate', today);
+                
+                // Reset claim status for this user
+                if (currentUser) {
+                    const claimKey = `dailyClaim_${currentUser.uid}_${today}`;
+                    localStorage.removeItem(claimKey);
+                }
+            } else {
+                dailyCode = savedCode;
+            }
+            
+            document.getElementById('dailyCodeDisplay').textContent = dailyCode;
+            updateClaimStatus();
+        }
+
+        function updateClaimStatus() {
+            if (!currentUser) return;
+            
+            const today = new Date().toDateString();
+            const claimKey = `dailyClaim_${currentUser.uid}_${today}`;
+            const claimed = localStorage.getItem(claimKey);
+            
+            const claimBtn = document.getElementById('dailyClaimBtn');
+            const claimedInfo = document.getElementById('dailyClaimedInfo');
+            
+            if (claimed) {
+                claimBtn.style.display = 'none';
+                claimedInfo.style.display = 'block';
+            } else {
+                claimBtn.style.display = 'inline-block';
+                claimedInfo.style.display = 'none';
+            }
+        }
+
+        function startDailyTimer() {
+            if (dailyTimer) clearInterval(dailyTimer);
+            
+            dailyTimer = setInterval(() => {
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                
+                const diff = tomorrow - now;
+                
+                if (diff <= 0) {
+                    // Reset for new day
+                    checkAndUpdateDailyCode();
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('dailyTimer').textContent = 
+                    `Reset dalam: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function claimDailyCode() {
             playClickSound();
             
             if (!currentUser) {
@@ -637,29 +738,76 @@
                 return;
             }
             
-            const coinCost = 1000;
-            const diamondReward = 10;
+            const today = new Date().toDateString();
+            const claimKey = `dailyClaim_${currentUser.uid}_${today}`;
             
-            if (currentUser.money < coinCost) {
-                showMessage(`Coin tidak cukup! Butuh ${coinCost} coin`, 'error');
+            // Cek sudah claim belum
+            if (localStorage.getItem(claimKey)) {
+                showMessage('Kamu sudah claim hari ini!', 'error');
+                return;
+            }
+            
+            // Validasi kode
+            const inputCode = prompt('Masukkan Daily Code:');
+            if (!inputCode) return;
+            
+            if (inputCode.toUpperCase() !== dailyCode) {
+                showMessage('Kode salah!', 'error');
                 return;
             }
             
             try {
-                // Update di Firebase
+                // Tambah diamond 50
                 await database.ref('users/' + currentUser.uid).update({
-                    money: currentUser.money - coinCost,
-                    diamond: currentUser.diamond + diamondReward
+                    diamond: currentUser.diamond + 50
                 });
                 
                 // Update local
-                currentUser.money -= coinCost;
-                currentUser.diamond += diamondReward;
+                currentUser.diamond += 50;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Tandai sudah claim
+                localStorage.setItem(claimKey, 'true');
+                
+                updateDisplay();
+                updateClaimStatus();
+                
+                showMessage('✅ Berhasil! Kamu mendapatkan 50 diamond!', 'success');
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== EXCHANGE DIAMOND TO COIN ====================
+        async function exchangeDiamondToCoin(amount) {
+            playClickSound();
+            
+            if (!currentUser) {
+                showMessage('Silahkan login terlebih dahulu!', 'error');
+                return;
+            }
+            
+            const coinReward = amount * 100;
+            
+            if (currentUser.diamond < amount) {
+                showMessage(`Diamond tidak cukup! Butuh ${amount} diamond`, 'error');
+                return;
+            }
+            
+            try {
+                await database.ref('users/' + currentUser.uid).update({
+                    diamond: currentUser.diamond - amount,
+                    money: currentUser.money + coinReward
+                });
+                
+                currentUser.diamond -= amount;
+                currentUser.money += coinReward;
                 
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateDisplay();
                 
-                showMessage(`Berhasil menukar ${coinCost} coin menjadi ${diamondReward} diamond!`, 'success');
+                showMessage(`Berhasil menukar ${amount} 💎 menjadi ${coinReward} 💰!`, 'success');
                 
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
@@ -693,13 +841,11 @@
                 const newRank = currentRank + 1;
                 const rankName = ranks[newRank].name;
                 
-                // Update di Firebase
                 await database.ref('users/' + currentUser.uid).update({
                     diamond: currentUser.diamond - diamondCost,
                     rank: newRank
                 });
                 
-                // Update local
                 currentUser.diamond -= diamondCost;
                 currentUser.rank = newRank;
                 
@@ -707,117 +853,6 @@
                 updateDisplay();
                 
                 showMessage(`Selamat! Rank kamu naik menjadi ${rankName}!`, 'success');
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-        
-        // ==================== GENERATE CODE ====================
-        let currentCode = null;
-        let codeTimer = null;
-        
-        function generateCode() {
-            playClickSound();
-            
-            if (!currentUser) {
-                showMessage('Silahkan login terlebih dahulu!', 'error');
-                return;
-            }
-            
-            // Generate random 6 digit code
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            
-            currentCode = code;
-            
-            // Display code
-            document.getElementById('generatedCode').textContent = code;
-            
-            showMessage(`Kode berhasil digenerate! Gunakan dalam 5 menit`, 'success');
-            
-            // Set timer untuk expired
-            if (codeTimer) clearTimeout(codeTimer);
-            codeTimer = setTimeout(() => {
-                if (currentCode === code) {
-                    currentCode = null;
-                    document.getElementById('generatedCode').textContent = 'XXXXXX';
-                    showMessage('Kode expired! Generate kode baru', 'error');
-                }
-            }, 5 * 60 * 1000); // 5 menit
-        }
-        
-        // ==================== REDEEM CODE ====================
-        async function redeemCode() {
-            playClickSound();
-            
-            if (!currentUser) {
-                showMessage('Silahkan login terlebih dahulu!', 'error');
-                return;
-            }
-            
-            const email = document.getElementById('emailInput').value.trim();
-            const code = document.getElementById('codeInput').value.trim().toUpperCase();
-            
-            if (!email) {
-                showMessage('Masukkan email kamu!', 'error');
-                return;
-            }
-            
-            if (!code) {
-                showMessage('Masukkan kode!', 'error');
-                return;
-            }
-            
-            // Validasi email sederhana
-            if (!email.includes('@') || !email.includes('.')) {
-                showMessage('Email tidak valid!', 'error');
-                return;
-            }
-            
-            // Cek apakah kode valid
-            if (!currentCode || currentCode !== code) {
-                showMessage('Kode tidak valid atau sudah expired!', 'error');
-                return;
-            }
-            
-            try {
-                // Cek apakah email sudah pernah redeem
-                const redeemSnapshot = await database.ref('redeemCodes/' + email.replace(/\./g, ',')).once('value');
-                
-                if (redeemSnapshot.exists()) {
-                    showMessage('Email ini sudah pernah redeem kode!', 'error');
-                    return;
-                }
-                
-                // Simpan data redeem
-                await database.ref('redeemCodes/' + email.replace(/\./g, ',')).set({
-                    code: code,
-                    uid: currentUser.uid,
-                    username: currentUser.username,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                
-                // Beri reward 20 diamond
-                await database.ref('users/' + currentUser.uid).update({
-                    diamond: currentUser.diamond + 
-                });
-                
-                // Update local
-                currentUser.diamond += 20;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateDisplay();
-                
-                // Reset code
-                currentCode = null;
-                document.getElementById('generatedCode').textContent = 'XXXXXX';
-                document.getElementById('emailInput').value = '';
-                document.getElementById('codeInput').value = '';
-                
-                showMessage('✅ Berhasil! Kamu mendapatkan 20 diamond!', 'success');
                 
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
@@ -855,6 +890,12 @@
                 
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 updateDisplay();
+                createStars();
+                
+                // Initialize daily code
+                checkAndUpdateDailyCode();
+                startDailyTimer();
+                updateClaimStatus();
                 
                 // Real-time update
                 database.ref('users/' + user.uid).on('value', (snapshot) => {
@@ -867,6 +908,7 @@
                         
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         updateDisplay();
+                        updateClaimStatus();
                     }
                 });
                 

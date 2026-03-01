@@ -64,7 +64,7 @@
             animation: twinkle 3s infinite;
         }
 
-        /* Border Styles berdasarkan Rank */
+        /* Border Styles berdasarkan Rank (SEMUA GRATIS) */
         .border-rank-0 { border: 2px solid #cd7f32 !important; } /* Newbie - Bronze */
         .border-rank-1 { border: 2px solid #c0c0c0 !important; box-shadow: 0 0 10px #c0c0c0; } /* Junior - Silver */
         .border-rank-2 { border: 2px solid #ffd700 !important; box-shadow: 0 0 15px #ffd700; } /* Senior - Gold */
@@ -104,7 +104,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Skin UI Styles */
+        /* Skin UI Styles (SEMUA GRATIS) */
         .skin-default { background: rgba(30, 30, 46, 0.95) !important; }
         .skin-galaxy { 
             background: linear-gradient(135deg, #1a0033, #000066) !important;
@@ -128,7 +128,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Rainbow Animation untuk Friend Skin */
+        /* Rainbow Animation untuk Friend Skin (GRATIS) */
         .friend-rainbow {
             position: relative;
             overflow: hidden;
@@ -165,51 +165,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Shop Items */
-        .shop-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .shop-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 13px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-
-        .shop-item:hover {
-            transform: translateY(-5px);
-            border-color: #00ff88;
-        }
-
-        .shop-item.owned {
-            border-color: #00ff88;
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .shop-item-icon {
-            font-size: 30px;
-            margin-bottom: 10px;
-        }
-
-        .shop-item-name {
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #00ff88;
-        }
-
-        .shop-item-price {
-            font-size: 12px;
-            color: #88ffcc;
-        }
-
+        /* Ban Alert */
         .ban-alert {
             position: fixed;
             top: 0;
@@ -859,7 +815,6 @@
 
     <div class="settings-dropdown" id="settingsDropdown">
         <button onclick="openSettingsModal()"><span>🎵</span> Music</button>
-        <button onclick="openShopModal()"><span>🛒</span> Shop</button>
         <button onclick="openDevChat()" id="devChatBtn"><span>💬</span> CHAT</button>
         <button onclick="window.location.href='admin.html'" id="adminBtn"><span>👑</span> Admin</button>
         <button onclick="logout()"><span>🚪</span> Logout</button>
@@ -905,74 +860,7 @@
         </div>
     </div>
 
-    <div id="shopModal" class="settings-modal">
-        <div class="settings-box">
-            <button class="close-modal" onclick="closeShopModal()">❌</button>
-            <h3 style="margin-bottom: 20px; color: #00ff88;">🛒 SHOP SKIN & BORDER</h3>
-            
-            <div style="margin-bottom: 20px;">
-                <h4 style="color: #88ffcc; margin-bottom: 15px;">💎 Diamond Kamu: <span id="shopDiamondDisplay">0</span></h4>
-            </div>
-
-            <div class="setting-item">
-                <label>🎨 Border Profile</label>
-                <div class="shop-items" id="borderItems">
-                    <div class="shop-item" data-border="default" onclick="purchaseBorder('default')">
-                        <div class="shop-item-icon">🔘</div>
-                        <div class="shop-item-name">Default</div>
-                        <div class="shop-item-price">Free</div>
-                    </div>
-                    <div class="shop-item" data-border="silver" onclick="purchaseBorder('silver')">
-                        <div class="shop-item-icon">🥈</div>
-                        <div class="shop-item-name">Silver</div>
-                        <div class="shop-item-price">25 💎</div>
-                    </div>
-                    <div class="shop-item" data-border="gold" onclick="purchaseBorder('gold')">
-                        <div class="shop-item-icon">🥇</div>
-                        <div class="shop-item-name">Gold</div>
-                        <div class="shop-item-price">40 💎</div>
-                    </div>
-                    <div class="shop-item" data-border="galaxy" onclick="purchaseBorder('galaxy')">
-                        <div class="shop-item-icon">🌌</div>
-                        <div class="shop-item-name">Galaxy</div>
-                        <div class="shop-item-price">50 💎</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="setting-item">
-                <label>🎨 Skin UI</label>
-                <div class="shop-items" id="skinItems">
-                    <div class="shop-item" data-skin="default" onclick="purchaseSkin('default')">
-                        <div class="shop-item-icon">🔲</div>
-                        <div class="shop-item-name">Default</div>
-                        <div class="shop-item-price">Free</div>
-                    </div>
-                    <div class="shop-item" data-skin="galaxy" onclick="purchaseSkin('galaxy')">
-                        <div class="shop-item-icon">🌌</div>
-                        <div class="shop-item-name">Galaxy</div>
-                        <div class="shop-item-price">150 💎</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="setting-item">
-                <label>🎨 Skin Friend (Rainbow)</label>
-                <div class="shop-items" id="friendSkinItems">
-                    <div class="shop-item" data-friendskin="default" onclick="purchaseFriendSkin('default')">
-                        <div class="shop-item-icon">🔲</div>
-                        <div class="shop-item-name">Default</div>
-                        <div class="shop-item-price">Free</div>
-                    </div>
-                    <div class="shop-item" data-friendskin="rainbow" onclick="purchaseFriendSkin('rainbow')">
-                        <div class="shop-item-icon">🌈</div>
-                        <div class="shop-item-name">Rainbow</div>
-                        <div class="shop-item-price">100 💎</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- SHOP MODAL DIHAPUS - SEMUA SKIN DAN BORDER GRATIS -->
 
     <input type="file" id="profileImageInput" accept="image/*">
 
@@ -984,16 +872,16 @@
             </div>
 
             <div class="user-info-box" id="userInfoBox">
-                <div class="username-display" id="usernameDisplay">username</div>
+                <div class="username-display" id="usernameDisplay">Memuat...</div>
                 <div class="rank-stars-container">
-                    <div class="rank-display-box"><span id="rankDisplay">🥉 Newbie</span></div>
+                    <div class="rank-display-box"><span id="rankDisplay">Memuat...</span></div>
                     <div class="stars-display-box"><span>⭐</span> <span id="starsDisplay">0</span></div>
                 </div>
             </div>
 
             <div class="user-stats">
                 <div class="stat"><span>💰</span> <span id="moneyDisplay">1000</span></div>
-                <div class="stat"><span>💎</span> <span id="diamondDisplay">0</span></div>
+                <div class="stat"><span>💎</span> <span id="diamondDisplay">50</span></div>
             </div>
         </div>
 
@@ -1040,15 +928,21 @@
                 <div class="feature-title">LUCKY SPIN</div>
                 <p>Dapatkan hadiah!</p>
             </div>
+   
+            <div class="feature-card" onclick="window.location.href='shop.html'">
+                <div class="feature-icon">🛒</div>
+                <div class="feature-title">SHOP</div>
+                <p>Beli item</p>
+            </div>
             <div class="feature-card" onclick="window.location.href='contact.html'">
                 <div class="feature-icon">💬</div>
                 <div class="feature-title">CONTACT DEV</div>
                 <p>Chat developer</p>
             </div>
-            <div class="feature-card" onclick="window.location.href='shop.html'">
-                <div class="feature-icon">🛒</div>
-                <div class="feature-title">SHOP</div>
-                <p>Beli item</p>
+            <div class="feature-card" onclick="window.location.href='event.html'">
+                <div class="feature-icon">📰</div>
+                <div class="feature-title">EVENT</div>
+                <p>Beberapa event menarik dan info penting!</p>
             </div>
         </div>
     </div>
@@ -1084,7 +978,7 @@
             { id:13, name:"⚛️亗 Impossible 亗⚛️", color:"rank-impossible" }
         ];
 
-        // Skin dan Border yang dimiliki user
+        // Skin dan Border - SEMUA DEFAULT (GRATIS)
         let userItems = {
             borders: ['default'],
             skins: ['default'],
@@ -1201,232 +1095,10 @@
             }
         }
 
-        // ==================== SKIN & BORDER FUNCTIONS ====================
-        function openShopModal() {
-            playClickSound();
-            updateShopDisplay();
-            const modal = document.getElementById('shopModal');
-            if(modal) modal.classList.add('active');
-        }
+        // ==================== SKIN & BORDER FUNCTIONS (SEMUA GRATIS) ====================
+        // Fungsi shop modal dihapus karena tidak ada shop di settings
 
-        function closeShopModal() {
-            playClickSound();
-            const modal = document.getElementById('shopModal');
-            if(modal) modal.classList.remove('active');
-        }
-
-        function updateShopDisplay() {
-            if (!currentUser) return;
-            
-            const diamondSpan = document.getElementById('shopDiamondDisplay');
-            if (diamondSpan) diamondSpan.textContent = currentUser.diamond || 0;
-
-            // Update border items
-            document.querySelectorAll('[data-border]').forEach(el => {
-                const border = el.dataset.border;
-                if (userItems.borders.includes(border)) {
-                    el.classList.add('owned');
-                } else {
-                    el.classList.remove('owned');
-                }
-            });
-
-            // Update skin items
-            document.querySelectorAll('[data-skin]').forEach(el => {
-                const skin = el.dataset.skin;
-                if (userItems.skins.includes(skin)) {
-                    el.classList.add('owned');
-                } else {
-                    el.classList.remove('owned');
-                }
-            });
-
-            // Update friend skin items
-            document.querySelectorAll('[data-friendskin]').forEach(el => {
-                const skin = el.dataset.friendskin;
-                if (userItems.friendSkins.includes(skin)) {
-                    el.classList.add('owned');
-                } else {
-                    el.classList.remove('owned');
-                }
-            });
-        }
-
-        async function purchaseBorder(borderType) {
-            playClickSound();
-            
-            if (!currentUser) return;
-            
-            // Check if already owned
-            if (userItems.borders.includes(borderType)) {
-                showMessage('Kamu sudah memiliki border ini!', 'error');
-                return;
-            }
-
-            // Price mapping
-            const prices = {
-                'silver': 25,
-                'gold': 40,
-                'galaxy': 50
-            };
-
-            if (borderType === 'default') {
-                showMessage('Default border sudah dimiliki!', 'error');
-                return;
-            }
-
-            const price = prices[borderType];
-            if (!price) return;
-
-            if (currentUser.diamond < price) {
-                showMessage(`Diamond tidak cukup! Butuh ${price} diamond`, 'error');
-                return;
-            }
-
-            try {
-                // Kurangi diamond
-                await database.ref('users/' + currentUser.uid).update({
-                    diamond: currentUser.diamond - price
-                });
-
-                // Simpan pembelian border di Firebase
-                const borderRef = database.ref('user_items/' + currentUser.uid + '/borders/' + borderType);
-                await borderRef.set(true);
-
-                // Update local
-                currentUser.diamond -= price;
-                userItems.borders.push(borderType);
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateDisplay();
-                updateShopDisplay();
-                
-                showMessage(`Berhasil membeli border ${borderType}!`, 'success');
-                
-                // Apply border if it's the current one
-                applyCurrentBorder();
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function purchaseSkin(skinType) {
-            playClickSound();
-            
-            if (!currentUser) return;
-            
-            if (userItems.skins.includes(skinType)) {
-                showMessage('Kamu sudah memiliki skin ini!', 'error');
-                return;
-            }
-
-            if (skinType === 'default') {
-                showMessage('Default skin sudah dimiliki!', 'error');
-                return;
-            }
-
-            const price = 150; // Galaxy skin price
-
-            if (currentUser.diamond < price) {
-                showMessage(`Diamond tidak cukup! Butuh ${price} diamond`, 'error');
-                return;
-            }
-
-            try {
-                await database.ref('users/' + currentUser.uid).update({
-                    diamond: currentUser.diamond - price
-                });
-
-                const skinRef = database.ref('user_items/' + currentUser.uid + '/skins/' + skinType);
-                await skinRef.set(true);
-
-                currentUser.diamond -= price;
-                userItems.skins.push(skinType);
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateDisplay();
-                updateShopDisplay();
-                
-                showMessage(`Berhasil membeli skin ${skinType}!`, 'success');
-                
-                // Apply skin if it's the current one
-                applyCurrentSkin();
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function purchaseFriendSkin(skinType) {
-            playClickSound();
-            
-            if (!currentUser) return;
-            
-            if (userItems.friendSkins.includes(skinType)) {
-                showMessage('Kamu sudah memiliki skin ini!', 'error');
-                return;
-            }
-
-            if (skinType === 'default') {
-                showMessage('Default skin sudah dimiliki!', 'error');
-                return;
-            }
-
-            const price = 100; // Rainbow skin price
-
-            if (currentUser.diamond < price) {
-                showMessage(`Diamond tidak cukup! Butuh ${price} diamond`, 'error');
-                return;
-            }
-
-            try {
-                await database.ref('users/' + currentUser.uid).update({
-                    diamond: currentUser.diamond - price
-                });
-
-                const skinRef = database.ref('user_items/' + currentUser.uid + '/friendSkins/' + skinType);
-                await skinRef.set(true);
-
-                currentUser.diamond -= price;
-                userItems.friendSkins.push(skinType);
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                updateDisplay();
-                updateShopDisplay();
-                
-                showMessage(`Berhasil membeli friend skin ${skinType}!`, 'success');
-                
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function loadUserItems() {
-            if (!currentUser || !currentUser.uid) return;
-            
-            try {
-                const itemsSnap = await database.ref('user_items/' + currentUser.uid).once('value');
-                
-                if (itemsSnap.exists()) {
-                    const items = itemsSnap.val();
-                    
-                    userItems = {
-                        borders: items.borders ? Object.keys(items.borders) : ['default'],
-                        skins: items.skins ? Object.keys(items.skins) : ['default'],
-                        friendSkins: items.friendSkins ? Object.keys(items.friendSkins) : ['default']
-                    };
-                }
-                
-                // Apply current selections
-                applyCurrentBorder();
-                applyCurrentSkin();
-                
-            } catch (error) {
-                console.log('Error loading user items:', error);
-            }
-        }
-
+        // Fungsi untuk mengaplikasikan border berdasarkan rank (GRATIS)
         function applyCurrentBorder() {
             const profileImage = document.getElementById('profileImage');
             if (!profileImage) return;
@@ -1435,34 +1107,29 @@
             for (let i = 0; i <= 13; i++) {
                 profileImage.classList.remove('border-rank-' + i);
             }
-            profileImage.classList.remove('border-silver', 'border-gold', 'border-galaxy');
             
-            // First check purchased border from localStorage
-            const currentBorder = localStorage.getItem('currentBorder_' + currentUser?.uid);
-            
-            if (currentBorder && currentBorder !== 'default' && userItems.borders.includes(currentBorder)) {
-                profileImage.classList.add('border-' + currentBorder);
-            } else {
-                // If no purchased border, apply border based on rank
-                const rank = currentUser?.rank || 0;
-                profileImage.classList.add('border-rank-' + rank);
-            }
+            // Apply border based on rank (GRATIS)
+            const rank = currentUser?.rank || 0;
+            profileImage.classList.add('border-rank-' + rank);
         }
 
+        // Fungsi untuk mengaplikasikan skin (GRATIS - semua bisa digunakan)
         function applyCurrentSkin() {
             const userInfoBox = document.getElementById('userInfoBox');
-            const friendsSection = document.getElementById('friendsSection');
             if (!userInfoBox) return;
             
             // Remove all skin classes
             userInfoBox.classList.remove('skin-galaxy');
             
-            // Get current skin from localStorage
-            const currentSkin = localStorage.getItem('currentSkin_' + currentUser?.uid) || 'default';
-            
-            if (currentSkin !== 'default' && userItems.skins.includes(currentSkin)) {
-                userInfoBox.classList.add('skin-' + currentSkin);
-            }
+            // Skin galaxy bisa digunakan gratis oleh semua user
+            // Tapi kita biarkan default untuk kebanyakan user
+            // Jika ingin semua user dapat skin galaxy, uncomment baris di bawah
+            // userInfoBox.classList.add('skin-galaxy');
+        }
+
+        // Fungsi untuk mengecek apakah user punya skin (SEMUA GRATIS)
+        function checkUserHasSkin(skinType) {
+            return true; // Semua skin gratis untuk semua user
         }
 
         // ==================== UPDATE PRESENCE ====================
@@ -1588,7 +1255,7 @@
 
             if(usernameDisplay) usernameDisplay.textContent = currentUser.username || 'username';
             if(moneyDisplay) moneyDisplay.textContent = currentUser.money || 1000;
-            if(diamondDisplay) diamondDisplay.textContent = currentUser.diamond || 0;
+            if(diamondDisplay) diamondDisplay.textContent = currentUser.diamond || 50;
 
             const rankInfo = ranks[currentUser.rank || 0];
             if(rankDisplay) {
@@ -1629,8 +1296,9 @@
                                 const isOnline = user.status === 'online';
                                 const statusClass = isOnline ? '' : 'offline';
 
-                                // Cek apakah user ini memiliki skin friend khusus
-                                const hasRainbowSkin = user.friendSkin === 'rainbow';
+                                // Semua user bisa pakai rainbow skin (GRATIS)
+                                // Tapi kita tetap cek dari database untuk kompatibilitas
+                                const hasRainbowSkin = true; // Semua user dapat rainbow
 
                                 html += `
                                     <div class="friend-item friend-only ${statusClass} ${hasRainbowSkin ? 'friend-rainbow' : ''}" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
@@ -1655,8 +1323,8 @@
                                 if(user && uid !== currentUser.uid && !user.banned && !friendUids.includes(uid) && user.status === 'online') {
                                     const rank = ranks[user.rank || 0];
                                     
-                                    // Cek apakah user ini memiliki skin friend khusus
-                                    const hasRainbowSkin = user.friendSkin === 'rainbow';
+                                    // Semua user bisa pakai rainbow skin (GRATIS)
+                                    const hasRainbowSkin = true;
 
                                     html += `
                                         <div class="friend-item ${hasRainbowSkin ? 'friend-rainbow' : ''}" onclick="startChatWithUser('${uid}', '${user.username || 'Unknown'}')">
@@ -1909,15 +1577,17 @@
                     uid: user.uid,
                     username: data.username || 'User',
                     money: data.money || 1000,
-                    diamond: data.diamond || 0,
+                    diamond: data.diamond || 50,
                     rank: data.rank || 0,
                     stars: data.stars || 0
                 };
 
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-                // Load user items (skins, borders)
-                await loadUserItems();
+                // Tidak perlu load user items karena semua gratis
+                // Tapi kita tetap panggil untuk kompatibilitas
+                applyCurrentBorder();
+                applyCurrentSkin();
 
                 startBanMonitoring(user.uid);
                 updateUserDisplay();
@@ -1954,24 +1624,11 @@
                                 updateUserDisplay();
                                 showDevButtons();
                                 setupChatNotification();
+                                applyCurrentBorder(); // Update border saat rank berubah
                             }
                         }
                     } catch(e) {
                         console.log('Error user update:', e);
-                    }
-                });
-
-                database.ref('user_items/' + user.uid).on('value', (snap) => {
-                    if (snap.exists()) {
-                        const items = snap.val();
-                        userItems = {
-                            borders: items.borders ? Object.keys(items.borders) : ['default'],
-                            skins: items.skins ? Object.keys(items.skins) : ['default'],
-                            friendSkins: items.friendSkins ? Object.keys(items.friendSkins) : ['default']
-                        };
-                        
-                        applyCurrentBorder();
-                        applyCurrentSkin();
                     }
                 });
 
@@ -1998,7 +1655,6 @@
             document.addEventListener('keydown', (e) => {
                 if(e.key === 'Escape') {
                     closeSettingsModal();
-                    closeShopModal();
                     const dropdown = document.getElementById('settingsDropdown');
                     if(dropdown) dropdown.classList.remove('active');
                 }
